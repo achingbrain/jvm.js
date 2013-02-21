@@ -1,6 +1,14 @@
-*.class
-
-# Package Files #
-*.jar
-*.war
-*.ear
+target
+rt
+bin
+.DS_Store
+.classpath
+.settings
+.project
+.metadata
+.idea
+*.ipr
+*.iml
+*.iws
+node_modules
+_SpecRunner.html

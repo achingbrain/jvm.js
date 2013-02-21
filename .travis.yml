@@ -1,0 +1,8 @@
+language: node_js
+node_js:
+  - 0.8
+before_install:
+  - npm install grunt-jasmine-runner
+  - npm install grunt-jasmine-coverage
+  - npm install grunt-template-jasmine-istanbul
+  - npm install grunt-contrib-copy

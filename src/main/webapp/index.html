@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>:: jjvm ::</title>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+		<link rel="stylesheet" type="text/css" href="css/jjvm.css" />
+
+		<script type="text/javascript">
+
+"use strict";
+
+		</script>
+		<script type="text/javascript" src="js/jquery.js"></script>
+		<script type="text/javascript" src="js/bootstrap.js"></script>
+		<script type="text/javascript" src="js/underscore.js"></script>
+		<script type="text/javascript" src="js/underscore.string.js"></script>
+		<script type="text/javascript" src="js/jjvm.js"></script>
+		<script type="text/javascript">
+
+$(document).ready(jjvm.init);
+
+		</script>
+	</head>
+	<body>
+		<div id="program_define">
+			<div class="btn-toolbar">
+				<button class="btn btn-primary" id="button_compile">Compile</button>
+			</div>
+			<textarea id="source" disabled="true" placeholder="Paste the output of 'javap -c CLASS_NAME' here"></textarea>
+		</div>
+		<div id="program_run">
+			<div class="btn-toolbar">
+				<button class="btn btn-warning" id="button_back">Back</button>
+				<button class="btn btn-success" id="button_run">Run</button>
+				<div class="btn-group">
+					<button class="btn" id="button_resume"><i class="icon-play"></i></button>
+					<button class="btn" id="button_pause"><i class="icon-pause"></i></button>
+					<button class="btn" id="button_step_over"><i class="icon-arrow-right"></i></button>
+					<button class="btn" id="button_drop_to_frame"><i class="icon-retweet"></i></button>
+				</div>
+			</div>
+			<input id="arguments" type="text" placeholder="Comma separated program arguments" />
+			<div id="classes" class="box">
+				<h5>Classes</h5>
+				<ul class="user"></ul>
+				<h5>System Classes</h5>
+				<ul class="system"></ul>
+			</div>
+		</div>
+		<div id="threads" class="box">
+			<h5>Threads</h5>
+			<ul></ul>
+		</div>
+		<div id="frame" class="box">
+			<h3>Frame <small></small></h3>
+			<h4>Local variables</h4>
+			<table id="localVariables"></table>
+			<h4>Stack</h4>
+			<table id="stack"></table>
+		</div>
+		<div id="console" class="box">
+			<h5>Log</h5>
+			<div class="btn-toolbar">
+				<button class="btn btn-mini" id="button_console_clear">Clear</button>
+			</div>
+			<ul></ul>
+		</div>
+	</body>
+</html>
