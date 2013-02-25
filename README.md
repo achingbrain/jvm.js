@@ -3,8 +3,6 @@ jjvm [![Build Status](https://travis-ci.org/achingbrain/jjvm.png)](https://travi
 
 A JavaScript implementation of the JVM.
 
-Demo: (http://achingbrain.github.com/jjvm)[http://achingbrain.github.com/jjvm]
-
 Getting started
 -----
 
@@ -17,6 +15,10 @@ Getting started
 	grunt run
 
 3. Open http://localhost:8060
+
+4. Decompile a Java .class file with a main method with `javap -c` and paste the contents into the browser
+
+5. Hit compile, set some breakpoints and hit run
 
 Other tasks
 ----
