@@ -1,21 +1,20 @@
-jjvm = {
-	_compiler: new Compiler(),
-	_console: null,
+jjvm.ui.JJVM = {
+	console: null,
 	_frameWatcher: null,
 	_classOutliner: null,
 	_threadWatcher: null,
+	_classDropper: null,
 
 	init: function() {
 		// no compilation while we do setup
 		$("#button_compile").attr("disabled", true);
 
 		// set up gui
-		jjvm._console = new Console("#console");
-		jjvm._frameWatcher = new FrameWatcher("#localVariables", "#stack", "#frame h3 small"),
-		jjvm._classOutliner = new ClassOutliner("#classes"),
-		jjvm._threadWatcher = new ThreadWatcher("#threads > ul"),
-
-		jjvm._showCompile();
+		jjvm.ui.JJVM.console = new jjvm.ui.Console("#console");
+		jjvm.ui.JJVM._frameWatcher = new jjvm.ui.FrameWatcher("#localVariables", "#stack", "#frame h3 small"),
+		jjvm.ui.JJVM._classOutliner = new jjvm.ui.ClassOutliner("#classes"),
+		jjvm.ui.JJVM._threadWatcher = new jjvm.ui.ThreadWatcher("#threads > ul"),
+		jjvm.ui.JJVM._classDropper = new jjvm.ui.ClassDropper("#program_define");
 
 		// initialy disabled debug buttons
 		$("#button_resume").attr("disabled", true);
@@ -25,19 +24,17 @@ jjvm = {
 
 		// set up debug button listeners
 		$("#button_resume").click(function() {
-			jjvm._threadWatcher.getSelectedThread().dispatch("onResumeExecution");
+			jjvm.ui.JJVM._threadWatcher.getSelectedThread().dispatch("onResumeExecution");
 		});
 		$("#button_pause").click(function() {
-			jjvm._threadWatcher.getSelectedThread().dispatch("onSuspendExecution");
+			jjvm.ui.JJVM._threadWatcher.getSelectedThread().dispatch("onSuspendExecution");
 		});
 		$("#button_step_over").click(function() {
-			jjvm._threadWatcher.getSelectedThread().dispatch("onStepOver");
+			jjvm.ui.JJVM._threadWatcher.getSelectedThread().dispatch("onStepOver");
 		});
 		$("#button_drop_to_frame").click(function() {
-			jjvm._threadWatcher.getSelectedThread().dispatch("onDropToFrame");
+			jjvm.ui.JJVM._threadWatcher.getSelectedThread().dispatch("onDropToFrame");
 		});
-
-		$("#button_back").click(jjvm._showCompile);
 
 		// enable compile and run buttons when we have source code
 		$("#source").bind("keyup", function() {
@@ -49,22 +46,18 @@ jjvm = {
 		});
 
 		// set up button listeners
-		$("#button_compile").click(jjvm.compile);
-		
-		$("#button_run").removeAttr("disabled");
-		$("#button_run").click(jjvm.run);
+		$("#button_run").click(jjvm.ui.JJVM.run);
 
-		NotificationCentre.register("onCompileSuccess", function() {
-			jjvm._console.info("Compilation complete");
-			jjvm._showRun();
+		jjvm.core.NotificationCentre.register("onCompileSuccess", function() {
+			jjvm.ui.JJVM.console.info("Compilation complete");
 		});
 
-		NotificationCentre.register("onCompileError", function(sender, error) {
-			jjvm._console.error("Compilation error!");
-			jjvm._console.error(error);
+		jjvm.core.NotificationCentre.register("onCompileError", function(sender, error) {
+			jjvm.ui.JJVM.console.error("Compilation error!");
+			jjvm.ui.JJVM.console.error(error);
 		});
 
-		NotificationCentre.register("onBreakpointEncountered", function() {
+		jjvm.core.NotificationCentre.register("onBreakpointEncountered", function() {
 			$("#button_run").attr("disabled", true);
 			$("#button_resume").removeAttr("disabled");
 			$("#button_pause").attr("disabled", true);
@@ -72,7 +65,7 @@ jjvm = {
 			$("#button_drop_to_frame").removeAttr("disabled");
 		});
 
-		NotificationCentre.register("onExecutionComplete", function() {
+		jjvm.core.NotificationCentre.register("onExecutionComplete", function() {
 			// reset buttons
 			$("#button_run").removeAttr("disabled");
 			$("#button_resume").attr("disabled", true);
@@ -80,7 +73,7 @@ jjvm = {
 			$("#button_step_over").attr("disabled", true);
 			$("#button_drop_to_frame").attr("disabled", true);
 
-			jjvm._console.info("Done");
+			jjvm.ui.JJVM.console.info("Done");
 		});
 
 		// all done, enable input
@@ -92,30 +85,6 @@ jjvm = {
 		}
 	},
 
-	_showCompile: function() {
-		$("#program_define").show();
-		$("#program_run").hide();
-		$("#threads").hide();
-		$("#frame").hide();
-		$("#console").addClass("compile");
-		$("#console").removeClass("run");
-	},
-
-	_showRun: function() {
-		$("#program_define").hide();
-		$("#program_run").show();
-		$("#threads").show();
-		$("#frame").show();
-		$("#console").addClass("run");
-		$("#console").removeClass("compile");
-	},
-
-	compile: function(event) {
-		event.preventDefault();
-
-		jjvm._compiler.compile($("#source").val());
-	},
-
 	run: function(event) {
 		event.preventDefault();
 
@@ -123,8 +92,10 @@ jjvm = {
 		var mainClass;
 		var mainMethod;
 
-		$.each(ClassLoader.getClassDefinitions(), function(index, classDef) {
+		$.each(jjvm.core.ClassLoader.getClassDefinitions(), function(index, classDef) {
 			$.each(classDef.getMethods(), function(index, methodDef) {
+				console.info("looking at " + methodDef.getName());
+
 				if(methodDef.getName() == "main" && methodDef.isStatic() && methodDef.getReturns() == "void") {
 					mainClass = classDef;
 					mainMethod = methodDef;
@@ -134,7 +105,7 @@ jjvm = {
 
 		if(!mainMethod) {
 			// nothing to execute, abort!
-			jjvm._console.warn("No main method present.");
+			jjvm.ui.JJVM.console.warn("No main method present.");
 
 			return;
 		}
@@ -155,7 +126,7 @@ jjvm = {
 		$("#button_drop_to_frame").attr("disabled", true);
 
 		try {
-			jjvm._console.info("Executing...");
+			jjvm.ui.JJVM.console.info("Executing...");
 			var thread = new Thread(new Frame(mainClass, mainMethod, args));
 			thread.register("onExecutionComplete", function() {
 				thread.deRegister("onExecutionComplete", this);
@@ -168,10 +139,10 @@ jjvm = {
 
 				ThreadPool.reap();
 			});
-			jjvm._threadWatcher.setSelectedThread(thread);
+			jjvm.ui.JJVM._threadWatcher.setSelectedThread(thread);
 			thread.run();
 		} catch(error) {
-			jjvm._console.error(error);
+			jjvm.ui.JJVM.console.error(error);
 		}
 	}
 };

@@ -65,14 +65,6 @@ h3 {
 #console {
 	overflow: auto;
 	position: absolute;
-}
-#console.compile {
-	bottom: 10px;
-	left: 10px;
-	height: 100px;
-	right: 10px;
-}
-#console.run {
 	bottom: 10px;
 	height: 200px;
 	right: 10px;
@@ -99,13 +91,16 @@ h3 {
 	overflow: auto;
 
 	height: 90%;
-	height: -moz-calc(100% - 82px);
-	height: -webkit-calc(100% - 82px);
-	height: calc(100% - 82px);
+	height: -moz-calc(100% - 141px);
+	height: -webkit-calc(100% - 141px);
+	height: calc(100% - 141px);
 }
 #classes li {
 	list-style: none;
 	white-space: nowrap;
+}
+#classes a small {
+	float: right;
 }
 #classes ul {
 	margin: 0;
@@ -145,38 +140,40 @@ h3 {
 }
 
 #program_define {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 20px;
-	bottom: 140px;
+	border: 2px dashed #666;
+	height: 50px;
+	margin-bottom: 10px;
+	padding: 10px;
+	background-color: #222;
 }
-#program_define div.btn-toolbar {
-	margin: 10px;
+#program_define.dragging {
+	background-color: #315E31;
+	border: 2px dashed #264A26;
 }
-#program_define textarea {
-	margin: 0 10px;
-	width: 100%;
-	height: 90%;
-	height: -moz-calc(100% - 33px);
-	height: -webkit-calc(100% - 33px);
-	height: calc(100% - 33px);
+#program_define.dragging p {
+	color: #264A26;
+}
+#program_define p {
+	text-align: center;
+	font-size: 2em;
+	font-weight: bold;
+	color: #666;
 }
 
-#program_define .btn-toolbar, #program_run .btn-toolbar {
+#program_run .btn-toolbar {
 	margin-top: 0;
 }
-#program_define .btn-group, #program_run .btn-group {
+#program_run .btn-group {
 	float: right;
 }
-#program_define textarea, #program_run input[type="text"] {
+#program_run input[type="text"] {
 	color: #FFF;
 	background-color: #222;
 	border: 1px solid #666;
 }
-#program_define textarea::-webkit-input-placeholder, #program_run input::-webkit-input-placeholder {
+#program_run input::-webkit-input-placeholder {
 	color: #666;
 }
-#program_define textarea:-moz-placeholder, #program_run input:-moz-placeholder {
+#program_run input:-moz-placeholder {
 	color: #666;
 }​

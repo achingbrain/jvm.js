@@ -1,4 +1,4 @@
-FrameWatcher = function(localVariableTable, stackTable, title) {
+jjvm.ui.FrameWatcher = function(localVariableTable, stackTable, title) {
 	
 	this._update = function(frame) {
 		this._updateLocalVariableTable(frame.getLocalVariables().getLocalVariables());
@@ -42,10 +42,10 @@ FrameWatcher = function(localVariableTable, stackTable, title) {
 		}
 	};
 
-	NotificationCentre.register("onInstructionExecution", _.bind(function(frame, instruction) {
+	jjvm.core.NotificationCentre.register("onInstructionExecution", _.bind(function(frame, instruction) {
 		this._update(frame.getThread().getCurrentFrame());
 	}, this));
-	NotificationCentre.register("onCurrentFrameChanged", _.bind(function(thread, frame) {
+	jjvm.core.NotificationCentre.register("onCurrentFrameChanged", _.bind(function(thread, frame) {
 		this._update(thread.getCurrentFrame());
 	}, this));
 };

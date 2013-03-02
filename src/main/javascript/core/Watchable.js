@@ -1,4 +1,4 @@
-Watchable = {
+jjvm.core.Watchable = {
 
 	register: function(eventType, listener) {
 		if(!this._observers) {
@@ -62,6 +62,6 @@ Watchable = {
 		}
 
 		// inform global listeners
-		NotificationCentre.dispatch(this, eventType, args);
+		jjvm.core.NotificationCentre.dispatch(this, eventType, args);
 	}
 };

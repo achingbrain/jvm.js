@@ -1,4 +1,4 @@
-function Console(element) {
+jjvm.ui.Console = function(element) {
 	$(element).find("button").click(_.bind(function(event) {
 		event.preventDefault();
 		this.clear();
@@ -36,4 +36,4 @@ function Console(element) {
 
 		$(element).scrollTop($(element)[0].scrollHeight);
 	};
-}
+};

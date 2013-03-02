@@ -17,20 +17,13 @@
 		<script type="text/javascript" src="js/jjvm.js"></script>
 		<script type="text/javascript">
 
-$(document).ready(jjvm.init);
+$(document).ready(jjvm.ui.JJVM.init);
 
 		</script>
 	</head>
 	<body>
-		<div id="program_define">
-			<div class="btn-toolbar">
-				<button class="btn btn-primary" id="button_compile">Compile</button>
-			</div>
-			<textarea id="source" disabled="true" placeholder="Paste the output of 'javap -c CLASS_NAME' here"></textarea>
-		</div>
 		<div id="program_run">
 			<div class="btn-toolbar">
-				<button class="btn btn-warning" id="button_back">Back</button>
 				<button class="btn btn-success" id="button_run">Run</button>
 				<div class="btn-group">
 					<button class="btn" id="button_resume"><i class="icon-play"></i></button>
@@ -40,6 +33,9 @@ $(document).ready(jjvm.init);
 				</div>
 			</div>
 			<input id="arguments" type="text" placeholder="Comma separated program arguments" />
+			<div id="program_define">
+				<p>Drop a .class file here</p>
+			</div>
 			<div id="classes" class="box">
 				<h5>Classes</h5>
 				<ul class="user"></ul>

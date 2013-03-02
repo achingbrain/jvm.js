@@ -1,4 +1,4 @@
-function Iterator(iterable) {
+jjvm.core.Iterator = function(iterable) {
 	var index = 0;
 
 	this.next = function() {
@@ -27,4 +27,16 @@ function Iterator(iterable) {
 	this.reset = function() {
 		index = 0;
 	};
-}
+
+	this.jump = function(location) {
+		index = location;
+	};
+
+	this.getLocation = function() {
+		return index;
+	};
+
+	this.getIterable = function() {
+		return iterable;
+	};
+};

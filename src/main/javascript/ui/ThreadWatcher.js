@@ -1,4 +1,4 @@
-ThreadWatcher = function(list) {
+jjvm.ui.ThreadWatcher = function(list) {
 	var _selectedThread;
 
 	this.getSelectedThread = function() {
@@ -67,6 +67,6 @@ ThreadWatcher = function(list) {
 		$(list).append(li);
 	};
 
-	NotificationCentre.register("onBeforeInstructionExecution", _.bind(this._update, this));
-	NotificationCentre.register("onExecutionComplete", _.bind(this._update, this));
+	jjvm.core.NotificationCentre.register("onBeforeInstructionExecution", _.bind(this._update, this));
+	jjvm.core.NotificationCentre.register("onExecutionComplete", _.bind(this._update, this));
 };

@@ -1,29 +1,29 @@
-NotificationCentre = {
+jjvm.core.NotificationCentre = {
 	_listeners: {},
 
 	register: function(eventType, listener) {
-		if(NotificationCentre._listeners[eventType] === undefined) {
-			NotificationCentre._listeners[eventType] = [];
+		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
+			jjvm.core.NotificationCentre._listeners[eventType] = [];
 		}
 
-		NotificationCentre._listeners[eventType].push(listener);
+		jjvm.core.NotificationCentre._listeners[eventType].push(listener);
 	},
 
 	deRegister: function(eventType, listener) {
-		if(NotificationCentre._listeners[eventType] === undefined) {
+		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
 			return;
 		}
 
-		for(var i = 0; i < NotificationCentre._listeners[eventType].length; i++) {
-			if(NotificationCentre._listeners[eventType][i] == listener) {
-				NotificationCentre._listeners[eventType].splice(i, 1);
+		for(var i = 0; i < jjvm.core.NotificationCentre._listeners[eventType].length; i++) {
+			if(jjvm.core.NotificationCentre._listeners[eventType][i] == listener) {
+				jjvm.core.NotificationCentre._listeners[eventType].splice(i, 1);
 				i--;
 			}
 		}
 	},
 
 	dispatch: function(sender, eventType, args) {
-		if(NotificationCentre._listeners[eventType] === undefined) {
+		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
 			return;
 		}
 
@@ -37,8 +37,8 @@ NotificationCentre = {
 
 		args.unshift(sender);
 
-		for(var i = 0; i < NotificationCentre._listeners[eventType].length; i++) {
-			NotificationCentre._listeners[eventType][i].apply(this, args);
+		for(var i = 0; i < jjvm.core.NotificationCentre._listeners[eventType].length; i++) {
+			jjvm.core.NotificationCentre._listeners[eventType][i].apply(this, args);
 		}
 	}
 };

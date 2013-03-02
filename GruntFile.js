@@ -10,40 +10,18 @@ module.exports = function(grunt) {
 					"src/main/webapp/js/bootsrap.js"
 				],
 				core: [
-					"src/main/javascript/core/String+Additions.js",
-					"src/main/javascript/core/Function+Additions.js",
-					"src/main/javascript/core/Iterator.js",
-					"src/main/javascript/core/NotificationCentre.js",
-					"src/main/javascript/core/Watchable.js",
-					"src/main/javascript/core/ObjectReference.js",
-					"src/main/javascript/core/ByteCode.js",
-					"src/main/javascript/core/ByteCodeParser.js",
-					"src/main/javascript/core/ConstructorDefinition.js",
-					"src/main/javascript/core/ConstructorDefinitionParser.js",
-					"src/main/javascript/core/FieldDefinition.js",
-					"src/main/javascript/core/FieldDefinitionParser.js",
-					"src/main/javascript/core/MethodDefinition.js",
-					"src/main/javascript/core/MethodDefinitionParser.js",
-					"src/main/javascript/core/ExceptionTable.js",
-					"src/main/javascript/core/ExceptionTableParser.js",
-					"src/main/javascript/core/ClassDefinition.js",
-					"src/main/javascript/core/ClassDefinitionParser.js",
-					"src/main/javascript/core/Compiler.js",
-					"src/main/javascript/core/ThreadPool.js",
-					"src/main/javascript/core/Thread.js",
-					"src/main/javascript/core/Frame.js",
-					"src/main/javascript/core/Stack.js",
-					"src/main/javascript/core/LocalVariables.js",
-					"src/main/javascript/core/SystemClassLoader.js",
-					"src/main/javascript/core/ClassLoader.js",
-					"src/main/javascript/core/Goto.js"
+					"src/main/javascript/namespace.js",
+
+					"src/main/javascript/core/*.js",
+					"src/main/javascript/types/*.js",
+					"src/main/javascript/runtime/*.js",
+					"src/main/javascript/compiler/javap/*.js",
+					"src/main/javascript/compiler/bytecode/*.js",
+
+					"src/main/javascript/system.js"
 				],
 				ui: [
-					"src/main/javascript/ui/Console.js",
-					"src/main/javascript/ui/FrameWatcher.js",
-					"src/main/javascript/ui/ClassOutliner.js",
-					"src/main/javascript/ui/ThreadWatcher.js",
-					"src/main/javascript/ui/JJVM.js"
+					"src/main/javascript/ui/*.js"
 				]
 			}
 		},

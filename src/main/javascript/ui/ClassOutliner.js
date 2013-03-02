@@ -1,4 +1,4 @@
-ClassOutliner = function(element) {
+jjvm.ui.ClassOutliner = function(element) {
 	var _userList = $(element).find("ul.user")[0];
 	var _systemList = $(element).find("ul.system")[0];
 	var _listElements = [];
@@ -21,16 +21,16 @@ ClassOutliner = function(element) {
 		}
 	};
 
-	this._onCompilationSuccess = function(sender) {
+	this._buildClassList = function(sender) {
 		$(_userList).empty();
 		$(_systemList).empty();
 		_listElements = [];
 
-		$.each(ClassLoader.getClassDefinitions(), _.bind(function(index, classDef) {
+		$.each(jjvm.core.ClassLoader.getClassDefinitions(), _.bind(function(index, classDef) {
 			this._buildClassOutline(classDef, _userList, true);
 		}, this));
 
-		$.each(SystemClassLoader.getClassDefinitions(), _.bind(function(index, classDef) {
+		$.each(jjvm.core.SystemClassLoader.getClassDefinitions(), _.bind(function(index, classDef) {
 			this._buildClassOutline(classDef, _systemList, false);
 		}, this));
 	};
@@ -58,47 +58,6 @@ ClassOutliner = function(element) {
 				fieldDef.getName() + "</li>");
 		}, this));
 
-		$.each(classDef.getConstructors(), _.bind(function(index, constructorDef) {
-			var cssClass = "constructor " + constructorDef.getVisibility() + (index === 0 ? " first" : "");
-			var icon = "icon-white ";
-
-			if(constructorDef.getVisibility() == "public") {
-				icon += "icon-plus";
-			} else if(constructorDef.getVisibility() == "private") {
-				icon += "icon-minus";
-			} else if(constructorDef.getVisibility() == "protected") {
-				icon += "icon-asterisk";
-			}
-
-			var constructor = innerList.append("<li class=\"" + cssClass + "\"><i class=\"" + icon + "\"></i> " + 
-				this._formatVisibility(constructorDef.getVisibility()) + " " + 
-				constructorDef.getName() + "(" + 
-				this._formatTypes(constructorDef.getArgs()) + ")</li>");
-
-			var instructionList = $("<ul class=\"instruction_list\"></ul>");
-			$(constructor).append(instructionList);
-
-			if(constructorDef.getImplementation()) {
-				$(instructionList).append("<li>Native code</li>");
-			} else {
-				$.each(constructorDef.getInstructions(), function(index, instruction) {
-					var checkbox = $("<input type=\"checkbox\"/>");
-					$(checkbox).attr("checked", instruction.hasBreakpoint());
-					$(checkbox).change(function() {
-						instruction.setBreakpoint($(checkbox).is(':checked'));
-					});
-
-					var listItem = $("<li></li>");
-					$(listItem).append(checkbox);
-					$(listItem).append(" " + _.escape(instruction.toString()));
-
-					_listElements.push({listItem: listItem, instruction: instruction});
-
-					$(instructionList).append(listItem);
-				});
-			}
-		}, this));
-
 		$.each(classDef.getMethods(), _.bind(function(index, methodDef) {
 			var cssClass = "method " + methodDef.getVisibility() + (index === 0 ? " first" : "");
 			var icon = "icon-white ";
@@ -117,7 +76,7 @@ ClassOutliner = function(element) {
 				(methodDef.isStatic() ? this._formatKeyword("static") : "") + " " + 
 				(methodDef.isFinal() ? this._formatKeyword("final") : "") + " " + 
 				(methodDef.isSynchronized() ? this._formatKeyword("synchronized") : "") + " " + 
-				methodDef.getName() + "(" + 
+				_.escape(methodDef.getName()) + "(" + 
 				this._formatTypes(methodDef.getArgs()) + ")</li>");
 			var instructionList = $("<ul class=\"instruction_list\"></ul>");
 			$(method).append(instructionList);
@@ -144,6 +103,11 @@ ClassOutliner = function(element) {
 		}, this));
 
 		var link = $("<a>" + classDef.getName() + "</a>");
+
+		if(classDef.getSourceFile()) {
+			$(link).prepend("<small class=\"muted\">" + classDef.getSourceFile() + " / " + classDef.getVersion() + "</small>");
+		}
+
 		$(link).click(function(event) {
 			event.preventDefault();
 			innerList.toggle();
@@ -192,7 +156,9 @@ ClassOutliner = function(element) {
 		return output.join(", ");
 	};
 
-	NotificationCentre.register("onCompileSuccess", _.bind(this._onCompilationSuccess, this));
-	NotificationCentre.register("onBeforeInstructionExecution", _.bind(this._onBeforeInstructionExecution, this));
-	NotificationCentre.register("onExecutionComplete", _.bind(this._onExecutionComplete, this));
+	jjvm.core.NotificationCentre.register("onCompileSuccess", _.bind(this._buildClassList, this));
+	jjvm.core.NotificationCentre.register("onBeforeInstructionExecution", _.bind(this._onBeforeInstructionExecution, this));
+	jjvm.core.NotificationCentre.register("onExecutionComplete", _.bind(this._onExecutionComplete, this));
+
+	this._buildClassList();
 };

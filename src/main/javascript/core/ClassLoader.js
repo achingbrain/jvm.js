@@ -1,32 +1,32 @@
-ClassLoader = {
+jjvm.core.ClassLoader = {
 	_classes: [],
 
 	addClassDefinition: function(classDef) {
 		// see if we are redefining the class
-		for(var i = 0; i < ClassLoader._classes.length; i++) {
-			if(ClassLoader._classes[i].getName() == classDef.getName()) {
+		for(var i = 0; i < jjvm.core.ClassLoader._classes.length; i++) {
+			if(jjvm.core.ClassLoader._classes[i].getName() == classDef.getName()) {
 				// replace previous definition and bail
-				ClassLoader._classes[i] = classDef;
+				jjvm.core.ClassLoader._classes[i] = classDef;
 
 				return;
 			}
 		}
 
 		// haven't seen this class before
-		ClassLoader._classes.push(classDef);
+		jjvm.core.ClassLoader._classes.push(classDef);
 	},
 
 	getClassDefinitions: function() {
-		return ClassLoader._classes;
+		return jjvm.core.ClassLoader._classes;
 	},
 
 	loadClass: function(className) {
-		for(var i = 0; i < ClassLoader._classes.length; i++) {
-			if(ClassLoader._classes[i].getName() == className) {
-				return ClassLoader._classes[i];
+		for(var i = 0; i < jjvm.core.ClassLoader._classes.length; i++) {
+			if(jjvm.core.ClassLoader._classes[i].getName() == className) {
+				return jjvm.core.ClassLoader._classes[i];
 			}
 		}
 
-		return SystemClassLoader.loadClass(className);
+		return jjvm.core.SystemClassLoader.loadClass(className);
 	}
 };
