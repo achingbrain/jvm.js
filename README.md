@@ -6,9 +6,9 @@ A JavaScript implementation of the JVM.
 Demo
 -----
 
-`git clone http://github.com/achingbrain/jjvm.git && cd hexify && npm install && grunt run` too much like hard work?
+`git clone http://github.com/achingbrain/jjvm.git && cd jjvm && npm install && grunt run` too much like hard work?
 
-[Help is at hand](http://achingbrain.github.com/jjvm).
+[Help is at hand](http://achingbrain.github.com/jjvm).  Hope you're running a modern browser.
 
 Getting started
 -----
