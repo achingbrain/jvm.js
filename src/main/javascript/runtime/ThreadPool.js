@@ -7,5 +7,7 @@ jjvm.runtime.ThreadPool = {
 				jjvm.runtime.ThreadPool.threads.splice(i, 1);
 			}
 		}
+
+		jjvm.core.NotificationCentre.dispatch(this, "onThreadGC");
 	}
 };

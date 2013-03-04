@@ -1,4 +1,4 @@
-jjvm.compiler.bytecode.ByteCodeParser = function() {
+jjvm.compiler.ByteCodeParser = function() {
 	var _bytecode_mapping = {
 		0x00: {
 			mnemonic: "nop",
@@ -1185,13 +1185,16 @@ jjvm.compiler.bytecode.ByteCodeParser = function() {
 		var instructions = [];
 
 		while(iterator.hasNext()) {
+			var location = iterator.getLocation();
 			var code = iterator.readU8();
 
 			if(_bytecode_mapping[code]) {
 				instructions.push(new jjvm.types.ByteCode(
 					_bytecode_mapping[code].mnemonic, 
 					_bytecode_mapping[code].operation, 
-					_bytecode_mapping[code].args instanceof Function ?  _bytecode_mapping[code].args(iterator, constantPool) :  _bytecode_mapping[code].args)
+					_bytecode_mapping[code].args instanceof Function ?  _bytecode_mapping[code].args(iterator, constantPool) :  _bytecode_mapping[code].args,
+					location,
+					constantPool)
 			);
 			} else {
 				throw "Cannot map bytecode " + code.toString(16);

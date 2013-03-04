@@ -1,4 +1,4 @@
-jjvm.compiler.bytecode.ConstantPoolParser = function() {
+jjvm.compiler.ConstantPoolParser = function() {
 
 	this.parse = function(iterator) {
 		var poolSize = iterator.readU16();
@@ -21,11 +21,11 @@ jjvm.compiler.bytecode.ConstantPoolParser = function() {
 			} else if(tag == 0x03) {
 				pool.store(i, new jjvm.types.ConstantPoolValue("int", iterator.readU32(), pool));
 			} else if(tag == 0x04) {
-				pool.store(i, new jjvm.types.ConstantPoolValue("float", iterator.readU32(), pool));
+				pool.store(i, new jjvm.types.ConstantPoolValue("float", iterator.readFloat(), pool));
 			} else if(tag == 0x05) {
 				pool.store(i, new jjvm.types.ConstantPoolValue("long", iterator.readU64(), pool));
 			} else if(tag == 0x06) {
-				pool.store(i, new jjvm.types.ConstantPoolValue("double", iterator.readU64(), pool));
+				pool.store(i, new jjvm.types.ConstantPoolValue("double", iterator.readDouble(), pool));
 			} else if(tag == 0x07) {
 				pool.store(i, new jjvm.types.ConstantPoolClassValue(iterator.readU16(), pool));
 			} else if(tag == 0x08) {
@@ -47,8 +47,6 @@ jjvm.compiler.bytecode.ConstantPoolParser = function() {
 				i++;
 			}
 		}
-
-		console.info(pool);
 
 		return pool;
 	};

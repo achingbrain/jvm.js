@@ -1,4 +1,4 @@
-jjvm.compiler.bytecode.ExceptionTableParser = function() {
+jjvm.compiler.ExceptionTableParser = function() {
 	
 	this.parse = function(iterator, constantsPool) {
 		var table = [];
@@ -12,7 +12,9 @@ jjvm.compiler.bytecode.ExceptionTableParser = function() {
 			});
 		}
 
-		console.dir(table);
+		if(table.length === 0) {
+			return null;
+		}
 
 		return new jjvm.types.ExceptionTable(table);
 	};

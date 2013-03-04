@@ -5,6 +5,6 @@ jjvm.types.ConstantPoolStringReferenceValue = function(index, constantPool) {
 	};
 
 	this.toString = function() {
-		return "String	#" + index + ";	// " + this.getValue();
+		return "String			#" + index + ";	// " + this.getValue();
 	};
 };

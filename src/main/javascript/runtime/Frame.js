@@ -174,7 +174,7 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 				_output = output;
 			}
 		} catch(error) {
-			if(error instanceof Goto) {
+			if(error instanceof jjvm.runtime.Goto) {
 				for(var i = 0; i < methodDef.getInstructions().length; i++) {
 					if(methodDef.getInstructions()[i].getLocation() == error.getLocation()) {
 						_executionIndex = i - 1;
@@ -209,6 +209,10 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 
 			this.dispatch("onBeforeInstructionExecution", next);
 		}
+	};
+
+	this.toString = function() {
+		return "Frame#" + classDef.getName() + "#" + methodDef.getName();
 	};
 };
 

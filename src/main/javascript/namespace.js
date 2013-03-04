@@ -3,12 +3,7 @@ jjvm = {
 
 	},
 	compiler: {
-		bytecode: {
 
-		},
-		javap: {
-
-		}
 	},
 	runtime: {
 

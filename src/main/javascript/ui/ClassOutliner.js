@@ -72,10 +72,10 @@ jjvm.ui.ClassOutliner = function(element) {
 
 			var method = innerList.append("<li class=\"" + cssClass + "\"><i class=\"" + icon + "\"></i> " + 
 				this._formatVisibility(methodDef.getVisibility()) + " " + 
-				this._formatType(methodDef.getReturns()) + " " + 
 				(methodDef.isStatic() ? this._formatKeyword("static") : "") + " " + 
 				(methodDef.isFinal() ? this._formatKeyword("final") : "") + " " + 
 				(methodDef.isSynchronized() ? this._formatKeyword("synchronized") : "") + " " + 
+				this._formatType(methodDef.getReturns()) + " " + 
 				_.escape(methodDef.getName()) + "(" + 
 				this._formatTypes(methodDef.getArgs()) + ")</li>");
 			var instructionList = $("<ul class=\"instruction_list\"></ul>");
@@ -83,7 +83,7 @@ jjvm.ui.ClassOutliner = function(element) {
 
 			if(methodDef.getImplementation()) {
 				$(instructionList).append("<li>Native code</li>");
-			} else {
+			} else if(methodDef.getInstructions()) {
 				$.each(methodDef.getInstructions(), function(index, instruction) {
 					var checkbox = $("<input type=\"checkbox\"/>");
 					$(checkbox).attr("checked", instruction.hasBreakpoint());
@@ -99,6 +99,8 @@ jjvm.ui.ClassOutliner = function(element) {
 
 					$(instructionList).append(listItem);
 				});
+			} else {
+				$(instructionList).append("<li>Missing</li>");
 			}
 		}, this));
 

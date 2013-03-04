@@ -57,6 +57,10 @@ jjvm.ui.JJVM = {
 			jjvm.ui.JJVM.console.error(error);
 		});
 
+		jjvm.core.NotificationCentre.register("onCompileWarning", function(sender, warning) {
+			jjvm.ui.JJVM.console.warn(warning);
+		});
+
 		jjvm.core.NotificationCentre.register("onBreakpointEncountered", function() {
 			$("#button_run").attr("disabled", true);
 			$("#button_resume").removeAttr("disabled");
@@ -94,8 +98,6 @@ jjvm.ui.JJVM = {
 
 		$.each(jjvm.core.ClassLoader.getClassDefinitions(), function(index, classDef) {
 			$.each(classDef.getMethods(), function(index, methodDef) {
-				console.info("looking at " + methodDef.getName());
-
 				if(methodDef.getName() == "main" && methodDef.isStatic() && methodDef.getReturns() == "void") {
 					mainClass = classDef;
 					mainMethod = methodDef;
@@ -127,7 +129,7 @@ jjvm.ui.JJVM = {
 
 		try {
 			jjvm.ui.JJVM.console.info("Executing...");
-			var thread = new Thread(new Frame(mainClass, mainMethod, args));
+			var thread = new jjvm.runtime.Thread(new jjvm.runtime.Frame(mainClass, mainMethod, args));
 			thread.register("onExecutionComplete", function() {
 				thread.deRegister("onExecutionComplete", this);
 
@@ -137,7 +139,7 @@ jjvm.ui.JJVM = {
 				$("#button_step_over").removeAttr("disabled");
 				$("#button_drop_to_frame").removeAttr("disabled");
 
-				ThreadPool.reap();
+				jjvm.runtime.ThreadPool.reap();
 			});
 			jjvm.ui.JJVM._threadWatcher.setSelectedThread(thread);
 			thread.run();

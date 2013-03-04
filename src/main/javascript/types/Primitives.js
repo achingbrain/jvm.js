@@ -6,5 +6,6 @@ jjvm.types.Primitives = {
 	"I": "int",
 	"J": "long",
 	"F": "float",
-	"D": "double"
+	"D": "double",
+	"V": "void"
 };

@@ -22,7 +22,7 @@ jjvm.ui.ClassDropper = function(element) {
 		$(element).removeClass("dragging");
 
 		var files = event.originalEvent.dataTransfer.files;
-		var compiler = new jjvm.compiler.bytecode.Compiler();
+		var compiler = new jjvm.compiler.Compiler();
 
 		for(var i = 0; i < files.length; i++) {
 			compiler.compile(files[i]);

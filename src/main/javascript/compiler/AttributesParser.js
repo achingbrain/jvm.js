@@ -1,4 +1,4 @@
-jjvm.compiler.bytecode.AttributesParser = function(iterator, constantPool) {
+jjvm.compiler.AttributesParser = function(iterator, constantPool) {
 	
 	this.parse = function(iterator, constantPool) {
 		var attributeCount = iterator.readU16();

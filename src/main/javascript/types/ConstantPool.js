@@ -1,5 +1,10 @@
 jjvm.types.ConstantPool = function() {
+	var _classDef;
 	var pool = [];
+
+	this.setClassDef = function(classDef) {
+		_classDef = classDef;
+	};
 
 	this.store = function(index, value) {
 		pool[index] = value;
@@ -14,18 +19,18 @@ jjvm.types.ConstantPool = function() {
 	};
 
 	this.toString = function() {
-		var output = "";
+		return "ConstantPool" + (_classDef ? "#" + _classDef.getName() : "");
+	};
+
+	this.toJavaP = function() {
+		var output = "\tConstant pool:\r\n";
 
 		for(var i = 0; i < pool.length; i++) {
 			if(!pool[i]) {
 				continue;
 			}
 
-			try {
-			output += "const #" + i + " = " + pool[i] + "\r\n";
-		} catch(e) {
-console.error(e);
-		}
+			output += "\tconst #" + i + "\t= " + pool[i] + "\r\n";
 		}
 
 		return output;

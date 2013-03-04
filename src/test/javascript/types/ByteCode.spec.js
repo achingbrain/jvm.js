@@ -55,6 +55,64 @@ describe("ByteCode test", function () {
 		expect(frame.getStack().pop()).toEqual(arr[index]);
 	});
 
+	it("should process arraylength", function () {
+		var byteCode = new jjvm.types.ByteCode("arraylength", "array_length");
+		var array = [];
+		var length = 18;
+		array.length = length;
+
+		frame.getStack().push(array);
+
+		byteCode.execute(frame);
+
+		expect(frame.getStack().pop()).toEqual(length);
+	});
+
+	it("should process array_store", function () {
+		var byteCode = new jjvm.types.ByteCode("aastore", "array_store");
+		var value = 3;
+		var index = 7;
+		var array = [];
+
+		frame.getStack().push(array);
+		frame.getStack().push(index);
+		frame.getStack().push(value);
+
+		byteCode.execute(frame);
+
+		expect(array[index]).toEqual(value);
+	});
+
+	it("should process array_create with object", function () {
+		var byteCode = new jjvm.types.ByteCode("anewarray", "array_create", [4], 0);
+		var length = 5;
+
+		frame.getStack().push(length);
+
+		byteCode.execute(frame);
+
+		var array = frame.getStack().pop();
+
+		expect(array).toBeDefined();
+		expect(array instanceof Array).toBeTruthy();
+		expect(array.length).toEqual(length);
+	});
+
+	it("should process array_create with primitive", function () {
+		var byteCode = new jjvm.types.ByteCode("newarray", "array_create", [4], 0);
+		var length = 5;
+
+		frame.getStack().push(length);
+
+		byteCode.execute(frame);
+
+		var array = frame.getStack().pop();
+
+		expect(array).toBeDefined();
+		expect(array instanceof Array).toBeTruthy();
+		expect(array.length).toEqual(length);
+	});
+
 	it("should process store", function () {
 		var byteCode = new jjvm.types.ByteCode("istore_3", "store", [3]);
 		var value = 3;
@@ -659,9 +717,18 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process get_static", function () {
-		var byteCode = new jjvm.types.ByteCode("getstatic", "get_static", [7]);
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/io/PrintStream", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "out", constantPool));
+		constantPool.store(3, new jjvm.types.ConstantPoolNameAndTypeValue(2, 1, constantPool));
+		constantPool.store(4, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(5, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/System", constantPool));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(5, constantPool));
+		constantPool.store(7, new jjvm.types.ConstantPoolFieldValue(6, 3, constantPool));
+
+		var byteCode = new jjvm.types.ByteCode("getstatic", "get_static", [7], 0, constantPool);
 		
-		byteCode.execute(frame);
+		byteCode.execute(frame, constantPool);
 
 		var fieldDef = frame.getStack().pop();
 		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
@@ -670,208 +737,117 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process put_static", function () {
-		var byteCode = new jjvm.types.ByteCode("putstatic", "put_static", [4]);
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "SimpleExample$Blah", constantPool));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "blah", constantPool));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "I", constantPool));
+		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(7, new jjvm.types.ConstantPoolClassValue(2, constantPool));
+		constantPool.store(8, new jjvm.types.ConstantPoolFieldValue(7, 5, constantPool));
 
-		var fieldValue = 5;
-		var classDef = new jjvm.types.ClassDefinition("public", false, false, "SimpleExample$Blah", "java.lang.Object", []);
-		classDef.addField(new jjvm.types.FieldDefinition("public", true, false, false, false, "int", "blah"));
-		classDef.setStaticField("blah", fieldValue);
+		var initialFieldValue = 7;
+		var expectedFieldValue = 5;
+
+		var classDef = new jjvm.types.ClassDefinition(
+			constantPool.load(2),
+			constantPool.load(1)
+		);
+		classDef.setConstantPool(constantPool);
+
+		var fieldDef = new jjvm.types.FieldDefinition("blah", "int", classDef);
+		fieldDef.setIsStatic(true);
+
+		classDef.addField(fieldDef);
+		classDef.setStaticField("blah", initialFieldValue);
+
 		jjvm.core.ClassLoader.addClassDefinition(classDef);
-		
-		frame.getStack().push(fieldValue);
 
-		byteCode.execute(frame);
+		frame.getStack().push(expectedFieldValue);
 
-		expect(classDef.getStaticField("blah")).toEqual(fieldValue);
+		var byteCode = new jjvm.types.ByteCode("putstatic", "put_static", [8], 0, constantPool);
+		byteCode.execute(frame, constantPool);
+
+		expect(classDef.getStaticField("blah")).toEqual(expectedFieldValue);
 	});
 
 	it("should process getfield", function () {
-		var source = "Compiled from \"Other.java\"\r\n" +
-			"public class Other extends java.lang.Object{\r\n" +
-			"public int foo;\r\n" +
-			"\r\n" +
-			"public Other();\r\n" +
-			"  Code:\r\n" +
-			"   0:	aload_0\r\n" +
-			"   1:	invokespecial	#1; //Method java/lang/Object.\"<init>\":()V\r\n" +
-			"   4:	aload_0\r\n" +
-			"   5:	iconst_1\r\n" +
-			"   6:	putfield	#2; //Field foo:I\r\n" +
-			"   9:	return\r\n" +
-			"\r\n" +
-			"}\r\n" +
-			"\r\n" +
-			"Compiled from \"SimpleExample.java\"\r\n" +
-			"public class SimpleExample extends java.lang.Object{\r\n" +
-			"public SimpleExample();\r\n" +
-			"  Code:\r\n" +
-			"   0:	aload_0\r\n" +
-			"   1:	invokespecial	#1; //Method java/lang/Object.\"<init>\":()V\r\n" +
-			"   4:	return\r\n" +
-			"\r\n" +
-			"}";
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "SimpleExample$Blah", constantPool));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "blah", constantPool));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "I", constantPool));
+		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(7, new jjvm.types.ConstantPoolClassValue(2, constantPool));
+		constantPool.store(8, new jjvm.types.ConstantPoolFieldValue(7, 5, constantPool));
 
-		var compiler = new jjvm.compiler.javap.Compiler();
-		compiler.compile(source);
+		var expectedFieldValue = 5;
 
-		var expectedValue = 1;
-		var classDef = jjvm.core.ClassLoader.loadClass("SimpleExample");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
+		var classDef = new jjvm.types.ClassDefinition(
+			constantPool.load(2),
+			constantPool.load(1)
+		);
+		classDef.setConstantPool(constantPool);
+		classDef.addField(new jjvm.types.FieldDefinition("blah", "int", classDef));
 
-		var methodDef = new jjvm.types.MethodDefinition("public", false, false, false, "void", "foo", [], [
-			new jjvm.types.ByteCode("0:	new	#2; //class Other"),
-			new jjvm.types.ByteCode("3:	dup"),
-			new jjvm.types.ByteCode("4:	invokespecial	#3; //Method Other.\"<init>\":()V"),
-			new jjvm.types.ByteCode("7:	astore_1"),
-			new jjvm.types.ByteCode("8:	aload_1"),
-			new jjvm.types.ByteCode("9:	dup"),
-			new jjvm.types.ByteCode("10:	getfield	#4; //Field Other.foo:I")
-		]);
+		jjvm.core.ClassLoader.addClassDefinition(classDef);
 
-		var frame = new jjvm.core.runtime.Frame(classDef, methodDef, [objectRef]);
-		var thread = new jjvm.core.runtime.Thread(frame);
-		thread.run();
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
+		objectRef.setField("blah", expectedFieldValue);
 
-		var value = frame.getStack().pop();
+		frame.getStack().push(objectRef);
 
-		expect(value).toEqual(expectedValue);
+		var byteCode = new jjvm.types.ByteCode("getfield", "get_field", [8], 0, constantPool);
+		byteCode.execute(frame, constantPool);
+
+		expect(frame.getStack().pop()).toEqual(expectedFieldValue);
 	});
 
 	it("should process putfield", function () {
-		var source = "Compiled from \"Other.java\"\r\n" +
-			"public class Other extends java.lang.Object{\r\n" +
-			"public int foo;\r\n" +
-			"\r\n" +
-			"public Other();\r\n" +
-			"  Code:\r\n" +
-			"   0:	aload_0\r\n" +
-			"   1:	invokespecial	#1; //Method java/lang/Object.\"<init>\":()V\r\n" +
-			"   4:	aload_0\r\n" +
-			"   5:	iconst_1\r\n" +
-			"   6:	putfield	#2; //Field foo:I\r\n" +
-			"   9:	return\r\n" +
-			"\r\n" +
-			"}\r\n" +
-			"\r\n" +
-			"Compiled from \"SimpleExample.java\"\r\n" +
-			"public class SimpleExample extends java.lang.Object{\r\n" +
-			"public SimpleExample();\r\n" +
-			"  Code:\r\n" +
-			"   0:	aload_0\r\n" +
-			"   1:	invokespecial	#1; //Method java/lang/Object.\"<init>\":()V\r\n" +
-			"   4:	return\r\n" +
-			"\r\n" +
-			"}";
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "SimpleExample$Blah", constantPool));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "blah", constantPool));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "I", constantPool));
+		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(7, new jjvm.types.ConstantPoolClassValue(2, constantPool));
+		constantPool.store(8, new jjvm.types.ConstantPoolFieldValue(7, 5, constantPool));
 
-		var compiler = new jjvm.compiler.javap.Compiler();
-		compiler.compile(source);
+		var initialFieldValue = 7;
+		var expectedFieldValue = 5;
 
-		var expectedValue = 10;
-		var classDef = jjvm.core.ClassLoader.loadClass("SimpleExample");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
-		objectRef.setField("foo", 9);
+		var classDef = new jjvm.types.ClassDefinition(
+			constantPool.load(2),
+			constantPool.load(1)
+		);
+		classDef.setConstantPool(constantPool);
+		classDef.addField(new jjvm.types.FieldDefinition("blah", "int", classDef));
 
-		var methodDef = new jjvm.types.MethodDefinition("public", false, false, false, "void", "foo", [], [
-			new jjvm.types.ByteCode("8:	aload_0"),
-			new jjvm.types.ByteCode("9:	dup"),
-			new jjvm.types.ByteCode("10:	getfield	#4; //Field Other.foo:I"),
-			new jjvm.types.ByteCode("13:	iconst_1"),
-			new jjvm.types.ByteCode("14:	iadd"),
-			new jjvm.types.ByteCode("15:	putfield	#4; //Field Other.foo:I")
-		]);
+		jjvm.core.ClassLoader.addClassDefinition(classDef);
 
-		var frame = new jjvm.core.runtime.Frame(classDef, methodDef, [objectRef]);
-		var thread = new jjvm.core.runtime.Thread(frame);
-		thread.run();
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
+		objectRef.setField("blah", initialFieldValue);
 
-		var value = objectRef.getField("foo");
+		frame.getStack().push(objectRef);
+		frame.getStack().push(expectedFieldValue);
 
-		expect(value).toEqual(expectedValue);
-	});
+		var byteCode = new jjvm.types.ByteCode("putfield", "put_field", [8], 0, constantPool);
+		byteCode.execute(frame, constantPool);
 
-/*
-	it("should process aload", function () {
-		var byteCode = new jjvm.types.ByteCode("0: aload_0");
-		var value = "foo";
-
-		frame.getLocalVariables().getLocalVariables()[0] = value;
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(value);
-	});
-
-	it("should process aload without index", function () {
-		var byteCode = new jjvm.types.ByteCode("32:	dload	4");
-		var value = "foo";
-
-		frame.getLocalVariables().getLocalVariables()[4] = value;
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(value);
-	});
-
-	
-
-	
-
-	it("should process store without index", function () {
-		var byteCode = new jjvm.types.ByteCode("32:	astore	4");
-		var value = "foo";
-
-		frame.getStack().push(value);
-
-		byteCode.execute(frame);
-
-		expect(frame.getLocalVariables().getLocalVariables()[4]).toEqual(value);
-	});
-
-	it("should process aastore", function () {
-		var byteCode = new jjvm.types.ByteCode("0: aastore");
-		var value = 3;
-		var index = 7;
-		var array = [];
-
-		frame.getStack().push(array);
-		frame.getStack().push(index);
-		frame.getStack().push(value);
-
-		byteCode.execute(frame);
-
-		expect(array[index]).toEqual(value);
-	});
-
-	it("should process bastore", function () {
-		var byteCode = new jjvm.types.ByteCode("0: bastore");
-		var value = true;
-		var index = 7;
-		var array = [];
-
-		frame.getStack().push(array);
-		frame.getStack().push(index);
-		frame.getStack().push(value);
-
-		byteCode.execute(frame);
-
-		expect(array[index]).toEqual(value);
-	});
-
-	it("should process return", function () {
-		var byteCode = new jjvm.types.ByteCode("0: ireturn");
-		var value = 3;
-
-		frame.getStack().push(value);
-
-		var output = byteCode.execute(frame);
-
-		expect(output).toEqual(value);
+		expect(objectRef.getField("blah")).toEqual(expectedFieldValue);
 	});
 
 	it("should process new", function () {
-		var byteCode = new jjvm.types.ByteCode("6:	new	#4; //class java.lang.Object");
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
 
-		byteCode.execute(frame);
+		var byteCode = new jjvm.types.ByteCode("new", "new", [2], 0, constantPool);
+
+		byteCode.execute(frame, constantPool);
 
 		var objectRef = frame.getStack().pop();
 
@@ -880,433 +856,78 @@ describe("ByteCode test", function () {
 		expect(objectRef.getClass().getName()).toEqual("java.lang.Object");
 	});
 
-	it("should process invokespecial", function () {
-		var byteCode = new jjvm.types.ByteCode("11:	invokespecial	#5; //Method java/lang/Object.\"<init>\":()V");
-
-		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
-
-		frame.getStack().push(objectRef);
-
-		spyOn(frame, 'executeChild');
-
-		byteCode.execute(frame);
-
-		expect(frame.executeChild).toHaveBeenCalled();
-	});
-
-	it("should process invokespecial for local constructor", function () {
-		var byteCode = new jjvm.types.ByteCode("7:	invokespecial	#2; //Method \"<init>\":(Ljava/lang/Object;)V");
-
-		var objectClassDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
-		var testClassDef = new jjvm.types.ClassDefinition("public", false, false, "InvokeSpecialTest", objectClassDef, []);
-		testClassDef.addConstructor(new ConstructorDefinition("public", "InvokeSpecialTest", [objectClassDef], [], function() {
-			// a constructor
-		}));
-		ClassLoader.addClassDefinition(testClassDef);
-
-		var testClassObjectRef = new jjvm.core.runtime.ObjectReference(testClassDef);
-		var constructorArgObjectRef = new jjvm.core.runtime.ObjectReference(objectClassDef);
-
-		var frame = new jjvm.core.runtime.Frame(testClassDef, new jjvm.types.MethodDefinition());
-		frame.getStack().push(testClassObjectRef);
-		frame.getStack().push(testClassObjectRef);
-		frame.getStack().push(constructorArgObjectRef);
-
-		spyOn(frame, 'executeChild');
-
-		byteCode.execute(frame);
-
-		expect(frame.executeChild).toHaveBeenCalled();
-	});
-
-	it("should process invokevirtual", function () {
-		var byteCode = new jjvm.types.ByteCode("30:	invokevirtual	#8; //Method java/io/PrintStream.println:(J)V");
-		var value = "Hello";
-
-		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
-
-		var frame = new jjvm.core.runtime.Frame(classDef, new jjvm.types.MethodDefinition());
-		frame.getStack().push(objectRef);
-		frame.getStack().push(value);
-
-		spyOn(frame, 'executeChild');
-
-		byteCode.execute(frame);
-
-		expect(frame.executeChild).toHaveBeenCalled();
-	});
-
-	it("should process local invokevirtual", function () {
-		var byteCode = new jjvm.types.ByteCode("30:	invokevirtual	#8; //Method println:(J)V");
-		var value = "Hello";
-
-		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
-
-		var frame = new jjvm.core.runtime.Frame(classDef, new jjvm.types.MethodDefinition());
-		frame.getStack().push(objectRef);
-		frame.getStack().push(value);
-
-		spyOn(frame, 'executeChild');
-
-		byteCode.execute(frame);
-
-		expect(frame.executeChild).toHaveBeenCalled();
-	});
-
-	it("should process invokeinterface", function () {
-		var byteCode = new jjvm.types.ByteCode("21:	invokeinterface	#259,  2; //InterfaceMethod java/io/PrintStream.println:(Ljava/lang/String;)V;");
-		var value = "Hello";
-
-		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
-
-		frame.getStack().push(objectRef);
-		frame.getStack().push(value);
-
-		spyOn(frame, 'executeChild');
-
-		byteCode.execute(frame);
-
-		expect(frame.executeChild).toHaveBeenCalled();
-	});
-
-	it("should process const", function () {
-		var byteCode = new jjvm.types.ByteCode("4:	iconst_1");
-		
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(1);
-	});
-
-	
-
-	it("should process local getstatic", function () {
-		var byteCode = new jjvm.types.ByteCode("25:	getstatic	#7; //Field foo:I;");
-
-		var fieldValue = 5;
-		var classDef = new jjvm.types.ClassDefinition("public", false, false, "com.example.SimpleExample", "java.lang.Object", []);
-		classDef.addField(new jjvm.types.FieldDefinition("public", true, false, false, false, "int", "foo"));
-		classDef.setStaticField("foo", fieldValue);
-		ClassLoader.addClassDefinition(classDef);
-
-		var frame = new jjvm.core.runtime.Frame(classDef, new jjvm.types.MethodDefinition());
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(fieldValue);
-	});
-
-	it("should process putstatic", function () {
-		var byteCode = new jjvm.types.ByteCode("8:	putstatic	#4; //Field SimpleExample$Blah.blah:I");
-
-		var fieldValue = 5;
-		var classDef = new jjvm.types.ClassDefinition("public", false, false, "SimpleExample$Blah", "java.lang.Object", []);
-		classDef.addField(new jjvm.types.FieldDefinition("public", true, false, false, false, "int", "blah"));
-		classDef.setStaticField("blah", fieldValue);
-		ClassLoader.addClassDefinition(classDef);
-		
-		frame.getStack().push(fieldValue);
-
-		byteCode.execute(frame);
-
-		expect(classDef.getStaticField("blah")).toEqual(fieldValue);
-	});
-
-	it("should process local putstatic", function () {
-		var byteCode = new jjvm.types.ByteCode("2:	putstatic	#3; //Field foo:I");
-
-		var fieldValue = 5;
-		var classDef = new jjvm.types.ClassDefinition("public", false, false, "com.example.SimpleExample", "java.lang.Object", []);
-		classDef.addField(new jjvm.types.FieldDefinition("public", true, false, false, false, "int", "foo"));
-		classDef.setStaticField("foo", fieldValue);
-		ClassLoader.addClassDefinition(classDef);
-
-		var frame = new jjvm.core.runtime.Frame(classDef, new jjvm.types.MethodDefinition());
-
-		byteCode.execute(frame);
-
-		expect(classDef.getStaticField("foo")).toEqual(frame.getStack().pop());
-	});
-
-	it("should process i2b", function () {
-		var byteCode = new jjvm.types.ByteCode("3:	i2b");
-
-		frame.getStack().push(1);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(true);
-	});
-
-	it("should process bipush", function () {
-		var byteCode = new jjvm.types.ByteCode("3:	bipush	10");
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(10);
-	});
-
-	it("should process sipush", function () {
-		var byteCode = new jjvm.types.ByteCode("3:	sipush	10000");
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(10000);
-	});
-
-	it("should process ldc for int", function () {
-		var byteCode = new jjvm.types.ByteCode("0:	ldc	#2; //int 1000000");
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(1000000);
-	});
-
-	it("should process ldc for string", function () {
-		var byteCode = new jjvm.types.ByteCode("0:	ldc	#2; //String foo bar");
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual("foo bar");
-	});
-
-	it("should process ldc for float", function () {
-		var byteCode = new jjvm.types.ByteCode("6:	ldc	#3; //float 10.0f");
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(10.0);
-	});
-
-	it("should process ldc2_w for long", function () {
-		var byteCode = new jjvm.types.ByteCode("8:	ldc2_w	#6; //long 10000l");
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(10000);
-	});
-
-	it("should process ldc2_w for double", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	ldc2_w	#4; //double 1203980.0d");
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(1203980.0);
-	});
-
-	it("should process aconst_null", function () {
-		var byteCode = new jjvm.types.ByteCode("26:	aconst_null");
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toBeNull();
-	});
-
-	it("should process aconst_null", function () {
-		var byteCode = new jjvm.types.ByteCode("2:	i2l");
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toBeUndefined();
-	});
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	it("should process aaload", function () {
-		var byteCode = new jjvm.types.ByteCode("0: aaload");
-		var arr = [3, 4, 5];
-		var index = 2;
-
-		frame.getStack().push(index);
-		frame.getStack().push(arr);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(arr[index]);
-	});
-
-	it("should process anewarray", function () {
-		var byteCode = new jjvm.types.ByteCode("1:	anewarray	#4; //class java/lang/String");
-		var length = 5;
-
-		frame.getStack().push(length);
-
-		byteCode.execute(frame);
-
-		var array = frame.getStack().pop();
-
-		expect(array).toBeDefined();
-		expect(array instanceof Array).toBeTruthy();
-		expect(array.length).toEqual(length);
-	});
-
-	it("should process newarray", function () {
-		var byteCode = new jjvm.types.ByteCode("1:	newarray	int");
-		var length = 5;
-
-		frame.getStack().push(length);
-
-		byteCode.execute(frame);
-
-		var array = frame.getStack().pop();
-
-		expect(array).toBeDefined();
-		expect(array instanceof Array).toBeTruthy();
-		expect(array.length).toEqual(length);
-	});
-
-	it("should process arraylength", function () {
-		var byteCode = new jjvm.types.ByteCode("7:	arraylength");
-		var array = [];
-		var length = 18;
-		array.length = length;
-
-		frame.getStack().push(array);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(length);
-	});
-
 	it("should process checkcast", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	checkcast	#2; //class java/lang/Object");
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+
+		var byteCode = new jjvm.types.ByteCode("checkcast", "check_cast", [2], 0);
 		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		frame.getStack().push(objectRef);
 
-		byteCode.execute(frame);
+		byteCode.execute(frame, constantPool);
 
 		// no exception thrown...
 	});
 
 	it("should process checkcast and throw", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	checkcast	#2; //class java/lang/Integer");
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Integer", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+
+		var byteCode = new jjvm.types.ByteCode("checkcast", "check_cast", [2], 0);
 		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		frame.getStack().push(objectRef);
+
+		expect(byteCode.execute, frame, constantPool).toThrow();
+	});
+
+	it("should process throw", function () {
+		var byteCode = new jjvm.types.ByteCode("athrow", "throw");
+
+		frame.getStack().push("panic!");
 
 		expect(byteCode.execute, frame).toThrow();
 	});
 
-	it("should compare with dcmpg", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	dcmpg");
+	it("should process instanceof with instance of", function () {
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/io/PrintStream", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
 
-		frame.getStack().push(1);
-		frame.getStack().push(1);
+		var byteCode = new jjvm.types.ByteCode("instanceof", "instance_of", [2], 0, constantPool);
+		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
-		byteCode.execute(frame);
+		frame.getStack().push(objectRef);
 
-		expect(frame.getStack().pop()).toBeTruthy();
-	});
-	
-	it("should compare with dcmpl", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	dcmpl");
-
-		frame.getStack().push(1);
-		frame.getStack().push(1);
-
-		byteCode.execute(frame);
+		byteCode.execute(frame, constantPool);
 
 		expect(frame.getStack().pop()).toBeTruthy();
 	});
 
-	it("should compare with fcmpg", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	fcmpg");
+	it("should process instanceof with not instance of", function () {
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/System", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
 
-		frame.getStack().push(1);
-		frame.getStack().push(1);
+		var byteCode = new jjvm.types.ByteCode("instanceof", "instance_of", [2], 0, constantPool);
+		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
-		byteCode.execute(frame);
+		frame.getStack().push(objectRef);
 
-		expect(frame.getStack().pop()).toBeTruthy();
-	});
+		byteCode.execute(frame, constantPool);
 
-	it("should compare with fcmpl", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	fcmpl");
-
-		frame.getStack().push(1);
-		frame.getStack().push(1);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toBeTruthy();
-	});
-
-	it("should compare with lcmp", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	lcmp");
-
-		frame.getStack().push(1);
-		frame.getStack().push(1);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toBeTruthy();
-	});
-
-	
-
-	
-
-	it("should process shift left", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	ishl");
-		var value1 = 1;
-		var value2 = 2;
-
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(value1 << value2);
-	});
-
-	it("should process shift right", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	ishr");
-		var value1 = 1;
-		var value2 = 2;
-
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(value1 >> value2);
-	});
-
-	it("should process long shift right", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	lushr");
-		var value1 = 1;
-		var value2 = 2;
-
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toEqual(value1 >> value2);
+		expect(frame.getStack().pop()).toBeFalsy();
 	});
 
 	it("should create multi-dimensional array", function () {
-		var byteCode = new jjvm.types.ByteCode("2:	multianewarray	#3,  4; //class \"[[I\"");
+		var byteCode = new jjvm.types.ByteCode("multianewarray", "multi_dimensional_array_create", [3, 4], 0);
 		var value1 = 4;
 		var value2 = 2;
 		var value3 = 3;
@@ -1327,307 +948,28 @@ describe("ByteCode test", function () {
 		expect(array[0][0][0].length).toEqual(value4);
 	});
 
-	
+	it("should process monitorenter", function () {
+		var byteCode = new jjvm.types.ByteCode("monitorenter", "monitor_enter");
+		var lockObject = {};
+		frame.getStack().push(lockObject);
 
-	it("should process if_acmpeq with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_acmpeq	51");
-		var value1 = "hello";
-		var value2 = "hello";
-
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_acmpeq with not equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_acmpeq	51");
-		var value1 = "hello";
-		var value2 = "goodbye";
-
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		// will throw a Goto if not working
 		byteCode.execute(frame);
+
+		expect(frame.getStack().getStack().length).toEqual(0);
 	});
 
-	it("should process if_icmpeq with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmpeq	51");
-		var value1 = 5;
-		var value2 = 5;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
+	it("should process monitorexit", function () {
+		var byteCode = new jjvm.types.ByteCode("monitorexit", "monitor_exit");
+		var lockObject = {};
+		frame.getStack().push(lockObject);
 
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_icmpeq with not equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmpeq	51");
-		var value1 = 5;
-		var value2 = 10;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		// will throw a Goto if not working
 		byteCode.execute(frame);
+
+		expect(frame.getStack().getStack().length).toEqual(0);
 	});
-
-	it("should process if_acmpne with not equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_acmpne	51");
-		var value1 = "hello";
-		var value2 = "goodbye";
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_acmpne with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_acmpne	51");
-		var value1 = "hello";
-		var value2 = "hello";
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		// will throw a Goto if not working
-		byteCode.execute(frame);
-	});
-
-	it("should process if_icmpne with not equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmpne	51");
-		var value1 = 5;
-		var value2 = 10;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_icmpne with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmpne	51");
-		var value1 = 5;
-		var value2 = 5;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		// will throw a Goto if not working
-		byteCode.execute(frame);
-	});
-
-	it("should process if_icmplt with less than", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmplt	51");
-		var value1 = 5;
-		var value2 = 10;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_icmplt with greater than", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmplt	51");
-		var value1 = 10;
-		var value2 = 5;
-
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		// will throw a Goto if not working
-		byteCode.execute(frame);
-	});
-
-	it("should process if_icmpge with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmpge	51");
-		var value1 = 5;
-		var value2 = 5;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_icmpge with greater than", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmpge	51");
-		var value1 = 10;
-		var value2 = 5;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_icmpge with less than", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmpge	51");
-		var value1 = 5;
-		var value2 = 10;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		// will throw a Goto if not working
-		byteCode.execute(frame);
-	});
-
-	it("should process if_icmpgt with greater than", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmpgt	51");
-		var value1 = 10;
-		var value2 = 5;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_icmpgt with less than", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmpgt	51");
-		var value1 = 5;
-		var value2 = 10;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		// will throw a Goto if not working
-		byteCode.execute(frame);
-	});
-
-	it("should process if_icmple with less than", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmple	51");
-		var value1 = 5;
-		var value2 = 10;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_icmple with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmple	51");
-		var value1 = 5;
-		var value2 = 5;
-		
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		try {
-			byteCode.execute(frame);
-
-			// should have thrown an exception
-			expect(false).toEqual(true);
-		} catch(error) {
-			expect(error instanceof jjvm.runtime.Goto).toBeTruthy();
-			expect(error.getLocation()).toEqual(51);
-		}
-	});
-
-	it("should process if_icmple with greater than", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	if_icmple	51");
-		var value1 = 10;
-		var value2 = 5;
-
-		frame.getStack().push(value1);
-		frame.getStack().push(value2);
-
-		// will throw a Goto if not working
-		byteCode.execute(frame);
-	});
-
-	
-
-	
-
-	
-	
-
-	
-
-	
 
 	it("should process ifnonnull with non null", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	ifnonnull	51");
+		var byteCode = new jjvm.types.ByteCode("ifnonnull", "if_non_null", [51]);
 		
 		frame.getStack().push("foo");
 
@@ -1643,7 +985,7 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process ifnonnull with null", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	ifnonnull	51");
+		var byteCode = new jjvm.types.ByteCode("ifnonnull", "if_non_null", [51]);
 		
 		frame.getStack().push(null);
 
@@ -1652,8 +994,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process ifnull with null", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	ifnull	51");
-		
+		var byteCode = new jjvm.types.ByteCode("ifnull", "if_null", [51]);
+
 		frame.getStack().push(null);
 
 		try {
@@ -1668,167 +1010,158 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process ifnull with non null", function () {
-		var byteCode = new jjvm.types.ByteCode("31:	ifnull	51");
-		
+		var byteCode = new jjvm.types.ByteCode("ifnull", "if_null", [51]);
+
 		frame.getStack().push("foo");
 
 		// will throw a Goto if not working
 		byteCode.execute(frame);
 	});
 
-	
+	it("should process invokespecial", function () {
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "<init>", constantPool));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "()V", constantPool));
+		constantPool.store(4, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue(2, 3, constantPool));
+		constantPool.store(6, new jjvm.types.ConstantPoolMethodValue(4, 5, constantPool));
+		
+		var byteCode = new jjvm.types.ByteCode("invokespecial", "invoke_special", [6], 0, constantPool);
 
-	it("should process instanceof with instance of", function () {
-		var byteCode = new jjvm.types.ByteCode("8:	instanceof	#40; //class java/io/PrintStream");
-		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
-
-		frame.getStack().push(objectRef);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().pop()).toBeTruthy();
-	});
-
-	it("should process instanceof with not instance of", function () {
-		var byteCode = new jjvm.types.ByteCode("8:	instanceof	#40; //class java/lang/Integer");
-		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
+		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		frame.getStack().push(objectRef);
 
-		byteCode.execute(frame);
+		spyOn(frame, 'executeChild');
 
-		expect(frame.getStack().pop()).toBeFalsy();
-	});
+		byteCode.execute(frame, constantPool);
 
-	it("should process throw", function () {
-		var byteCode = new jjvm.types.ByteCode("8:	athrow");
-
-		frame.getStack().push("panic!");
-
-		expect(byteCode.execute, frame).toThrow();
+		expect(frame.executeChild).toHaveBeenCalled();
 	});
 
 	it("should process invokestatic", function () {
-		var source = 
-			"Compiled from \"Other.java\"\r\n" + 
-			"public class Other extends java.lang.Object{\r\n" +
-			"public Other();\r\n" +
-			"  Code:\r\n" +
-			"   0:	aload_0\r\n" +
-			"   1:	invokespecial	#1; //Method java/lang/Object.\"<init>\":()V\r\n" +
-			"   4:	return\r\n" +
-			"\r\n" +
-			"public static int staticMethod(int, int);\r\n" +
-			"  Code:\r\n" +
-			"   0:	iload_0\r\n" +
-			"   1:	iload_1\r\n" +
-			"   2:	iadd\r\n" +
-			"   3:	ireturn\r\n" +
-			"\r\n" +
-			"}\r\n";
+		var constantPool = new jjvm.types.ConstantPool();
+
+		var objectClassName = new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool);
+		var testClassName = new jjvm.types.ConstantPoolValue("Asciz", "org/jjvm/InvokeStaticTest", constantPool);
+
+		var testClass = new jjvm.types.ClassDefinition(
+			testClassName, 
+			objectClassName
+		);
+
+		var testClassStaticMethod = new jjvm.types.MethodDefinition("staticTestMethod", [], null, testClass);
+		testClassStaticMethod.setImplementation(function() {
+			
+		});
+		testClassStaticMethod.setIsStatic(true);
+		testClass.addMethod(testClassStaticMethod);
+		jjvm.core.ClassLoader.addClassDefinition(testClass);
+
+		constantPool.store(1, objectClassName);
+		constantPool.store(2, testClassName);
+		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "staticTestMethod", constantPool));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "()V", constantPool));
+		constantPool.store(5, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(2, constantPool));
+		constantPool.store(7, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
+		constantPool.store(8, new jjvm.types.ConstantPoolMethodValue(6, 7, constantPool));
+		
+		var byteCode = new jjvm.types.ByteCode("invokestatic", "invoke_static", [8], 0, constantPool);
 
 		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
-		var compiler = new jjvm.compiler.javap.Compiler();
-		compiler.compile(source);
+		frame.getStack().push(objectRef);
 
-		var methodDef = new jjvm.types.MethodDefinition("public", false, false, false, "int", "foo", [], [
-			new jjvm.types.ByteCode("0:	iconst_5"),
-			new jjvm.types.ByteCode("1:	bipush	10"),
-			new jjvm.types.ByteCode("3:	invokestatic	#2; //Method Other.staticMethod:(II)I"),
-			new jjvm.types.ByteCode("6:	istore_1"),
-			new jjvm.types.ByteCode("7:	iload_1"),			
-			new jjvm.types.ByteCode("8:	ireturn")
-		]);
+		spyOn(frame, 'executeChild');
 
-		var frame = new jjvm.core.runtime.Frame(classDef, methodDef, []);
-		var thread = new jjvm.core.runtime.Thread(frame);
-		thread.run();
+		byteCode.execute(frame, constantPool);
 
-		var output = frame.getOutput();
-
-		expect(output).toEqual(15);
+		expect(frame.executeChild).toHaveBeenCalled();
 	});
 
-	it("should process getfield local", function () {
-		var source = "Compiled from \"SimpleExample.java\"\r\n" +
-			"public class SimpleExample extends java.lang.Object{\r\n" +
-			"\r\n" +
-			"}\r\n";
+	it("should process invokevirtual", function () {
+		var constantPool = new jjvm.types.ConstantPool();
 
-		var compiler = new jjvm.compiler.javap.Compiler();
-		compiler.compile(source);
+		var objectClassName = new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool);
+		var testClassName = new jjvm.types.ConstantPoolValue("Asciz", "org/jjvm/InvokeStaticTest", constantPool);
 
-		var expectedValue = 10;
-		var classDef = jjvm.core.ClassLoader.loadClass("SimpleExample");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
-		objectRef.setField("foo", expectedValue);
+		var testClass = new jjvm.types.ClassDefinition(
+			testClassName, 
+			objectClassName
+		);
 
-		var methodDef = new jjvm.types.MethodDefinition("public", false, false, false, "void", "foo", [], [
-			new jjvm.types.ByteCode("0:	aload_0"),
-			new jjvm.types.ByteCode("1:	dup"),
-			new jjvm.types.ByteCode("2:	getfield	#2; //Field foo:I")
-		]);
+		var testClassStaticMethod = new jjvm.types.MethodDefinition("testMethod", [], null, testClass);
+		testClassStaticMethod.setImplementation(function() {
+			
+		});
+		testClass.addMethod(testClassStaticMethod);
+		jjvm.core.ClassLoader.addClassDefinition(testClass);
 
-		var frame = new jjvm.core.runtime.Frame(classDef, methodDef, [objectRef]);
-		var thread = new jjvm.core.runtime.Thread(frame);
-		thread.run();
+		constantPool.store(1, objectClassName);
+		constantPool.store(2, testClassName);
+		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "testMethod", constantPool));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "()V", constantPool));
+		constantPool.store(5, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(2, constantPool));
+		constantPool.store(7, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
+		constantPool.store(8, new jjvm.types.ConstantPoolMethodValue(6, 7, constantPool));
+		
+		var byteCode = new jjvm.types.ByteCode("invokevirtual", "invoke_virtual", [8], 0, constantPool);
 
-		var value = frame.getStack().pop();
+		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
-		expect(value).toEqual(expectedValue);
+		frame.getStack().push(objectRef);
+
+		spyOn(frame, 'executeChild');
+
+		byteCode.execute(frame, constantPool);
+
+		expect(frame.executeChild).toHaveBeenCalled();
 	});
 
-	it("should process putfield local", function () {
-		var source = "Compiled from \"SimpleExample.java\"\r\n" +
-			"public class SimpleExample extends java.lang.Object{\r\n" +
-			"\r\n" +
-			"}\r\n";
+	it("should process invokeinterface", function () {
+		var constantPool = new jjvm.types.ConstantPool();
 
-		var compiler = new jjvm.compiler.javap.Compiler();
-		compiler.compile(source);
+		var objectClassName = new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool);
+		var testClassName = new jjvm.types.ConstantPoolValue("Asciz", "org/jjvm/InvokeStaticTest", constantPool);
 
-		var expectedValue = 5;
-		var classDef = jjvm.core.ClassLoader.loadClass("SimpleExample");
-		var objectRef = new jjvm.core.runtime.ObjectReference(classDef);
-		objectRef.setField("foo", expectedValue);
+		var testClass = new jjvm.types.ClassDefinition(
+			testClassName, 
+			objectClassName
+		);
 
-		var methodDef = new jjvm.types.MethodDefinition("public", false, false, false, "void", "foo", [], [
-			new jjvm.types.ByteCode("0:	aload_0"),
-			new jjvm.types.ByteCode("0:	iconst_5"),
-			new jjvm.types.ByteCode("2:	putfield	#2; //Field foo:I")
-		]);
+		var testClassStaticMethod = new jjvm.types.MethodDefinition("testMethod", [], null, testClass);
+		testClassStaticMethod.setImplementation(function() {
+			
+		});
+		testClass.addMethod(testClassStaticMethod);
+		jjvm.core.ClassLoader.addClassDefinition(testClass);
 
-		var frame = new jjvm.core.runtime.Frame(classDef, methodDef, [objectRef]);
-		var thread = new jjvm.core.runtime.Thread(frame);
-		thread.run();
+		constantPool.store(1, objectClassName);
+		constantPool.store(2, testClassName);
+		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "testMethod", constantPool));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "()V", constantPool));
+		constantPool.store(5, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(2, constantPool));
+		constantPool.store(7, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
+		constantPool.store(8, new jjvm.types.ConstantPoolMethodValue(6, 7, constantPool));
+		
+		var byteCode = new jjvm.types.ByteCode("invokeinterface", "invoke_interface", [8], 0, constantPool);
 
-		var value = objectRef.getField("foo");
+		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
-		expect(value).toEqual(expectedValue);
+		frame.getStack().push(objectRef);
+
+		spyOn(frame, 'executeChild');
+
+		byteCode.execute(frame, constantPool);
+
+		expect(frame.executeChild).toHaveBeenCalled();
 	});
-
-	
-
-	it("should process monitorenter", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	monitorenter");
-		var lockObject = {};
-		frame.getStack().push(lockObject);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().getStack().length).toEqual(0);
-	});
-
-	it("should process monitorexit", function () {
-		var byteCode = new jjvm.types.ByteCode("9:	monitorexit");
-		var lockObject = {};
-		frame.getStack().push(lockObject);
-
-		byteCode.execute(frame);
-
-		expect(frame.getStack().getStack().length).toEqual(0);
-	});*/
 });

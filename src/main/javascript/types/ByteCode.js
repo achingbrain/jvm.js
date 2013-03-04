@@ -1,7 +1,7 @@
-jjvm.types.ByteCode = function(mnemonic, operation, args, location) {
+jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool) {
 	var _breakpoint;
 
-	var invokeMethod = function(classDef, methodDef, frame) {
+	var invokeMethod = function(methodDef, frame) {
 		var args = [];
 
 		for(var i = 0; i < methodDef.getArgs().length; i++) {
@@ -21,8 +21,8 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location) {
 		};
 
 		frame.register("onChildFrameCompleted", onChildExecutionCompleted);
-		
-		frame.executeChild(classDef, methodDef, args);
+
+		frame.executeChild(methodDef.getClassDef(), methodDef, args);
 	};
 
 	var operations = {
@@ -364,147 +364,103 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location) {
 		},
 		"get_static": function(index) {
 			this.execute = function(frame, constantPool) {
-				var field = constantPool.load(index);
-
-				var classDef = jjvm.core.ClassLoader.loadClass(className);
-				var value = classDef.getStaticField(fieldName);
+				var fieldDef = constantPool.load(index).getFieldDef();
+				var classDef = fieldDef.getClassDef();
+				var value = classDef.getStaticField(fieldDef.getName());
 
 				frame.getStack().push(value);
+			};
+			this.describe = function() {
+				return "getstatic #" + index + " // " + constantPool.load(index);
 			};
 		},
 		"put_static": function(index) {
 			this.execute = function(frame, constantPool) {
-				var field = constantPool.load(index).getValue();
-				var fieldName = field.getName();
-
-				var classDef = jjvm.core.ClassLoader.loadClass(className);
+				var fieldDef = constantPool.load(index).getFieldDef();
+				var classDef = fieldDef.getClassDef();
 				var value = frame.getStack().pop();
 
-				classDef.setStaticField(fieldName, value);
+				classDef.setStaticField(fieldDef.getName(), value);
 			};
 		},
 		"get_field": function(index) {
 			this.execute = function(frame, constantPool) {
-				var field = constantPool.load(index).getValue();
-				var fieldName = field.getName();
+				var fieldDef = constantPool.load(index).getFieldDef();
 
 				var objectRef = frame.getStack().pop();
-				var value = objectRef.getField(fieldName);
+				var value = objectRef.getField(fieldDef.getName());
 
 				frame.getStack().push(value);
 			};
 		},
 		"put_field": function(index) {
 			this.execute = function(frame, constantPool) {
-				var field = constantPool.load(index).getValue();
-				var fieldName = field.getName();
+				var fieldDef = constantPool.load(index).getFieldDef();
 
 				var value = frame.getStack().pop();
 				var objectRef = frame.getStack().pop();
 
-				objectRef.setField(fieldName, value);
+				objectRef.setField(fieldDef.getName(), value);
 			};
 		},
 		"invoke_virtual": function(index) {
 			this.execute = function(frame, constantPool) {
-				var match = constantPool.load(index);
-				var className = match[1].replace(/\//g, ".");
-				var methodName = match[2];
-				var classDef = jjvm.core.ClassLoader.loadClass(className);
-				var methodDef = classDef.getMethod(methodName);
+				var methodDef = constantPool.load(index).getMethodDef();
 
-				invokeMethod(classDef, methodDef, frame);
+				invokeMethod(methodDef, frame);
+			};
+			this.describe = function() {
+				return "invokevirtual #" + index + " // " + constantPool.load(index);
 			};
 		},
-		"invoke_special": function(string) {
-			var regex = /\/\/Method\s+(([a-zA-Z0-9_$\/]+)\.)?\"<init>\":\((.*)\)/;
-
+		"invoke_special": function(index) {
 			this.execute = function(frame, constantPool) {
-				var match = string.match(regex);
-				var className = match[2] ? match[2].replace(/\//g, ".") : frame.getClassDef().getName();
-				var args = match[3].split(";");
+				var methodDef = constantPool.load(index).getMethodDef();
 
-				for(var i = 0; i < args.length; i++) {
-					args[i] = _.str.trim(args[i]);
-
-					if(_.str.isBlank(args[i])) {
-						args.splice(i, 1);
-						i--;
-
-						continue;
-					}
-
-					args[i] = args[i].replace(/\//g, ".");
-
-					if(jjvm.types.Primitives[args[i]]) {
-						args[i] = jjvm.types.Primitives[args[i]];
-					} else if(_.str.startsWith(args[i], "L")) {
-						args[i] = args[i].substr(1);
-					}
-
-					args[i] = jjvm.core.ClassLoader.loadClass(args[i]);
-				}
-
-				var constructorArgs = [];
-
-				for(var n = 0; n < args.length; n++) {
-					constructorArgs.push(frame.getStack().pop());
-				}
-
-				var objectRef = frame.getStack().pop();
-				var classDef = jjvm.core.ClassLoader.loadClass(className);
-				var constructorDef = classDef.getConstructor(args);
-
-				constructorArgs.unshift(objectRef);
-
-				frame.executeChild(classDef, constructorDef, constructorArgs);
+				invokeMethod(methodDef, frame);
+			};
+			this.describe = function() {
+				return "invokespecial #" + index + " // " + constantPool.load(index);
 			};
 		},
-		"invoke_static": function(string) {
-			var regex = /\/\/Method\s+([a-zA-Z0-9_$\/]+)\.([a-zA-Z0-9_\$]+):/;
-
+		"invoke_static": function(index) {
 			this.execute = function(frame, constantPool) {
-				var match = string.match(regex);
-				var className = match[1].replace(/\//g, ".");
-				var methodName = match[2];
-				var classDef = jjvm.core.ClassLoader.loadClass(className);
-				var methodDef = classDef.getMethod(methodName);
+				var methodDef = constantPool.load(index).getMethodDef();
 
-				invokeMethod(classDef, methodDef, frame);
+				invokeMethod(methodDef, frame);
+			};
+			this.describe = function() {
+				return "invokestatic #" + index + " // " + constantPool.load(index);
 			};
 		},
-		"invoke_interface": function(string) {
-			var regex = /\/\/InterfaceMethod\s+([a-zA-Z0-9_$\/]+)\.([a-zA-Z0-9_\$]+):/;
-
+		"invoke_interface": function(index) {
 			this.execute = function(frame, constantPool) {
-				var match = string.match(regex);
-				var className = match[1].replace(/\//g, ".");
-				var methodName = match[2];
-				var classDef = jjvm.core.ClassLoader.loadClass(className);
-				var methodDef = classDef.getMethod(methodName);
-				
-				invokeMethod(classDef, methodDef, frame);
+				var methodDef = constantPool.load(index).getMethodDef();
+
+				invokeMethod(methodDef, frame);
+			};
+			this.describe = function() {
+				return "invokeinterface #" + index + " // " + constantPool.load(index);
 			};
 		},
-		"invoke_dynamic": function(string) {
-			var regex = /\/\/InterfaceMethod\s+([a-zA-Z0-9_$\/]+)\.([a-zA-Z0-9_\$]+):/;
-
+		"invoke_dynamic": function(index) {
 			this.execute = function(frame, constantPool) {
-				var match = string.match(regex);
-				var className = match[1].replace(/\//g, ".");
-				var methodName = match[2];
-				var classDef = jjvm.core.ClassLoader.loadClass(className);
-				var methodDef = classDef.getMethod(methodName);
-				
-				invokeMethod(classDef, methodDef, frame);
+				var methodDef = constantPool.load(index).getMethodDef();
+
+				invokeMethod(methodDef, frame);
+			};
+			this.describe = function() {
+				return "invokedynamic #" + index + " // " + constantPool.load(index);
 			};
 		},
 		"new": function(index) {
 			this.execute = function(frame, constantPool) {
-				var className = constantPool.load(index);
-				var classDef = jjvm.core.ClassLoader.loadClass(className);
+				var classDef = constantPool.load(index).getClassDef();
 
 				frame.getStack().push(new jjvm.runtime.ObjectReference(classDef));
+			};
+			this.describe = function() {
+				return "new #" + index + " // " + constantPool.load(index);
 			};
 		},
 		"array_create": function(index) {
@@ -533,20 +489,20 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location) {
 		},
 		"check_cast": function(index) {
 			this.execute = function(frame, constantPool) {
-				var className = constantPool.load(index);
+				var classDef = constantPool.load(index).getClassDef();
 				var objectRef = frame.getStack().pop();
 
-				if(objectRef.getClass().getName() != className) {
-					throw "ClassCastException: Object of type " + objectRef.getClass().getName() + " cannot be cast to " + className;
+				if(!objectRef.isInstanceOf(classDef)) {
+					throw "ClassCastException: Object of type " + objectRef.getClass().getName() + " cannot be cast to " + classDef.getName();
 				}
 			};	
 		},
 		"instance_of": function(index) {
 			this.execute = function(frame, constantPool) {
-				var className = constantPool.load(index);
+				var classDef = constantPool.load(index).getClassDef();
 				var objectRef = frame.getStack().pop();
 
-				frame.getStack().push(objectRef.getClass().getName() == className);
+				frame.getStack().push(objectRef.isInstanceOf(classDef));
 			};
 		},
 		"monitor_enter": function() {
@@ -649,6 +605,10 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location) {
 	};
 
 	this.toString = function() {
+		if(_operation.describe) {
+			return _operation.describe();
+		}
+
 		return mnemonic;
 	};
 

@@ -1,4 +1,4 @@
-jjvm.compiler.bytecode.InnerClassesParser = function() {
+jjvm.compiler.InnerClassesParser = function() {
 	
 	this.parse = function(iterator, constantsPool) {
 		var innerClasses = [];
@@ -10,13 +10,13 @@ jjvm.compiler.bytecode.InnerClassesParser = function() {
 
 			var accessFlags = iterator.readU16();
 
-			var isPublic = accessFlags & 0x0001 == 0x0001;
-			var isPrivate = accessFlags & 0x0002 == 0x0002;
-			var isProtected = accessFlags & 0x0004 == 0x0004;
-			var isStatic = accessFlags & 0x0008 == 0x0008;
-			var isFinal = accessFlags & 0x0010 == 0x0010;
-			var isInterface = accessFlags & 0x0200 == 0x0200;
-			var isAbstract = accessFlags & 0x0400 == 0x0400;
+			var isPublic = accessFlags & 0x0001 ? true : false;
+			var isPrivate = accessFlags & 0x0002 ? true : false;
+			var isProtected = accessFlags & 0x0004 ? true : false;
+			var isStatic = accessFlags & 0x0008 ? true : false;
+			var isFinal = accessFlags & 0x0010 ? true : false;
+			var isInterface = accessFlags & 0x0200 ? true : false;
+			var isAbstract = accessFlags & 0x0400 ? true : false;
 
 			innerClasses.push({
 				innerClass: innerClass,

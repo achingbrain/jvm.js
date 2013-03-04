@@ -1,16 +1,21 @@
-jjvm.types.ClassDefinition = function(visibility, isAbstract, isFinal, name, parent, interfaces) {
-	var _name = _.str.trim(name);
-	var _parent = parent;
-	var _interfaces = interfaces ? interfaces : [];
+jjvm.types.ClassDefinition = function(name, parent) {
+	var _name = name.getValue().replace(/\//g, ".");
+	var _parent = parent ? jjvm.core.ClassLoader.loadClass(parent.getValue().replace(/\//g, ".")) : null;
+	var _isAbstract = false;
+	var _isFinal = false;
+	var _isInterface = false;
+	var _isSuper = false;
+	var _visibility = "package";
+	var _interfaces = [];
 	var _methods = [];
 	var _fields = [];
-	var _exceptionTable;
-	var _constantPool;
+	var _exceptionTable = null;
 	var _sourceFile;
 	var _minorVersion;
 	var _majorVersion;
 	var _deprecated = false;
 	var _synthetic = false;
+	var _constantPool = null;
 
 	// holds values of static fields
 	var _staticFields = {};
@@ -23,16 +28,52 @@ jjvm.types.ClassDefinition = function(visibility, isAbstract, isFinal, name, par
 		return _parent;
 	};
 
+	this.getVisibility = function() {
+		return _visibility;
+	};
+
+	this.setVisibility = function(visibility) {
+		_visibility = visibility;
+	};
+
 	this.isAbstract = function() {
-		return isAbstract;
+		return _isAbstract;
+	};
+
+	this.setIsAbstract = function(isAbstract) {
+		_isAbstract = isAbstract;
 	};
 
 	this.isFinal = function() {
-		return isFinal;
+		return _isFinal;
+	};
+
+	this.setIsFinal = function(isFinal) {
+		_isFinal = isFinal;
+	};
+
+	this.isInterface = function() {
+		return _isInterface;
+	};
+
+	this.setIsInterface = function(isInterface) {
+		_isInterface = isInterface;
+	};
+
+	this.isSuper = function() {
+		return _isSuper;
+	};
+
+	this.setIsSuper = function(isSuper) {
+		_isSuper = isSuper;
 	};
 
 	this.getInterfaces = function() {
 		return _interfaces;
+	};
+
+	this.addInterface = function(anInterface) {
+		_interfaces.push(anInterface);
 	};
 
 	this.getMethods = function() {
@@ -104,6 +145,7 @@ jjvm.types.ClassDefinition = function(visibility, isAbstract, isFinal, name, par
 	};
 
 	this.setConstantPool = function(constantPool) {
+		constantPool.setClassDef(this);
 		_constantPool = constantPool;
 	};
 
@@ -166,7 +208,56 @@ jjvm.types.ClassDefinition = function(visibility, isAbstract, isFinal, name, par
 		return versions[_majorVersion];
 	};
 
+	this.isChildOf = function(classDef) {
+		if(this.getName() == classDef.getName()) {
+			return true;
+		}
+
+		for(var i = 0; i < this.getInterfaces().length; i++) {
+			if(this.getInterfaces()[i].isChildOf(classDef)) {
+				return true;
+			}
+		}
+
+		if(this.getParent()) {
+			return this.getParent().isChildOf(classDef);
+		}
+
+		return false;
+	};
+
 	this.toString = function() {
 		return "ClassDef#" + this.getName();
+	};
+
+	this.toJavaP = function() {
+		var output = _visibility;
+		output += _isAbstract ? " abstract" : "";
+		output += _isFinal ? " final" : "";
+		output += _isInterface ? " interface" : " class";
+		output += " " + _name;
+		output += _parent ? " extends " + _parent : "";
+		output += "\r\n";
+		output += "\tSourceFile: \"" + _sourceFile + "\"\r\n";
+		output += "\tMinor version: " + _minorVersion + "\r\n";
+		output += "\tMajor version: " + _majorVersion + "\r\n";
+		output += "\r\n";
+		output += _constantPool.toJavaP();
+		output += "\r\n";
+
+		if(_fields.length > 0) {
+			for(var f = 0; f < _fields.length; f++) {
+				output += _fields[f].toJavaP();
+			}
+
+			output += "\r\n";
+		}
+
+		for(var m = 0; m < _methods.length; m++) {
+			output += _methods[m].toJavaP();
+			output += "\r\n";
+		}
+
+		return output;
 	};
 };

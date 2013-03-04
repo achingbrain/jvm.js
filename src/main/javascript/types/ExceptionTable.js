@@ -9,4 +9,22 @@ jjvm.types.ExceptionTable = function(table) {
 
 		return null;
 	};
+
+	this.toJavaP = function() {
+		var output = "\t\tExceptionTable:\r\n";
+
+		for(var i = 0; i < table.length; i++) {
+			if(!table[i]) {
+				continue;
+			}
+
+			//output += "\t\t\tline " + i + ":\t" + table[i] + "\r\n";
+		}
+
+		return output;
+	};
+
+	this.toString = function() {
+		return "ExceptionTable";
+	};
 };

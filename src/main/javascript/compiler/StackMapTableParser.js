@@ -1,4 +1,4 @@
-jjvm.compiler.bytecode.StackMapTableParser = function() {
+jjvm.compiler.StackMapTableParser = function() {
 
 	this.parse = function(iterator, constantsPool) {
 		while(iterator.hasNext()) {

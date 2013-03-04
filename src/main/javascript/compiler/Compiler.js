@@ -1,22 +1,23 @@
-jjvm.compiler.bytecode.Compiler = function() {
-	var classDefinitionParser = new jjvm.compiler.bytecode.ClassDefinitionParser();
+jjvm.compiler.Compiler = function() {
+	var classDefinitionParser = new jjvm.compiler.ClassDefinitionParser();
 
 	// takes a File object
-	this.compile = function(file) {
+	this.compile = function(file, synchronous) {
 		var reader = new FileReader();
- 
+	 
 		// init the reader event handlers
 		reader.onload = _.bind(this._onLoad, this, file);
-
-		jjvm.core.NotificationCentre.dispatch(this, "onCompileStart");
 
 		// begin the read operation
 		reader.readAsArrayBuffer(file);
 	};
 
 	this._onLoad = function(file, event) {
+		this.compileBytes(event.target.result);
+	};
+
+	this.compileBytes = function(buffer) {
 		try {
-			var buffer = event.target.result;
 			var bytes = new Uint8Array(buffer);
 			var iterator = new jjvm.core.ByteIterator(bytes);
 

@@ -12,12 +12,12 @@ jjvm.ui.ThreadWatcher = function(list) {
 	this._update = function() {
 		$(list).empty();
 
-		for(var i = 0; i < ThreadPool.threads.length; i++) {
+		for(var i = 0; i < jjvm.runtime.ThreadPool.threads.length; i++) {
 			if(!_selectedThread) {
-				_selectedThread = ThreadPool.threads[i];
+				_selectedThread = jjvm.runtime.ThreadPool.threads[i];
 			}
 
-			this._addThread(ThreadPool.threads[i]);
+			this._addThread(jjvm.runtime.ThreadPool.threads[i]);
 		}
 	};
 
@@ -40,17 +40,17 @@ jjvm.ui.ThreadWatcher = function(list) {
 		var li = $("<li />");
 		$(li).append(threadName);
 
-		if(thread.getStatus() == Thread.STATUS.RUNNABLE) {
+		if(thread.getStatus() == jjvm.runtime.Thread.STATUS.RUNNABLE) {
 			$(threadName).addClass("text-success");
-		} else if(thread.getStatus() == Thread.STATUS.TERMINATED) {
+		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.TERMINATED) {
 			$(threadName).addClass("muted");
-		} else if(thread.getStatus() == Thread.STATUS.NEW) {
+		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.NEW) {
 			$(threadName).addClass("text-info");
-		} else if(thread.getStatus() == Thread.STATUS.BLOCKED) {
+		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.BLOCKED) {
 			$(threadName).addClass("text-error");
-		} else if(thread.getStatus() == Thread.STATUS.WAITING) {
+		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.WAITING) {
 			$(threadName).addClass("text-warn");
-		} else if(thread.getStatus() == Thread.STATUS.TIMED_WAITING) {
+		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.TIMED_WAITING) {
 			$(threadName).addClass("text-warn");
 		}
 
@@ -69,4 +69,5 @@ jjvm.ui.ThreadWatcher = function(list) {
 
 	jjvm.core.NotificationCentre.register("onBeforeInstructionExecution", _.bind(this._update, this));
 	jjvm.core.NotificationCentre.register("onExecutionComplete", _.bind(this._update, this));
+	jjvm.core.NotificationCentre.register("onThreadGC", _.bind(this._update, this));
 };

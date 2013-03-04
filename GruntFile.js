@@ -11,12 +11,12 @@ module.exports = function(grunt) {
 				],
 				core: [
 					"src/main/javascript/namespace.js",
+					"src/main/javascript/native.js",
 
 					"src/main/javascript/core/*.js",
 					"src/main/javascript/types/*.js",
 					"src/main/javascript/runtime/*.js",
-					"src/main/javascript/compiler/javap/*.js",
-					"src/main/javascript/compiler/bytecode/*.js",
+					"src/main/javascript/compiler/*.js",
 
 					"src/main/javascript/system.js"
 				],
@@ -66,27 +66,24 @@ module.exports = function(grunt) {
 		jasmine : {
 			test: {
 				src : [
-						"<%= meta.src.lib %>",
 						"<%= meta.src.core %>",
 						"<%= meta.src.ui %>"
 				],
 				options: {
+					helpers: "<%= meta.src.lib %>",
 					errorReporting: true,
 					specs : "src/test/javascript/**/*.spec.js"
 				}
 			},
 			coverage: {
 				src : [
-						"<%= meta.src.lib %>",
 						"<%= meta.src.core %>",
 						"<%= meta.src.ui %>"
 				],
 				options: {
+					helpers: "<%= meta.src.lib %>",
 					errorReporting: true,
 					specs : "<%= jasmine.test.options.specs %>",
-					excludes: [
-						"<%= meta.src.lib %>"
-					],
 					template: require("grunt-template-jasmine-istanbul"),
 					templateOptions: {
 						coverage: 'target/tests/coverage.json',

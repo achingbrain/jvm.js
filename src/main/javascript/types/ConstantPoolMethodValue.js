@@ -23,6 +23,6 @@ jjvm.types.ConstantPoolMethodValue = function(classIndex, nameAndTypeIndex, cons
 		var className = constantPool.load(classIndex).getValue();
 		var nameAndType = constantPool.load(nameAndTypeIndex);
 
-		return "Method	#" + classIndex + ".#" + nameAndTypeIndex + ";	//	" + className + "." + nameAndType.getName() + nameAndType.getType();
+		return "Method\t#" + classIndex + ".#" + nameAndTypeIndex + ";\t\t//\t" + className + "." + nameAndType.getName() + nameAndType.getType();
 	};
 };

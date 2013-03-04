@@ -1,10 +1,10 @@
-jjvm.compiler.bytecode.LineNumberTableParser = function() {
+jjvm.compiler.LineNumberTableParser = function() {
 
 	this.parse = function(iterator, constantsPool) {
 		var table = [];
 
 		while(iterator.hasNext()) {
-			table[iterator.readU8()] = iterator.readU8();
+			table[iterator.readU16()] = iterator.readU16();
 		}
 
 		return new jjvm.types.LineNumberTable(table);

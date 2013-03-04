@@ -11,13 +11,13 @@ jjvm.runtime.ObjectReference = function(classDef) {
 	};
 
 	this.getField = function(name) {
-		//this._hasField(name);
+		this._hasField(name);
 
 		return _fields[name];
 	};
 
 	this.setField = function(name, value) {
-		//this._hasField(name);
+		this._hasField(name);
 
 		_fields[name] = value;
 	};
@@ -36,6 +36,10 @@ jjvm.runtime.ObjectReference = function(classDef) {
 		if(!foundField) {
 			throw "field " + name + " does not exist on class " + this.getClass().getName();
 		}
+	};
+
+	this.isInstanceOf = function(classDef) {
+		return this.getClass().isChildOf(classDef);
 	};
 
 	this.toString = function() {

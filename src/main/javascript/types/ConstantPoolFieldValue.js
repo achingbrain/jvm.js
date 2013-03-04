@@ -23,6 +23,6 @@ jjvm.types.ConstantPoolFieldValue = function(classIndex, nameAndTypeIndex, const
 		var className = constantPool.load(classIndex).getValue();
 		var nameAndType = constantPool.load(nameAndTypeIndex);
 
-		return "Field	#" + classIndex + ".#" + nameAndTypeIndex + ";	//	" + className + "." + nameAndType.getName() + ":" + nameAndType.getType();
+		return "Field\t\t#" + classIndex + ".#" + nameAndTypeIndex + ";\t//\t" + className + "." + nameAndType.getName() + ":" + nameAndType.getType();
 	};
 };
