@@ -2,7 +2,12 @@ language: node_js
 node_js:
   - 0.8
 before_install:
-  - npm install grunt-jasmine-runner
-  - npm install grunt-jasmine-coverage
+  - npm install grunt
+  - npm install grunt-cli
+  - npm install grunt-contrib-jasmine
   - npm install grunt-template-jasmine-istanbul
   - npm install grunt-contrib-copy
+  - npm install grunt-contrib-concat
+  - npm install grunt-contrib-jshint
+  - npm install grunt-contrib-connect
+  - npm install grunt-contrib-watch
