@@ -45,3 +45,12 @@ Rather a lot.
 
 1. Threading, files, sockets, etc.
 2. High value longs, doubles, etc.
+
+Todo
+----
+
+Rather a lot
+
+1. Simplify Frame.js as there's a lot of code purely to emit events for the UI to pick up
+2. Test invoke_dynamic with some code that uses it (e.g. not Java)
+3. Increase test coverage..
