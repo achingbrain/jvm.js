@@ -11,6 +11,7 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 	var _instructions = new jjvm.core.Iterator(methodDef.getInstructions());
 	var _skipBreakpointAtLocation;
 	var _executionHalted;
+	var _isSystemFrame;
 
 	this.getLocalVariables = function() {
 		return _variables;
@@ -76,7 +77,7 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		// reset execution index and enabled stepping
 		_instructions.reset();
 		_currentInstruction = _instructions.peek();
-		this.dispatch("onBeforeInstructionExecution", _currentInstruction);
+		this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
 	};
 
 	var stepOverCallback = _.bind(this._stepOver, this);
@@ -90,17 +91,29 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		_thread.register("onDropToFrame", dropToFrameCallback);
 		_thread.register("onResumeExecution", resumeExecutionCallback);
 
+		if(methodDef.getName() == "<clinit>" && classDef.getName() == "java.util.Arrays") {
+			var afsdfj = "asfa";
+		}
+
 		if(methodDef.getImplementation()) {
 			// special case - where we have overriden method behaviour to stub 
 			// functionality like writing to System.out
-			var target = args.shift();
+			var target = classDef;
+
+			if(!methodDef.isStatic()) {
+				target = _variables.load(0);
+			}
+
+			args.unshift(target);
+			args.unshift(methodDef);
+			args.unshift(classDef);
 			_output = methodDef.getImplementation().apply(target, args);
 
 			this.dispatch("onFrameComplete");
 		} else {
 			if(_thread.isExecutionSuspended()) {
 				_currentInstruction = _instructions.peek();
-				this.dispatch("onBeforeInstructionExecution", _currentInstruction);
+				this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
 			} else {
 				this._executeNextInstruction();
 			}
@@ -108,23 +121,89 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 	};
 
 	this.executeChild = function(classDef, methodDef, args) {
-		_child = new jjvm.runtime.Frame(classDef, methodDef, args, this);
+		if(methodDef.getImplementation()) {
+			// special case - where we have overriden method behaviour to stub 
+			// functionality like writing to System.out
+			var target = classDef;
 
-		_child.register("onFrameComplete", _.bind(function() {
-			if(_child.getOutput() !== undefined) {
-				//this.getStack().push(_child.getOutput());
+			if(!methodDef.isStatic()) {
+				target = _variables.load(0);
 			}
 
-			this.dispatch("onChildFrameCompleted", _child.getOutput());
-			_child = null;
-			_thread.setCurrentFrame(this);
+			args.unshift(target);
+			args.unshift(methodDef);
+			args.unshift(classDef);
+			var childOutput = methodDef.getImplementation().apply(target, args);
 
-			// highlight our next instruction
-			_currentInstruction = _instructions.peek();
-			this.dispatch("onBeforeInstructionExecution", _currentInstruction);
-		}, this));
+			// override produced output so push it onto the stack
+			if(childOutput !== undefined) {
+				this.getStack().push(childOutput);
+			}
 
-		_child.execute(_thread, _executionHalted);
+			this.dispatch("onChildFrameCompleted", [childOutput]);
+		} else {
+			_child = new jjvm.runtime.Frame(classDef, methodDef, args, this);
+
+			_child.registerOneTimeListener("onFrameComplete", _.bind(function(frame, output) {
+				// child frame produced output so push it onto the stack
+				if(output !== undefined) {
+					this.getStack().push(output);
+				}
+
+				_child = null;
+				_thread.setCurrentFrame(this);
+
+				this.dispatch("onChildFrameCompleted", [output]);
+
+				// highlight our next instruction
+				_currentInstruction = _instructions.peek();
+				this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
+			}, this));
+			_child.registerOneTimeListener("onExceptionThrown", _.bind(function(frame, thrown) {
+				if(!this.getMethodDef().getExceptionTable()) {
+					if(!parent) {
+						// nowhere to bubble to...
+						throw "Uncaught exception! " + thrown;
+					}
+
+					// exception bubbles up
+					this.dispatch("onExceptionThrown", [thrown]);
+
+					return;
+				}
+
+				var exceptionTable = this.getMethodDef().getExceptionTable();
+				var jumpTo = exceptionTable.resolve(_currentInstruction.getLocation(), thrown);
+
+				if(jumpTo === null) {
+					if(!parent) {
+						// nowhere to bubble to...
+						throw "Uncaught exception! " + thrown;
+					}
+
+					// uncaught exception
+					this.dispatch("onExceptionThrown", [thrown]);
+
+					return;
+				} else {
+					// find the instruction we are to jump to
+					for(var i = 0; i < _instructions.getIterable().length; i++) {
+						if(_instructions.getIterable()[i].getLocation() == jumpTo) {
+							_instructions.jump(i);
+						}
+					}
+				}
+
+				_child = null;
+				_thread.setCurrentFrame(this);
+
+				// highlight our next instruction
+				_currentInstruction = _instructions.peek();
+				this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
+			}, this));
+
+			_child.execute(_thread, _executionHalted);
+		}
 
 		return _child;
 	};
@@ -134,6 +213,12 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 	};
 
 	this._shouldStopOnBreakpoint = function() {
+		if(_isSystemFrame) {
+			// sometimes we don't want breakpoints - class initializers,
+			// internal string ref creation and so on
+			return false;
+		}
+
 		if(!_currentInstruction.hasBreakpoint()) {
 			return false;
 		}
@@ -157,10 +242,10 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		// get instruction to execute
 		_currentInstruction = _instructions.next();
 
-		this.dispatch("onBeforeInstructionExecution", _currentInstruction);
+		this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
 
 		if(this._shouldStopOnBreakpoint()) {
-			this.dispatch("onBreakpointEncountered", _currentInstruction);
+			this.dispatch("onBreakpointEncountered", [_currentInstruction]);
 			_thread.setExecutionSuspended(true);
 			_instructions.rewind();
 
@@ -168,32 +253,45 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		}
 
 		try {
-			var output = _currentInstruction.execute(this, classDef.getConstantPool());
+			var constantPool = classDef.getConstantPool();
 
-			if(output !== undefined) {
-				_output = output;
+			// if we're not executing an interface, use the constantpool from 
+			// the method definition's containing class
+			if(!methodDef.getClassDef().isInterface()) {
+				constantPool = methodDef.getClassDef().getConstantPool();
 			}
+
+			_output = _currentInstruction.execute(this, constantPool);
 		} catch(error) {
 			if(error instanceof jjvm.runtime.Goto) {
+				// jump to another instruction
 				for(var i = 0; i < methodDef.getInstructions().length; i++) {
 					if(methodDef.getInstructions()[i].getLocation() == error.getLocation()) {
-						_executionIndex = i - 1;
+						_instructions.jump(i);
 					}
 				}
+			} else if(error instanceof jjvm.runtime.Thrown) {
+				// handle java exception ref
+				_output = error.getThrowable();
+
+				this._tearDownThreadListeners();
+
+				this.dispatch("onExceptionThrown", [error.getThrowable()]);
+
+				return;
 			} else {
+				// don't know what to do
 				throw error;
 			}
 		}
 
-		this.dispatch("onInstructionExecution", _currentInstruction);
-		this.dispatch("onAfterInstructionExecution", _currentInstruction);
+		this.dispatch("onInstructionExecution", [_currentInstruction]);
+		this.dispatch("onAfterInstructionExecution", [_currentInstruction]);
 
 		if(!_instructions.hasNext()) {
-			_thread.deRegister("onStepOver", stepOverCallback);
-			_thread.deRegister("onDropToFrame", dropToFrameCallback);
-			_thread.deRegister("onResumeExecution", resumeExecutionCallback);
-
-			this.dispatch("onFrameComplete");
+			// all done
+			this._tearDownThreadListeners();
+			this.dispatch("onFrameComplete", [_output]);
 
 			return;
 		}
@@ -207,12 +305,26 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 			// we are suspended, highlight the next instruction
 			var next = _instructions.peek();
 
-			this.dispatch("onBeforeInstructionExecution", next);
+			this.dispatch("onBeforeInstructionExecution", [next]);
 		}
+	};
+
+	this.setIsSystemFrame = function(systemFrame) {
+		_isSystemFrame = systemFrame;
+	};
+
+	this.isSystemFrame = function() {
+		return _isSystemFrame;
 	};
 
 	this.toString = function() {
 		return "Frame#" + classDef.getName() + "#" + methodDef.getName();
+	};
+
+	this._tearDownThreadListeners = function() {
+		_thread.deRegister("onStepOver", stepOverCallback);
+		_thread.deRegister("onDropToFrame", dropToFrameCallback);
+		_thread.deRegister("onResumeExecution", resumeExecutionCallback);
 	};
 };
 

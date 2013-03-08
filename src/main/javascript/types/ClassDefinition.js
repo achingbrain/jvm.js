@@ -16,6 +16,9 @@ jjvm.types.ClassDefinition = function(name, parent) {
 	var _deprecated = false;
 	var _synthetic = false;
 	var _constantPool = null;
+	var _enclosingMethod = null;
+	var _objectRef = null;
+	var _initialized = false;
 
 	// holds values of static fields
 	var _staticFields = {};
@@ -80,9 +83,27 @@ jjvm.types.ClassDefinition = function(name, parent) {
 		return _methods;
 	};
 
-	this.getMethod = function(name) {
+	this.hasMethod = function(name) {
 		for(var i = 0; i < _methods.length; i++) {
 			if(_methods[i].getName() == name) {
+				return true;
+			}
+		}
+
+		if(_parent !== null) {
+			return _parent.hasMethod(name);
+		}
+
+		return false;
+	};
+
+	this.getMethod = function(name, args) {
+		if(!args) {
+			args = [];
+		}
+
+		for(var i = 0; i < _methods.length; i++) {
+			if(_methods[i].getName() == name && this._argsMatch(_methods[i].getArgs(), args)) {
 				return _methods[i];
 			}
 		}
@@ -91,7 +112,21 @@ jjvm.types.ClassDefinition = function(name, parent) {
 			return _parent.getMethod(name);
 		}
 
-		throw "Method " + name + " does not exist on class " + this.getName();
+		throw "Method " + name + " with args " + args + " does not exist on class " + this.getName();
+	};
+
+	this._argsMatch = function(arr1, arr2) {
+		if(arr1.length != arr2.length) {
+			return false;
+		}
+
+		for(var i = 0; i < arr1.length; i++) {
+			if(arr1[i] != arr2[i]) {
+				return false;
+			}
+		}
+
+		return true;
 	};
 
 	this.addMethod = function(methodDef) {
@@ -102,8 +137,34 @@ jjvm.types.ClassDefinition = function(name, parent) {
 		return _fields;
 	};
 
+	this.getField = function(name) {
+		for(var i = 0; i < _fields.length; i++) {
+			if(_fields[i].getName() == name) {
+				return _fields[i];
+			}
+		}
+
+		if(_parent !== null) {
+			return _parent.getField(name);
+		}
+	};
+
 	this.addField = function(fieldDef) {
 		_fields.push(fieldDef);
+	};
+
+	this.hasField = function(name) {
+		for(var i = 0; i < _fields.length; i++) {
+			if(_fields[i].getName() == name && !_fields[i].isStatic()) {
+				return true;
+			}
+		}
+
+		if(_parent !== null) {
+			return _parent.hasField(name);
+		}
+
+		return false;
 	};
 
 	this.invokeStaticMethod = function(name, args) {
@@ -111,18 +172,18 @@ jjvm.types.ClassDefinition = function(name, parent) {
 	};
 
 	this.getStaticField = function(name) {
-		this._hasStaticField(name);
+		this.hasStaticField(name);
 
 		return _staticFields[name];
 	};
 
 	this.setStaticField = function(name, value) {
-		this._hasStaticField(name);
+		this.hasStaticField(name);
 
 		_staticFields[name] = value;
 	};
 
-	this._hasStaticField = function(name) {
+	this.hasStaticField = function(name) {
 		var foundField = false;
 
 		for(var i = 0; i < _fields.length; i++) {
@@ -193,6 +254,22 @@ jjvm.types.ClassDefinition = function(name, parent) {
 		return _synthetic;
 	};
 
+	this.setEnclosingMethod = function(enclosingMethod) {
+		_enclosingMethod = enclosingMethod;
+	};
+
+	this.getEnclosingMethod = function() {
+		return _enclosingMethod;
+	};
+
+	this.getObjectRef = function() {
+		if(!_objectRef) {
+			_objectRef = jjvm.Util.createObjectRef("java.lang.Class");
+		}
+
+		return _objectRef;
+	};
+
 	this.getVersion = function() {
 		var versions = {
 			0x2D: "Java 1.1",
@@ -224,6 +301,14 @@ jjvm.types.ClassDefinition = function(name, parent) {
 		}
 
 		return false;
+	};
+
+	this.getInitialized = function() {
+		return this._initialized;
+	};
+
+	this.setInitialized = function(initialized) {
+		this._initialized = initialized;
 	};
 
 	this.toString = function() {

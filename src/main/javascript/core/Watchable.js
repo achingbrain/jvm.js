@@ -12,6 +12,19 @@ jjvm.core.Watchable = {
 		this._observers[eventType].push(listener);
 	},
 
+	registerOneTimeListener: function(eventType, listener) {
+		if(!this._observers) {
+			this._observers = {};
+		}
+
+		if(this._observers[eventType] === undefined) {
+			this._observers[eventType] = [];
+		}
+
+		this._observers[eventType].push(listener);
+		listener.____oneTime = true;
+	},
+
 	deRegister: function(eventType, listener) {
 		if(!this._observers) {
 			this._observers = {};
@@ -43,21 +56,27 @@ jjvm.core.Watchable = {
 			this._observers = {};
 		}
 
+		if(args === undefined) {
+			args = [];
+		}
+
+		if(!_.isArray(args)) {
+			throw "Please only pass arrays to jjvm.core.Watchable#dispatch as args";
+		}
+
 		if(this._observers[eventType] !== undefined) {
-			var otherArgs = [this];
+			var observerArgs = [this];
+			observerArgs = observerArgs.concat(args);
 
-			if(args) {
-				if(args instanceof Array) {
-					otherArgs = otherArgs.concat(args);
-				} else {
-					otherArgs.push(args);
-				}
-			}
-
+			// copy the array in case the listener deregisters itself as part of the callback
 			var observers = this._observers[eventType].concat([]);
 
 			for(var i = 0; i < observers.length; i++) {
-				observers[i].apply(observers[i], otherArgs);
+				observers[i].apply(observers[i], observerArgs);
+
+				if(observers[i].____oneTime === true) {
+					this.deRegister(eventType, observers[i]);
+				}
 			}
 		}
 

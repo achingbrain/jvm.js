@@ -32,7 +32,7 @@ jjvm.compiler.InnerClassesParser = function() {
 			});
 		}
 
-		console.dir(innerClasses);
+		//console.dir(innerClasses);
 	};
 
 	this._loadEntry = function(iterator, constantsPool) {

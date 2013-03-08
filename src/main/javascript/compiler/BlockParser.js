@@ -20,7 +20,7 @@ jjvm.compiler.BlockParser = function() {
 		var attributeLength = iterator.readU32();
 
 		if(attributeLength !== expectedLength) {
-			throw attributeName + " attribute should have length " + expectedLength + "!";
+			throw attributeName + " attribute should have length " + expectedLength + "! found " + attributeLength;
 		}
 	};
 

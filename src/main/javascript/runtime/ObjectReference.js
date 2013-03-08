@@ -13,6 +13,22 @@ jjvm.runtime.ObjectReference = function(classDef) {
 	this.getField = function(name) {
 		this._hasField(name);
 
+		if(_fields[name] === undefined) {
+			// we have the field but it's not been used yet so initialise it.
+
+			var fieldDef = this.getClass().getField(name);
+
+			if(fieldDef.getType() == "byte" || fieldDef.getType() == "short" || fieldDef.getType() == "int" || fieldDef.getType() == "long" || fieldDef.getType() == "char") {
+				_fields[name] = 0;
+			} else if(fieldDef.getType() == "float" || fieldDef.getType() == "double") {
+				_fields[name] = 0.0;
+			} else if(fieldDef.getType() == "boolean") {
+				_fields[name] = false;
+			} else {
+				_fields[name] = null;				
+			}
+		}
+
 		return _fields[name];
 	};
 
@@ -23,17 +39,7 @@ jjvm.runtime.ObjectReference = function(classDef) {
 	};
 
 	this._hasField = function(name) {
-		var foundField = false;
-
-		for(var i = 0; i < this.getClass().getFields().length; i++) {
-			var field = this.getClass().getFields()[i];
-
-			if(field.getName() == name && !field.isStatic()) {
-				foundField = true;
-			}
-		}
-
-		if(!foundField) {
+		if(!this.getClass().hasField(name)) {
 			throw "field " + name + " does not exist on class " + this.getClass().getName();
 		}
 	};

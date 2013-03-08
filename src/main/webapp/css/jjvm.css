@@ -99,8 +99,8 @@ h3 {
 	list-style: none;
 	white-space: nowrap;
 }
-#classes a small {
-	float: right;
+#classes small {
+	display: block;
 }
 #classes ul {
 	margin: 0;

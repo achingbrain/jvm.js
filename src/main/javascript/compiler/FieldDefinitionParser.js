@@ -41,19 +41,22 @@ jjvm.compiler.FieldDefinitionParser = function() {
 			//console.info("field " + name + " has " + attributeCount + " attributes");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
-			console.warn("Unrecognised attribute " + attributeName + " on field " + name);
+			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Field " + name + " has unrecognised attribute " + attributeName]);
 		};
-		console.onConstantValue = function(iterator, constantsPool) {
+		attributesParser.onConstantValue = function(iterator, constantsPool) {
 			var value = constantsPool.load(iterator.readU16());
 			fieldDef.setConstantValue(value);
 		};
-		console.onSynthetic = function(iterator, constantsPool) {
+		attributesParser.onSynthetic = function(iterator, constantsPool) {
 			blockParser.readEmptyBlock(attributeName, iterator);
 			fieldDef.setSynthetic(true);
 		};
-		console.onDeprecated = function(iterator, constantsPool) {
+		attributesParser.onDeprecated = function(iterator, constantsPool) {
 			blockParser.readEmptyBlock(attributeName, iterator);
 			fieldDef.setDeprecated(true);
+		};
+		attributesParser.onSignature = function(iterator, constantPool) {
+			
 		};
 		attributesParser.parse(iterator, constantsPool);
 

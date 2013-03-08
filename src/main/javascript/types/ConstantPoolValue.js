@@ -14,9 +14,9 @@ jjvm.types.ConstantPoolValue = function(type, value, constantPool) {
 			return value.substring(1, value.length - 1).replace(/\//g, ".");
 		}
 
-		if(jjvm.types.Primitives[value]) {
+		if(jjvm.types.Primitives.jvmTypesToPrimitive[value]) {
 			// convert I to int, Z to boolean, etc
-			return jjvm.types.Primitives[value];
+			return jjvm.types.Primitives.jvmTypesToPrimitive[value];
 		}
 
 		return value;

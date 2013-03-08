@@ -9,7 +9,11 @@ jjvm.ui.ThreadWatcher = function(list) {
 		_selectedThread = thread;
 	};
 
-	this._update = function() {
+	this._update = function(frame) {
+		if(frame instanceof jjvm.runtime.Frame && frame.isSystemFrame()) {
+			return;
+		}
+
 		$(list).empty();
 
 		for(var i = 0; i < jjvm.runtime.ThreadPool.threads.length; i++) {

@@ -21,12 +21,28 @@ jjvm.core.ClassLoader = {
 	},
 
 	loadClass: function(className) {
+		var output;
+
 		for(var i = 0; i < jjvm.core.ClassLoader._classes.length; i++) {
 			if(jjvm.core.ClassLoader._classes[i].getName() == className) {
-				return jjvm.core.ClassLoader._classes[i];
+				output = jjvm.core.ClassLoader._classes[i];
+				break;
 			}
 		}
 
-		return jjvm.core.SystemClassLoader.loadClass(className);
+		if(!output) {
+			output = jjvm.core.SystemClassLoader.loadClass(className);
+		}
+
+		if(output.hasMethod(jjvm.types.MethodDefinition.CLASS_INITIALISER) && !output.getInitialized()) {
+			// has class initializer so execute it
+			output.setInitialized(true);
+			var frame = new jjvm.runtime.Frame(output, output.getMethod(jjvm.types.MethodDefinition.CLASS_INITIALISER));
+			frame.setIsSystemFrame(true);
+			var thread = new jjvm.runtime.Thread(frame);
+			frame.execute(thread);
+		}
+
+		return output;
 	}
 };

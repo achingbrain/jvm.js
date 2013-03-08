@@ -22,7 +22,7 @@ jjvm.compiler.AttributesParser = function(iterator, constantPool) {
 			var read = iterator.getLocation() - attributeStart;
 
 			if(read != attributeLength) {
-				console.warn("Short read of " + attributeName + " read " + read + " of " + attributeLength + " bytes");
+				//jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Short read of " + attributeName + " read " + read + " of " + attributeLength + " bytes"]);
 			}
 
 			iterator.jump(nextPosition);

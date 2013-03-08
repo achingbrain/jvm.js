@@ -3,6 +3,7 @@ jjvm.compiler.ClassDefinitionParser = function() {
 	var fieldDefinitionParser = new jjvm.compiler.FieldDefinitionParser();
 	var methodDefinitionParser = new jjvm.compiler.MethodDefinitionParser();
 	var innerClassesParser = new jjvm.compiler.InnerClassesParser();
+	var enclosingMethodParser = new jjvm.compiler.EnclosingMethodParser();
 	var blockParser = new jjvm.compiler.BlockParser();
 	var attributesParser = new jjvm.compiler.AttributesParser();
 
@@ -55,7 +56,7 @@ jjvm.compiler.ClassDefinitionParser = function() {
 			//console.info("class " + name + " has " + attributeCount + " attribtues");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
-			console.warn("Unrecognised attribute " + attributeName + " on class " + name);
+			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Class " + name + " has unrecognised attribute " + attributeName]);
 		};
 		attributesParser.onSourceFile = function(iterator, constantPool) {
 			var sourceFileName = constantPool.load(iterator.readU16()).getValue();
@@ -72,17 +73,20 @@ jjvm.compiler.ClassDefinitionParser = function() {
 		attributesParser.onInnerClasses = function(iterator, constantPool) {
 			blockParser.parseBlock(iterator, constantPool, iterator.readU16() * 8, innerClassesParser);
 		};
+		attributesParser.onEnclosingMethod = function(iterator, constantPool) {
+			var enclosingMethod = blockParser.parseBlock(iterator, constantPool, iterator.readU16(), enclosingMethodParser);
+			classDef.setEnclosingMethod(enclosingMethod);
+		};
+		attributesParser.onSignature = function(iterator, constantPool) {
+			
+		};
 		attributesParser.parse(iterator, constantPool);
-
-		//console.debug(classDef.toJavaP());
 
 		return classDef;
 	};
 
 	this.parseFields = function(iterator, classDef, constantPool) {
 		var fieldCount = iterator.readU16();
-
-		//console.info("class " + classDef.getName() + " has " + fieldCount + " fields");
 
 		for(var i = 0; i < fieldCount; i++) {
 			classDef.addField(fieldDefinitionParser.parse(iterator, constantPool, classDef));
@@ -91,8 +95,6 @@ jjvm.compiler.ClassDefinitionParser = function() {
 
 	this.parseMethods = function(iterator, classDef, constantPool) {
 		var methodCount = iterator.readU16();
-
-		//console.info("class " + classDef.getName() + " has " + methodCount + " methods");
 
 		for(var i = 0; i < methodCount; i++) {
 			classDef.addMethod(methodDefinitionParser.parse(iterator, constantPool, classDef));

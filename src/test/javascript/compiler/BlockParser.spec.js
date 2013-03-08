@@ -61,7 +61,7 @@ describe("jjvm.compiler.BlockParser test", function () {
 			// should have thrown an exception already
 			expect(true).toEqual(false);
 		} catch(e) {
-			expect(e).toEqual("foo attribute should have length 2!");
+			expect(e).toEqual("foo attribute should have length 2! found 4");
 		}
 	});
 });

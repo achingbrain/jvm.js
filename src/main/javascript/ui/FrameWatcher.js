@@ -1,6 +1,10 @@
 jjvm.ui.FrameWatcher = function(localVariableTable, stackTable, title) {
 	
 	this._update = function(frame) {
+		if(frame.isSystemFrame()) {
+			return;
+		}
+
 		this._updateLocalVariableTable(frame.getLocalVariables().getLocalVariables());
 		this._updateStackTable(frame.getStack().getStack());
 

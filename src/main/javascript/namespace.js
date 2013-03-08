@@ -13,5 +13,6 @@ jjvm = {
 	},
 	ui: {
 
-	}
+	},
+	nativeMethods: {}
 };

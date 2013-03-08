@@ -17,7 +17,7 @@ jjvm.compiler.ConstantPoolParser = function() {
 					value += String.fromCharCode(parseInt(iterator.next(), 10));
 				}
 
-				pool.store(i, new jjvm.types.ConstantPoolValue("Asciz", value, pool));
+				pool.store(i, new jjvm.types.ConstantPoolValue("Utf8", value, pool));
 			} else if(tag == 0x03) {
 				pool.store(i, new jjvm.types.ConstantPoolValue("int", iterator.readU32(), pool));
 			} else if(tag == 0x04) {

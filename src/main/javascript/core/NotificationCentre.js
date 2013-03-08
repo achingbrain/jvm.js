@@ -27,18 +27,22 @@ jjvm.core.NotificationCentre = {
 			return;
 		}
 
-		if(!args) {
+		if(args === undefined) {
 			args = [];
 		}
 
-		if(!(args instanceof Array)) {
-			args = [args];
+		if(!_.isArray(args)) {
+			throw "Please only pass arrays to jjvm.core.NotificationCentre#dispatch as args";
 		}
 
-		args.unshift(sender);
+		var observerArgs = [sender];
+		observerArgs = observerArgs.concat(args);
 
-		for(var i = 0; i < jjvm.core.NotificationCentre._listeners[eventType].length; i++) {
-			jjvm.core.NotificationCentre._listeners[eventType][i].apply(this, args);
+		// copy the array in case the listener deregisters itself as part of the callback
+		var observers = jjvm.core.NotificationCentre._listeners[eventType].concat([]);
+
+		for(var i = 0; i < observers.length; i++) {
+			observers[i].apply(observers[i], observerArgs);
 		}
 	}
 };

@@ -219,3 +219,5 @@ jjvm.types.MethodDefinition = function(name, args, returns, classDef) {
 		return "Method#" + this.getName();
 	};
 };
+
+jjvm.types.MethodDefinition.CLASS_INITIALISER = "<clinit>";

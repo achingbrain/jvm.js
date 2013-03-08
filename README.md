@@ -6,9 +6,7 @@ A JavaScript implementation of the JVM.
 Demo
 -----
 
-`git clone http://github.com/achingbrain/jjvm.git && cd jjvm && npm install && grunt run` too much like hard work?
-
-[Help is at hand](http://achingbrain.github.com/jjvm).  Skip to step 4 below.  Hope you're running a modern browser.
+[http://achingbrain.github.com/jjvm](http://achingbrain.github.com/jjvm).  Skip to step 4 below.  Hope you're running a modern browser.
 
 Getting started
 -----
@@ -52,3 +50,5 @@ Rather a lot
 1. Simplify Frame.js as there's a lot of code purely to emit events for the UI to pick up
 2. Test invoke_dynamic with some code that uses it (e.g. not Java)
 3. Increase test coverage..
+4. Support ConstantValue field attribute
+5. Compile using Web Workers

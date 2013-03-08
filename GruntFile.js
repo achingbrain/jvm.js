@@ -11,17 +11,32 @@ module.exports = function(grunt) {
 				],
 				core: [
 					"src/main/javascript/namespace.js",
+					"src/main/javascript/util.js",
 					"src/main/javascript/native.js",
 
 					"src/main/javascript/core/*.js",
 					"src/main/javascript/types/*.js",
 					"src/main/javascript/runtime/*.js",
 					"src/main/javascript/compiler/*.js",
-
-					"src/main/javascript/system.js"
 				],
 				ui: [
 					"src/main/javascript/ui/*.js"
+				]
+			},
+
+			compiler: {
+				lib: [
+					"src/main/webapp/js/underscore.js",
+					"src/main/webapp/js/underscore.string.js"
+				],
+				core: [
+					"src/main/javascript/namespace.js",
+					"src/main/javascript/util.js",
+					"src/main/javascript/native.js",
+
+					"src/main/javascript/core/*.js",
+					"src/main/javascript/types/*.js",
+					"src/main/javascript/compiler/*.js"
 				]
 			}
 		},
@@ -48,9 +63,19 @@ module.exports = function(grunt) {
 			main: {
 				src: [
 					"<%= meta.src.core %>",
-					"<%= meta.src.ui %>"
+					"<%= meta.src.ui %>",
+					"src/main/javascript/compiler/!(CompilerWorker).js"
 				],
 				dest: "target/webapp/js/jjvm.js"
+			},
+			compilerWorker: {
+				src: [
+					"<%= meta.compiler.lib %>",
+					"<%= meta.compiler.core %>",
+
+					"src/main/javascript/compiler/CompilerWorker.js"
+				],
+				dest: "target/webapp/js/jjvm_compiler_worker.js"
 			}
 		},
 
@@ -95,9 +120,10 @@ module.exports = function(grunt) {
 
 		watch: {
 			files: [
-				"src/main/**/*"
+				"src/main/javascript/**/*",
+				"src/test/javascript/**/*"
 			],
-			tasks: ["jshint", "copy", "concat"]
+			tasks: ["jshint", "concat"]
 		},
 
 		connect: {

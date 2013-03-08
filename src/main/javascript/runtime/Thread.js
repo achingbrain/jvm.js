@@ -41,7 +41,7 @@ jjvm.runtime.Thread = function(frame, parent) {
 	this.setCurrentFrame = function(frame) {
 		_currentFrame = frame;
 
-		this.dispatch("onCurrentFrameChanged", frame);
+		this.dispatch("onCurrentFrameChanged", [frame]);
 	};
 
 	this.getInitialFrame = function(frame) {
@@ -51,7 +51,7 @@ jjvm.runtime.Thread = function(frame, parent) {
 	this.setStatus = function(status) {
 		_status = status;
 
-		this.dispatch("onThreadStatusChanged", frame);
+		this.dispatch("onThreadStatusChanged", [frame]);
 	};
 
 	this.getStatus = function() {

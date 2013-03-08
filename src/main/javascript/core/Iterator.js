@@ -1,6 +1,10 @@
 jjvm.core.Iterator = function(iterable) {
 	var index = 0;
 
+	if(!iterable) {
+		throw "Cannot iterrate over falsy value!";	
+	}
+
 	this.next = function() {
 		var output = iterable[index];
 		index++;

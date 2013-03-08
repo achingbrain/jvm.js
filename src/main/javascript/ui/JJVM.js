@@ -49,9 +49,11 @@ jjvm.ui.JJVM = {
 		$("#button_run").click(jjvm.ui.JJVM.run);
 
 		jjvm.core.NotificationCentre.register("onCompileSuccess", function() {
-			jjvm.ui.JJVM.console.info("Compilation complete");
+			if(window.webkitNotifications && window.webkitNotifications.checkPermission() === 0) {
+				var notification = window.webkitNotifications.createNotification("icon.png", "JJVM", "Compilation complete");
+				notification.show();
+			}
 		});
-
 		jjvm.core.NotificationCentre.register("onCompileError", function(sender, error) {
 			jjvm.ui.JJVM.console.error("Compilation error!");
 			jjvm.ui.JJVM.console.error(error);
@@ -76,8 +78,6 @@ jjvm.ui.JJVM = {
 			$("#button_pause").attr("disabled", true);
 			$("#button_step_over").attr("disabled", true);
 			$("#button_drop_to_frame").attr("disabled", true);
-
-			jjvm.ui.JJVM.console.info("Done");
 		});
 
 		// all done, enable input
@@ -86,6 +86,20 @@ jjvm.ui.JJVM = {
 		// if we've already got input, enable the compile button
 		if($("#source").val()) {
 			$("#button_compile").removeAttr("disabled");
+		}
+
+		// html5 notifications!
+		if(window.webkitNotifications) {
+			var permissions = window.webkitNotifications.checkPermission();
+
+			if(permissions === 0) {
+				// granted
+			} else if(permissions === 1) {
+				// not yet granted
+				window.webkitNotifications.requestPermission();
+			} else if(permissions === 2) {
+				// blocked
+			}
 		}
 	},
 
@@ -113,13 +127,15 @@ jjvm.ui.JJVM = {
 		}
 
 		// parse program arguments
-		var args = $("#program_run input").val().split(",");
+		var args = [];
 
-		$.each(args, function(index, arg) {
-			args[index] = _.str.trim(arg);
+		$.each($("#program_run input").val().split(","), function(index, arg) {
+			arg = _.str.trim(arg);
+
+			args.push(jjvm.Util.createStringRef(arg));
 		});
 
-		args = [null, args];
+		args = [args];
 
 		$("#button_run").attr("disabled", true);
 		$("#button_resume").attr("disabled", true);
@@ -144,7 +160,15 @@ jjvm.ui.JJVM = {
 			jjvm.ui.JJVM._threadWatcher.setSelectedThread(thread);
 			thread.run();
 		} catch(error) {
+			console.error(error);
+			console.error(error.stack);
 			jjvm.ui.JJVM.console.error(error);
+
+			$("#button_run").removeAttr("disabled");
+			$("#button_resume").attr("disabled", true);
+			$("#button_pause").attr("disabled", true);
+			$("#button_step_over").attr("disabled", true);
+			$("#button_drop_to_frame").attr("disabled", true);
 		}
 	}
 };

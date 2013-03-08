@@ -8,15 +8,10 @@ jjvm.types.ConstantPoolMethodValue = function(classIndex, nameAndTypeIndex, cons
 		var classDef = constantPool.load(classIndex).getClassDef();
 		var nameAndType = constantPool.load(nameAndTypeIndex);
 		var methodName = nameAndType.getName();
-		var methods = classDef.getMethods();
+		var type = nameAndType.getType();
+		var args = jjvm.Util.parseArgs(type);
 
-		for(var i = 0; i < methods.length; i++) {
-			if(methods[i].getName() == methodName) {
-				return methods[i];
-			}
-		}
-
-		throw "Method " + methodName + " not found on class " + classDef.getName();
+		return classDef.getMethod(methodName, args);
 	};
 
 	this.toString = function() {

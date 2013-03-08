@@ -13,51 +13,30 @@ jjvm.compiler.MethodDefinitionParser = function() {
 		var descriptor = constantPool.load(iterator.readU16());
 		var type = descriptor.getValue();
 
-		var typeRegex = /\((.*)?\)(L[a-zA-Z\/]+;|Z|B|C|S|I|J|F|D|V)/;
+		var typeRegex = /\((.*)?\)(\[+)?(L[a-zA-Z\/$]+;|Z|B|C|S|I|J|F|D|V)/;
 		var match = type.match(typeRegex);
 
-		var returns = match[2];
+		var returnsArray = match[2] ? true : false;
+		var returns = match[3];
 
 		if(returns.length > 1) {
 			// returns an object type, remove the L and ;
 			returns = returns.substring(1, returns.length - 1).replace(/\//g, ".");
 		}
 
-		if(jjvm.types.Primitives[returns]) {
+		if(jjvm.types.Primitives.jvmTypesToPrimitive[returns]) {
 			// convert I to int, Z to boolean, etc
-			returns = jjvm.types.Primitives[returns];
+			returns = jjvm.types.Primitives.jvmTypesToPrimitive[returns];
+		}
+
+		if(returnsArray) {
+			returns += "[]";
 		}
 
 		var args = [];
 
 		if(match[1]) {
-			var argsIterator = new jjvm.core.Iterator(match[1].split(""));
-
-			while(argsIterator.hasNext()) {
-				var character = argsIterator.next();
-
-				if(jjvm.types.Primitives[character]) {
-					// convert I to int, Z to boolean, etc
-					args.push(jjvm.types.Primitives[character]);
-				} else if(character == "L") {
-					// start of object type definition, read until ";"
-					var className = "";
-
-					while(true) {
-						var classNameCharacter = argsIterator.next();
-
-						if(classNameCharacter == ";") {
-							className = className.replace(/\//g, ".");
-
-							break;
-						} else {
-							className += classNameCharacter;
-						}
-					}
-
-					args.push(className);
-				}
-			}
+			args = jjvm.Util.parseArgs(match[1]);
 		}
 
 		var methodDef = new jjvm.types.MethodDefinition(name, args, returns, classDef);
@@ -92,7 +71,8 @@ jjvm.compiler.MethodDefinitionParser = function() {
 			if(jjvm.nativeMethods[classDef.getName()] && jjvm.nativeMethods[classDef.getName()][methodDef.getName() + type]) {
 				methodDef.setImplementation(jjvm.nativeMethods[classDef.getName()][methodDef.getName() + type]);
 			} else {
-				jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " is marked as native - you should provide an implementation in native.js under jjvm.nativeMethods[\"" + classDef.getName() + "\"][\"" + methodDef.getName() + type + "\"]"]);
+				//jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " is marked as native - you should provide an implementation in native.js under jjvm.nativeMethods[\"" + classDef.getName() + "\"][\"" + methodDef.getName() + type + "\"]"]);
+				throw "Method " + methodDef.getName() + " on class " + classDef.getName() + " is marked as native - you should provide an implementation in native.js under jjvm.nativeMethods[\"" + classDef.getName() + "\"][\"" + methodDef.getName() + type + "\"]";
 			}
 		}
 
@@ -108,7 +88,7 @@ jjvm.compiler.MethodDefinitionParser = function() {
 			//console.info("method " + name + " has " + attributeCount + " attributes");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
-			console.warn("Unrecognised attribute " + attributeName + " on method " + name);
+			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " has unrecognised attribute " + attributeName]);
 		};
 		attributesParser.onCode = function(iterator, constantPool) {
 			methodDef.setMaxStackSize(iterator.readU16());
@@ -124,10 +104,20 @@ jjvm.compiler.MethodDefinitionParser = function() {
 				//console.info("Code block has " + attributeCount + " attributes");
 			};
 			codeAttributesParser.onUnrecognisedAttribute = function(attributeName) {
-				console.warn("Unrecognised attribute " + attributeName + " on code block");
+				jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " has unrecognised attribute " + attributeName + " on code block"]);
 			};
 			codeAttributesParser.onLineNumberTable = function() {
 				methodDef.setLineNumberTable(blockParser.parseBlock(iterator, constantPool, iterator.readU16() * 4, lineNumberTableParser));
+			};
+			codeAttributesParser.onStackMapTable = function(iterator, constantPool) {
+				// can be variable length
+				//var statckMapTable = blockParser.parseBlock(iterator, constantPool, iterator.readU16(), stackMapTableParser);
+				//methodDef.setStackMapTable(statckMapTable);
+			};
+			codeAttributesParser.onLocalVariableTable = function(iterator, constantPool) {
+				// can be variable length
+				//var statckMapTable = blockParser.parseBlock(iterator, constantPool, iterator.readU16(), stackMapTableParser);
+				//methodDef.setStackMapTable(statckMapTable);
 			};
 			codeAttributesParser.parse(iterator, constantPool);
 		};
@@ -142,12 +132,13 @@ jjvm.compiler.MethodDefinitionParser = function() {
 			methodDef.setThrows(exceptions);
 		};
 		attributesParser.onDeprecated = function(iterator, constantPool) {
-			blockParser.readEmptyBlock("Deprecated", iterator);
 			methodDef.setDeprecated(true);
 		};
 		attributesParser.onSynthetic = function(iterator, constantPool) {
-			blockParser.readEmptyBlock("Synthetic", iterator);
 			methodDef.setSynthetic(true);
+		};
+		attributesParser.onSignature = function(iterator, constantPool) {
+			
 		};
 		attributesParser.parse(iterator, constantPool);
 
