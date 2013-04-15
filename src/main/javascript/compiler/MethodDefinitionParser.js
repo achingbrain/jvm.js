@@ -1,4 +1,6 @@
 jjvm.compiler.MethodDefinitionParser = function() {
+	_.extend(this, new jjvm.compiler.Parser());
+
 	var byteCodeParser = new jjvm.compiler.ByteCodeParser();
 	var exceptionTableParser = new jjvm.compiler.ExceptionTableParser();
 	var lineNumberTableParser = new jjvm.compiler.LineNumberTableParser();
@@ -8,6 +10,8 @@ jjvm.compiler.MethodDefinitionParser = function() {
 	var codeAttributesParser = new jjvm.compiler.AttributesParser();
 
 	this.parse = function(iterator, constantPool, classDef) {
+		var methodDef = new jjvm.types.MethodDefinition();
+
 		var accessFlags = iterator.readU16();
 		var name = constantPool.load(iterator.readU16()).getValue();
 		var descriptor = constantPool.load(iterator.readU16());
@@ -39,7 +43,11 @@ jjvm.compiler.MethodDefinitionParser = function() {
 			args = jjvm.Util.parseArgs(match[1]);
 		}
 
-		var methodDef = new jjvm.types.MethodDefinition(name, args, returns, classDef);
+		
+		methodDef.setName(name);
+		methodDef.setArgs(args);
+		methodDef.setReturns(returns);
+		methodDef.setClassDef(classDef);
 
 		if(accessFlags & 0x0001) {
 			methodDef.setVisibility("public");
@@ -65,14 +73,18 @@ jjvm.compiler.MethodDefinitionParser = function() {
 			methodDef.setIsSynchronized(true);
 		}
 
+		if(jjvm.nativeMethods[classDef.getName()] && jjvm.nativeMethods[classDef.getName()][methodDef.getName() + type]) {
+			// we've overriden the method implementation
+			methodDef.setImplementation(jjvm.nativeMethods[classDef.getName()][methodDef.getName() + type]);
+		}
+
 		if(accessFlags & 0x0100) {
 			methodDef.setIsNative(true);
 
-			if(jjvm.nativeMethods[classDef.getName()] && jjvm.nativeMethods[classDef.getName()][methodDef.getName() + type]) {
-				methodDef.setImplementation(jjvm.nativeMethods[classDef.getName()][methodDef.getName() + type]);
-			} else {
-				//jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " is marked as native - you should provide an implementation in native.js under jjvm.nativeMethods[\"" + classDef.getName() + "\"][\"" + methodDef.getName() + type + "\"]"]);
-				throw "Method " + methodDef.getName() + " on class " + classDef.getName() + " is marked as native - you should provide an implementation in native.js under jjvm.nativeMethods[\"" + classDef.getName() + "\"][\"" + methodDef.getName() + type + "\"]";
+			if(!methodDef.getImplementation()) {
+				// method marked as native but no implementation supplied - make a fuss
+				jjvm.core.NotificationCentre.dispatch(this, "onCompileError", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " is marked as native - you should provide an implementation in native.js under jjvm.nativeMethods[\"" + classDef.getName() + "\"][\"" + methodDef.getName() + type + "\"]"]);
+				//throw "Method " + methodDef.getName() + " on class " + classDef.getName() + " is marked as native - you should provide an implementation in native.js under jjvm.nativeMethods[\"" + classDef.getName() + "\"][\"" + methodDef.getName() + type + "\"]";
 			}
 		}
 

@@ -1,6 +1,7 @@
 jjvm.runtime.ObjectReference = function(classDef) {
 	var _fields = {};
 	var _values = {};
+	var _index = jjvm.runtime.ObjectReference.index++;
 
 	this.getClass = function() {
 		return classDef;
@@ -18,7 +19,7 @@ jjvm.runtime.ObjectReference = function(classDef) {
 
 			var fieldDef = this.getClass().getField(name);
 
-			if(fieldDef.getType() == "byte" || fieldDef.getType() == "short" || fieldDef.getType() == "int" || fieldDef.getType() == "long" || fieldDef.getType() == "char") {
+			if(fieldDef.getType() == "boolean" || fieldDef.getType() == "byte" || fieldDef.getType() == "short" || fieldDef.getType() == "int" || fieldDef.getType() == "long" || fieldDef.getType() == "char") {
 				_fields[name] = 0;
 			} else if(fieldDef.getType() == "float" || fieldDef.getType() == "double") {
 				_fields[name] = 0.0;
@@ -48,7 +49,13 @@ jjvm.runtime.ObjectReference = function(classDef) {
 		return this.getClass().isChildOf(classDef);
 	};
 
+	this.getIndex = function() {
+		return _index;
+	};
+
 	this.toString = function() {
-		return "ObjectReference#" + classDef.getName();
+		return "ObjectReference #" + this.getIndex() + " " + classDef.getName();
 	};
 };
+
+jjvm.runtime.ObjectReference.index = 0;

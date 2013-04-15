@@ -5,19 +5,37 @@ jjvm.core.ByteIterator = function(iterable) {
 		return this.next();
 	};
 
+	this.read8 = function() {
+		return this._checkSign(this.readU8(), 8);
+	};
+
 	this.readU16 = function() {
+
 		// Under 32 bits so can use bitwise operators
 		return ((this.readU8() & 0xFF) << 8) + ((this.readU8() & 0xFF) << 0);
 	};
 
+	this.read16 = function() {
+		return this._checkSign(this.readU16(), 16);
+	};
+
 	this.readU32 = function() {
+
 		// In JavaScript, bitwise operators only work on 32 bit integers...
 		return (this.readU16() * Math.pow(2, 16)) + this.readU16();
+	};
+
+	this.read32 = function() {
+		return this._checkSign(this.readU32(), 32);
 	};
 
 	this.readU64 = function() {
 		// In JavaScript, bitwise operators only work on 32 bit integers...
 		return (this.readU32() * Math.pow(2, 32)) + this.readU32();
+	};
+
+	this.read64 = function() {
+		return this._checkSign(this.readU64(), 64);
 	};
 
 	this.readFloat = function() {
@@ -62,6 +80,17 @@ jjvm.core.ByteIterator = function(iterable) {
 			this._64bitOr(this._64bitAnd(bits, 0xfffffffffffff), 0x10000000000000);
 		
 		return s * m * Math.pow(2, e - 1075);
+	};
+
+	this._checkSign = function(value, bits) {
+		var max = Math.pow(2, bits - 1);
+
+		// if most significant bit is set, number is negative
+		if(Math.abs(value & max) == max) {
+			return value - Math.pow(2, bits);
+		}
+
+		return value;
 	};
 
 	this._shiftLeft = function(value, bits) {

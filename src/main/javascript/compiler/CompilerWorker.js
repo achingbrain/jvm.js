@@ -35,11 +35,11 @@ jjvm.compiler.CompilerWorker = function(buffer, isSystemClass) {
 
 		self.postMessage({
 			notification: "onDefined", 
-			args: [classDef]
+			args: [classDef.getData()]
 		});
 		self.postMessage({
 			notification: "onCompileSuccess", 
-			args: []
+			args: [classDef.getData()]
 		});
 	} catch(error) {
 		self.postMessage({

@@ -1,18 +1,47 @@
-jjvm.types.ConstantPoolNameAndTypeValue = function(nameIndex, typeIndex, constantPool) {
+jjvm.types.ConstantPoolNameAndTypeValue = function(data) {
+	_.extend(this, new jjvm.types.ConstantPoolValue(data));
+
+	this.setType(jjvm.types.ConstantPoolNameAndTypeValue.type);
 
 	this.getValue = function() {
-		return this.getName() + ":" + typeIndex;
+		return this.getName() + ":" + this.getNameType();
+	};
+
+	this.setName = function(name) {
+		this.getData().name = name;
 	};
 
 	this.getName = function() {
-		return constantPool.load(nameIndex).getValue();
+		return this.getData().name;
 	};
 
-	this.getType = function() {
-		return constantPool.load(typeIndex).getValue();
+	this.setNameIndex = function(nameIndex) {
+		this.getData().nameIndex = nameIndex;
+	};
+
+	this.getNameIndex = function() {
+		return this.getData().nameIndex;
+	};
+
+	this.setNameType = function(nameType) {
+		this.getData().nameType = nameType;
+	};
+
+	this.getNameType = function() {
+		return this.getData().nameType;
+	};
+
+	this.setNameTypeIndex = function(nameTypeIndex) {
+		this.getData().nameTypeIndex = nameTypeIndex;
+	};
+
+	this.getNameTypeIndex = function() {
+		return this.getData().nameTypeIndex;
 	};
 
 	this.toString = function() {
-		return "NameAndType	#" + nameIndex + ":#" + typeIndex + ";	// " + this.getValue();
+		return this.getType() + "\t#" + this.getNameIndex() + ":#" + this.getNameTypeIndex() + ";\t\t// " + this.getValue();
 	};
 };
+
+jjvm.types.ConstantPoolNameAndTypeValue.type = "NameAndType";

@@ -1,4 +1,6 @@
 jjvm.compiler.ClassDefinitionParser = function() {
+	_.extend(this, new jjvm.compiler.Parser());
+
 	var constantPoolParser = new jjvm.compiler.ConstantPoolParser();
 	var fieldDefinitionParser = new jjvm.compiler.FieldDefinitionParser();
 	var methodDefinitionParser = new jjvm.compiler.MethodDefinitionParser();
@@ -8,48 +10,33 @@ jjvm.compiler.ClassDefinitionParser = function() {
 	var attributesParser = new jjvm.compiler.AttributesParser();
 
 	this.parse = function(iterator) {
-		var minorVersion = iterator.readU16();
-		var majorVersion = iterator.readU16();
+		var classDef = new jjvm.types.ClassDefinition();
+		classDef.setMinorVersion(iterator.readU16());
+		classDef.setMajorVersion(iterator.readU16());
 
 		var constantPool = constantPoolParser.parse(iterator);
-
-		var accessFlags = iterator.readU16();
-		var name = constantPool.load(iterator.readU16());
-		var parent = constantPool.load(iterator.readU16());
-
-		var classDef = new jjvm.types.ClassDefinition(name, parent);
-		classDef.setMinorVersion(minorVersion);
-		classDef.setMajorVersion(majorVersion);
 		classDef.setConstantPool(constantPool);
 
-		var interfaceCount = iterator.readU16();
-
-		for(var i = 0; i < interfaceCount; i++) {
-			classDef.addInterface(constantPool.load(iterator.readU16()));
-		}
+		var accessFlags = iterator.readU16();
 
 		if(accessFlags & 0x0001) {
 			classDef.setVisibility("public");
 		}
 
-		if(accessFlags & 0x0010) {
-			classDef.setIsFinal(true);
-		}
+		classDef.setIsFinal(accessFlags & 0x0010);
+		classDef.setIsSuper(accessFlags & 0x0020);
+		classDef.setIsInterface(accessFlags & 0x0200);
+		classDef.setIsAbstract(accessFlags & 0x0400);
+		classDef.setName(this._loadClassName(iterator, constantPool));
+		classDef.setParent(this._loadClassName(iterator, constantPool));
 
-		if(accessFlags & 0x0020) {
-			classDef.setIsSuper(true);
-		}
+		var interfaceCount = iterator.readU16();
 
-		if(accessFlags & 0x0200) {
-			classDef.setIsInterface(true);
-		}
-
-		if(accessFlags & 0x0400) {
-			classDef.setIsAbstract(true);
+		for(var i = 0; i < interfaceCount; i++) {
+			classDef.addInterface(this._loadClassName(iterator, constantPool));
 		}
 
 		this.parseFields(iterator, classDef, constantPool);
-
 		this.parseMethods(iterator, classDef, constantPool);
 
 		attributesParser.onAttributeCount = function(attributeCount) {

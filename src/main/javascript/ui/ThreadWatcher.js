@@ -28,46 +28,48 @@ jjvm.ui.ThreadWatcher = function(list) {
 	this._addThread = function(thread) {
 		var threadName;
 
-		if(_selectedThread == thread) {
-			threadName = $("<span><i class=\"icon-arrow-right icon-white\"></i> " + thread + "</span>");
-		} else {
-			threadName = $("<a>" + thread + "</a>");
 
-			$(threadName).click(_.bind(function(event) {
+		if(_selectedThread == thread) {
+			threadName = jjvm.core.DOMUtil.create("span", 
+				jjvm.core.DOMUtil.create("i", thread.toString(), {className: "icon-arrow-right icon-white"})
+			);
+		} else {
+			threadName = jjvm.core.DOMUtil.create("a", thread);
+
+			threadName.onclick = _.bind(function(event) {
 				event.preventDefault();
 
 				_selectedThread = thread;
 				this._update();
-			}, this));
+			}, this);
 		}
 
-		var li = $("<li />");
-		$(li).append(threadName);
+		var li = jjvm.core.DOMUtil.create("li", threadName);
 
 		if(thread.getStatus() == jjvm.runtime.Thread.STATUS.RUNNABLE) {
-			$(threadName).addClass("text-success");
+			threadName.className += " text-success";
 		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.TERMINATED) {
-			$(threadName).addClass("muted");
+			threadName.className += " muted";
 		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.NEW) {
-			$(threadName).addClass("text-info");
+			threadName.className += " text-info";
 		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.BLOCKED) {
-			$(threadName).addClass("text-error");
+			threadName.className += " text-error";
 		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.WAITING) {
-			$(threadName).addClass("text-warn");
+			threadName.className += " text-warn";
 		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.TIMED_WAITING) {
-			$(threadName).addClass("text-warn");
+			threadName.className += " text-warn";
 		}
 
-		var frameList = $("<ul></ul>");
+		var frameList = jjvm.core.DOMUtil.create("ul");
 		var frame = thread.getInitialFrame();
 
 		while(frame) {
-			$(frameList).append("<li>" + frame + "</li>");	
+			frameList.appendChild(jjvm.core.DOMUtil.create("li", frame.toString()));	
 
 			frame = frame.getChild();
 		}
 
-		$(li).append(frameList);
+		li.appendChild(frameList);
 		$(list).append(li);
 	};
 

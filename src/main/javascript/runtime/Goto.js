@@ -1,5 +1,5 @@
-jjvm.runtime.Goto = function(location) {
+jjvm.runtime.Goto = function(offset) {
 	this.getLocation = function() {
-		return location;
+		return offset;
 	};
 };

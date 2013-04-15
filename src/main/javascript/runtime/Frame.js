@@ -107,6 +107,7 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 			args.unshift(target);
 			args.unshift(methodDef);
 			args.unshift(classDef);
+			args.unshift(this);
 			_output = methodDef.getImplementation().apply(target, args);
 
 			this.dispatch("onFrameComplete");
@@ -127,12 +128,13 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 			var target = classDef;
 
 			if(!methodDef.isStatic()) {
-				target = _variables.load(0);
+				target = args.shift();
 			}
 
 			args.unshift(target);
 			args.unshift(methodDef);
 			args.unshift(classDef);
+			args.unshift(this);
 			var childOutput = methodDef.getImplementation().apply(target, args);
 
 			// override produced output so push it onto the stack
@@ -262,6 +264,17 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 			}
 
 			_output = _currentInstruction.execute(this, constantPool);
+
+			if(_output !== undefined) {
+				// have executed a return statement..
+
+				if(_output == jjvm.runtime.Void) {
+					_output = undefined;
+				}
+
+				// make sure we don't execute any more instructions..
+				_instructions.consume();
+			}
 		} catch(error) {
 			if(error instanceof jjvm.runtime.Goto) {
 				// jump to another instruction

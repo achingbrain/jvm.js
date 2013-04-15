@@ -1,6 +1,7 @@
 jjvm.core.DOMUtil = {
 	create: function(type, content, attributes) {
-		if(_.isObject(content) && !_.isArray(content) && !attributes) {
+		// if we've been passed two arguments, see if the second is content or attributes
+		if(!attributes && _.isObject(content) && !_.isString(content) && !_.isArray(content) && !_.isElement(content)) {
 			attributes = content;
 			content = null;
 		}

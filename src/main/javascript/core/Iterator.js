@@ -36,6 +36,10 @@ jjvm.core.Iterator = function(iterable) {
 		index = location;
 	};
 
+	this.consume = function() {
+		index = iterable.length;
+	};
+
 	this.getLocation = function() {
 		return index;
 	};

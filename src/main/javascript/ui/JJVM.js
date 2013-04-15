@@ -88,6 +88,13 @@ jjvm.ui.JJVM = {
 			$("#button_compile").removeAttr("disabled");
 		}
 
+		// set up System.out & System.err
+		var system = jjvm.core.ClassLoader.loadClass("java.lang.System");
+		var voidClass = jjvm.core.ClassLoader.loadClass("java.lang.Void");
+		system.setStaticField("in", new jjvm.runtime.ObjectReference(voidClass));
+		system.setStaticField("out", new jjvm.runtime.ObjectReference(voidClass));
+		system.setStaticField("err", new jjvm.runtime.ObjectReference(voidClass));
+
 		// html5 notifications!
 		if(window.webkitNotifications) {
 			var permissions = window.webkitNotifications.checkPermission();

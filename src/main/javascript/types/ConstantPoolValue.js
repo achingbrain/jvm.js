@@ -1,28 +1,31 @@
-jjvm.types.ConstantPoolValue = function(type, value, constantPool) {
+jjvm.types.ConstantPoolValue = function(data) {
+	var _data = data ? data : {};
+
+	this.setValue = function(value) {
+		_data.value = value;
+	};
 
 	this.getValue = function() {
-		return value;
+		return _data.value;
+	};
+
+	this.setType = function(type) {
+		_data.type = type;
 	};
 
 	this.getType = function() {
-		return type;
+		return _data.type;
 	};
 
-	this.getTypeName = function() {
-		if(value.length > 1) {
-			// returns an object type, remove the L and ;
-			return value.substring(1, value.length - 1).replace(/\//g, ".");
-		}
-
-		if(jjvm.types.Primitives.jvmTypesToPrimitive[value]) {
-			// convert I to int, Z to boolean, etc
-			return jjvm.types.Primitives.jvmTypesToPrimitive[value];
-		}
-
-		return value;
+	this.setIndex = function(index) {
+		_data.index = index;
 	};
 
-	this.toString = function() {
-		return type + "\t\t" + value + ";";
+	this.getIndex = function() {
+		return _data.index;
+	};
+
+	this.getData = function() {
+		return _data;
 	};
 };

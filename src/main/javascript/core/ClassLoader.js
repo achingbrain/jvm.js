@@ -1,5 +1,6 @@
 jjvm.core.ClassLoader = {
 	_classes: [],
+	_objectRef: null,
 
 	addClassDefinition: function(classDef) {
 		// see if we are redefining the class
@@ -12,6 +13,8 @@ jjvm.core.ClassLoader = {
 			}
 		}
 
+		classDef.setClassLoader(jjvm.core.ClassLoader);
+
 		// haven't seen this class before
 		jjvm.core.ClassLoader._classes.push(classDef);
 	},
@@ -21,6 +24,8 @@ jjvm.core.ClassLoader = {
 	},
 
 	loadClass: function(className) {
+		className = className.replace(/\//g, ".");
+
 		var output;
 
 		for(var i = 0; i < jjvm.core.ClassLoader._classes.length; i++) {
@@ -44,5 +49,23 @@ jjvm.core.ClassLoader = {
 		}
 
 		return output;
+	},
+
+	getObjectRef: function() {
+		if(!jjvm.core.ClassLoader._objectRef) {
+			jjvm.core.ClassLoader._objectRef = new jjvm.runtime.ObjectReference(jjvm.core.ClassLoader.loadClass("java.lang.ClassLoader"));
+
+			// run constructor
+			var frame = new jjvm.runtime.Frame(
+				jjvm.core.ClassLoader._objectRef.getClass(), 
+				jjvm.core.ClassLoader._objectRef.getClass().getMethod(jjvm.types.MethodDefinition.OBJECT_INITIALISER, ["java.lang.ClassLoader"]), 
+				[jjvm.core.SystemClassLoader.getObjectRef()]
+			);
+			frame.setIsSystemFrame(true);
+			var thread = new jjvm.runtime.Thread(frame);
+			frame.execute(thread);
+		}
+
+		return jjvm.core.ClassLoader._objectRef;
 	}
 };

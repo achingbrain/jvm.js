@@ -58,6 +58,39 @@ jjvm.Util = {
 		return args;
 	},
 
+	execute: function(target, methodName, args, argTypes) {
+		if(!argTypes) {
+			argTypes = [];
+		}
+
+		if(!args) {
+			args = [];
+		}
+
+		var methodDef;
+
+		if(target instanceof jjvm.types.ClassDefinition) {
+			// a static method
+			methodDef = target.getMethod(methodName, argTypes);
+		} else if(target instanceof jjvm.runtime.ObjectReference) {
+			args.unshift(target);
+			methodDef = target.getClass().getMethod(methodName, argTypes);
+		} else {
+			throw "Please pass only ClassDefinition or ObjectReference types to jjvm.Util#execute";
+		}
+
+		var frame = new jjvm.runtime.Frame(
+			target.getClass(), 
+			methodDef,
+			args
+		);
+		frame.setIsSystemFrame(true);
+		var thread = new jjvm.runtime.Thread(frame);
+		frame.execute(thread);
+
+		return frame.getOutput();
+	},
+
 	_readPrimitiveArgument: function(iterator) {
 		var character = iterator.next();
 

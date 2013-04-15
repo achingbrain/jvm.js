@@ -1,7 +1,14 @@
-jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool) {
+jjvm.types.ByteCode = function(data) {
+	var _data = data ? data : {};
+
 	var _breakpoint;
+	var _operation;
 
 	var invokeMethod = function(methodDef, frame) {
+		if(methodDef.getName() == "getChars" && methodDef.getClassDef().getName() == "java.lang.Integer") {
+			var sdfpojsdo = "asdoifjs";
+		}
+
 		var args = [];
 
 		for(var i = 0; i < methodDef.getArgs().length; i++) {
@@ -13,12 +20,18 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 			args.unshift(frame.getStack().pop());
 		}
 
+		if(args[0] instanceof jjvm.types.ClassDefinition) {
+			// swap ClassDefinition for it's object ref
+			var classDef = args.shift();
+			args.unshift(classDef.getObjectRef());
+		}
+
 		if(methodDef.isStatic()) {
 			console.info("Invoking static method " + methodDef.getName() + " on " + methodDef.getClassDef().getName() + " with args " + args);
 		} else {
-			if(!args[0] || !args[0].getClass) {
+			/*if(!args[0] || !args[0].getClass) {
 				var sdofijsd = "asdfhsd";
-			}
+			}*/
 
 			console.info("Invoking instance method " + methodDef.getName() + " on " + args[0].getClass().getName() + " as " + methodDef.getClassDef().getName() + " with args " + args);
 		}
@@ -37,6 +50,22 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				frame.getStack().push(value);
 			};
 		},
+		"push_constant": function(index) {
+			this.execute = function(frame, constantPool) {
+				// should return String, int or float
+				var value = constantPool.load(index);
+
+				if(value instanceof jjvm.types.ConstantPoolClassValue) {
+					value = value.getClassDef();
+				} else if(value instanceof jjvm.types.ConstantPoolStringReferenceValue) {
+					value = value.getStringReference();
+				} else {
+					value = value.getValue();
+				}
+
+				frame.getStack().push(value);
+			};
+		},
 		"load": function(location) {
 			this.execute = function(frame, constantPool) {
 				var value = frame.getLocalVariables().load(location);
@@ -45,14 +74,26 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 		},
 		"array_load": function() {
 			this.execute = function(frame, constantPool) {
-				var array = frame.getStack().pop();
 				var index = frame.getStack().pop();
+				var array = frame.getStack().pop();
 
 				if(index >= array.length) {
 					throw "ArrayIndexOutOfBoundsExecption: " + index;
 				}
 
 				frame.getStack().push(array[index]);
+			};
+		},
+		"array_load_character": function() {
+			this.execute = function(frame, constantPool) {
+				var index = frame.getStack().pop();
+				var array = frame.getStack().pop();
+
+				if(index >= array.length) {
+					throw "ArrayIndexOutOfBoundsExecption: " + index;
+				}
+
+				frame.getStack().push(array[index].charCodeAt(0));
 			};
 		},
 		"store": function(location) {
@@ -69,6 +110,16 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var array = frame.getStack().pop();
 
 				array[index] = value;
+			};
+		},
+		"array_store_character": function() {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+				var index = frame.getStack().pop();
+				var array = frame.getStack().pop();
+
+				// convert ascii code to string
+				array[index] = String.fromCharCode(value);
 			};
 		},
 		"pop": function() {
@@ -153,17 +204,17 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 		},
 		"swap": function() {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				frame.getStack().push(value2);
 				frame.getStack().push(value1);
+				frame.getStack().push(value2);
 			};
 		},
 		"add": function() {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
 				frame.getStack().push(value1 + value2);
 			};
@@ -209,27 +260,33 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 		},
 		"shift_left": function() {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				frame.getStack().push(value1 << value2);
+				// bitwise operators don't work for > 32bit integers in JavaScript
+				var result = value2 * Math.pow(2, value1);
+
+				frame.getStack().push(result);
 			};
 		},
 		"arithmetic_shift_right": function() {
 			this.execute = function(frame, constantPool) {
-				// this probably won't work for > 32bit integers
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				frame.getStack().push(value1 >> value2);
+				// bitwise operators don't work for > 32bit integers in JavaScript
+				var result = value2 / Math.pow(2, value1);
+
+				frame.getStack().push(result);
 			};
 		},
 		"logical_shift_right": function() {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				frame.getStack().push(value1 >>> value2);
+				// probably won't work for > 32bit integers in JavaScript
+				frame.getStack().push(value2 >>> value1);
 			};
 		},
 		"and": function() {
@@ -260,7 +317,7 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 			this.execute = function(frame, constantPool) {
 				var value = frame.getLocalVariables().load(location);
 
-				frame.getStack().push(value + amount);
+				frame.getLocalVariables().store(location, value + amount);
 			};
 		},
 		"compare": function() {
@@ -287,80 +344,80 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 		},
 		"if_equal": function(jumpTo) {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				if(value1 == value2) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+				if(value2 == value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
 			};
 			this.describe = function() {
-				return "if_cmpeq #" + (jumpTo + location);
+				return "if_cmpeq #" + jumpTo;
 			};
 		},
 		"if_not_equal": function(jumpTo) {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				if(value1 != value2) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+				if(value2 != value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
 			};
 			this.describe = function() {
-				return "if_cmpne #" + (jumpTo + location);
+				return "if_cmpne #" + jumpTo;
 			};
 		},
 		"if_less_than": function(jumpTo) {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				if(value1 < value2) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+				if(value2 < value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
 			};
 			this.describe = function() {
-				return "if_cmplt #" + (jumpTo + location);
+				return "if_cmplt #" + jumpTo;
 			};
 		},
 		"if_greater_than_or_equal": function(jumpTo) {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				if(value1 >= value2) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+				if(value2 >= value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
 			};
 			this.describe = function() {
-				return "if_cmpge #" + (jumpTo + location);
+				return "if_cmpge #" + jumpTo;
 			};
 		},
 		"if_greater_than": function(jumpTo) {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				if(value1 > value2) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+				if(value2 > value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
 			};
 			this.describe = function() {
-				return "if_cmpgt #" + (jumpTo + location);
+				return "if_cmpgt #" + jumpTo;
 			};
 		},
 		"if_less_than_or_equal": function(jumpTo) {
 			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
 				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
 
-				if(value1 <= value2) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+				if(value2 <= value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
 			};
 			this.describe = function() {
-				return "if_cmple #" + (jumpTo + location);
+				return "if_cmple #" + jumpTo;
 			};
 		},
 		"if_equal_to_zero": function(jumpTo) {
@@ -368,11 +425,8 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var value = frame.getStack().pop();
 
 				if(value === 0) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
-			};
-			this.describe = function() {
-				return "ifeq #" + (jumpTo + location);
 			};
 		},
 		"if_not_equal_to_zero": function(jumpTo) {
@@ -380,11 +434,8 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var value = frame.getStack().pop();
 
 				if(value !== 0) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
-			};
-			this.describe = function() {
-				return "ifne #" + (jumpTo + location);
 			};
 		},
 		"if_less_than_zero": function(jumpTo) {
@@ -392,11 +443,8 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var value = frame.getStack().pop();
 
 				if(value < 0) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
-			};
-			this.describe = function() {
-				return "iflt #" + (jumpTo + location);
 			};
 		},
 		"if_greater_than_or_equal_to_zero": function(jumpTo) {
@@ -404,11 +452,8 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var value = frame.getStack().pop();
 
 				if(value >= 0) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
-			};
-			this.describe = function() {
-				return "ifge #" + (jumpTo + location);
 			};
 		},
 		"if_greater_than_zero": function(jumpTo) {
@@ -416,11 +461,8 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var value = frame.getStack().pop();
 
 				if(value > 0) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
-			};
-			this.describe = function() {
-				return "ifgt #" + (jumpTo + location);
 			};
 		},
 		"if_less_than_or_equal_to_zero": function(jumpTo) {
@@ -428,27 +470,18 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var value = frame.getStack().pop();
 
 				if(value <= 0) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
-			};
-			this.describe = function() {
-				return "ifle #" + (jumpTo + location);
 			};
 		},
 		"goto": function(goingTo) {
 			this.execute = function(frame, constantPool) {
-				throw new jjvm.runtime.Goto(goingTo + location);
-			};
-			this.describe = function() {
-				return "goto #" + (goingTo + location);
+				throw new jjvm.runtime.Goto(goingTo);
 			};
 		},
 		"jsr": function(goingTo) {
 			this.execute = function(frame, constantPool) {
-				throw new jjvm.runtime.Goto(goingTo + location);
-			};
-			this.describe = function() {
-				return "jsr #" + (goingTo + location);
+				throw new jjvm.runtime.Goto(goingTo);
 			};
 		},
 		"ret": function(location) {
@@ -456,9 +489,6 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var goingTo = frame.getLocalVariables().load(location);
 
 				throw new jjvm.runtime.Goto(goingTo);
-			};
-			this.describe = function() {
-				return "ret #" + location;
 			};
 		},
 		"tableswitch": function(low, high, table) {
@@ -471,27 +501,29 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				throw "lookupswitch is not implemented";
 			};
 		},
-		"return": function(string) {
+		"return_value": function(string) {
 			this.execute = function(frame, constantPool) {
 				return frame.getStack().pop();
+			};
+		},
+		"return_void": function(string) {
+			this.execute = function(frame, constantPool) {
+				return jjvm.runtime.Void;
 			};
 		},
 		"get_static": function(index) {
 			this.execute = function(frame, constantPool) {
 				var fieldDef = constantPool.load(index).getFieldDef();
-				var classDef = fieldDef.getClassDef();
+				var classDef = constantPool.load(index).getClassDef();
 				var value = classDef.getStaticField(fieldDef.getName());
 
 				frame.getStack().push(value);
-			};
-			this.describe = function() {
-				return "getstatic #" + index + " // " + constantPool.load(index);
 			};
 		},
 		"put_static": function(index) {
 			this.execute = function(frame, constantPool) {
 				var fieldDef = constantPool.load(index).getFieldDef();
-				var classDef = fieldDef.getClassDef();
+				var classDef = constantPool.load(index).getClassDef();
 				var value = frame.getStack().pop();
 
 				classDef.setStaticField(fieldDef.getName(), value);
@@ -500,14 +532,10 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 		"get_field": function(index) {
 			this.execute = function(frame, constantPool) {
 				var fieldDef = constantPool.load(index).getFieldDef();
-
 				var objectRef = frame.getStack().pop();
 				var value = objectRef.getField(fieldDef.getName());
 
 				frame.getStack().push(value);
-			};
-			this.describe = function() {
-				return "getfield #" + index + " // " + constantPool.load(index);
 			};
 		},
 		"put_field": function(index) {
@@ -519,18 +547,12 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 
 				objectRef.setField(fieldDef.getName(), value);
 			};
-			this.describe = function() {
-				return "putfield #" + index + " // " + constantPool.load(index);
-			};
 		},
 		"invoke_virtual": function(index) {
 			this.execute = function(frame, constantPool) {
 				var methodDef = constantPool.load(index).getMethodDef();
 
 				invokeMethod(methodDef, frame);
-			};
-			this.describe = function() {
-				return "invokevirtual #" + index + " // " + constantPool.load(index);
 			};
 		},
 		"invoke_special": function(index) {
@@ -539,18 +561,12 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 
 				invokeMethod(methodDef, frame);
 			};
-			this.describe = function() {
-				return "invokespecial #" + index + " // " + constantPool.load(index);
-			};
 		},
 		"invoke_static": function(index) {
 			this.execute = function(frame, constantPool) {
 				var methodDef = constantPool.load(index).getMethodDef();
 
 				invokeMethod(methodDef, frame);
-			};
-			this.describe = function() {
-				return "invokestatic #" + index + " // " + constantPool.load(index);
 			};
 		},
 		"invoke_interface": function(index) {
@@ -570,18 +586,12 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 
 				invokeMethod(methodDef, frame);
 			};
-			this.describe = function() {
-				return "invokeinterface #" + index + " // " + constantPool.load(index);
-			};
 		},
 		"invoke_dynamic": function(index) {
 			this.execute = function(frame, constantPool) {
 				var methodDef = constantPool.load(index).getMethodDef();
 
 				invokeMethod(methodDef, frame);
-			};
-			this.describe = function() {
-				return "invokedynamic #" + index + " // " + constantPool.load(index);
 			};
 		},
 		"new": function(index) {
@@ -625,6 +635,9 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				if(!objectRef.isInstanceOf(classDef)) {
 					throw "ClassCastException: Object of type " + objectRef.getClass().getName() + " cannot be cast to " + classDef.getName();
 				}
+
+				// put it back on the stack
+				frame.getStack().push(objectRef);
 			};	
 		},
 		"instance_of": function(index) {
@@ -691,11 +704,8 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var value = frame.getStack().pop();
 
 				if(value === null) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
-			};
-			this.describe = function() {
-				return "ifnull #" + (jumpTo + location);
 			};
 		},
 		"if_non_null": function(jumpTo) {
@@ -703,34 +713,34 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 				var value = frame.getStack().pop();
 
 				if(value !== null) {
-					throw new jjvm.runtime.Goto(jumpTo + location);
+					throw new jjvm.runtime.Goto(jumpTo);
 				}
-			};
-			this.describe = function() {
-				return "ifnonnull #" + (jumpTo + location);
 			};
 		}
 	};
 
-	var _operation;
-
-	if(!operations[operation]) {
-		throw "Cannot parse bytecode from " + mnemonic + " " + operation + " " + args;
-	}
-
 	this._getOperation = function() {
 		if(!_operation) {
+
 			// lets us call .apply on a function constructor
-			var construct = function(constructor, args) {
+			var construct = _.bind(function(constructor) {
 				function F() {
-					return constructor.apply(this, args());
+					return constructor.apply(this, _data.args);
 				}
 				F.prototype = constructor.prototype;
 
 				return new F();
-			};
+			}, this);
 
-			_operation = construct(operations[operation], args);
+			_operation = construct(operations[this.getOperation()]);
+
+			// allow for overriding description as sometimes we want to show specific 
+			// arguments and bytecode for instructions that have been grouped together
+			if(_data.description) {
+				_operation.describe = function() {
+					return _data.description;
+				};
+			}
 		}
 
 		return _operation;
@@ -745,11 +755,7 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 	};
 
 	this.toString = function() {
-		if(this._getOperation().describe) {
-			return this._getOperation().describe();
-		}
-
-		return mnemonic;
+		return this.getLocation() + ": " + this.getDescription();
 	};
 
 	this.hasBreakpoint = function() {
@@ -758,5 +764,49 @@ jjvm.types.ByteCode = function(mnemonic, operation, args, location, constantPool
 
 	this.setBreakpoint = function(breakpoint) {
 		_breakpoint = breakpoint;
+	};
+
+	this.setMnemonic = function(mnemonic) {
+		this.getData().mnemonic = mnemonic;
+	};
+
+	this.getMnemonic = function() {
+		return this.getData().mnemonic;
+	};
+
+	this.setOperation = function(operation) {
+		this.getData().operation = operation;
+	};
+
+	this.getOperation = function() {
+		return this.getData().operation;
+	};
+
+	this.setArgs = function(args) {
+		this.getData().args = args;
+	};
+
+	this.getArgs = function() {
+		return this.getData().args;
+	};
+
+	this.setLocation = function(location) {
+		this.getData().location = location;
+	};
+
+	this.getLocation = function() {
+		return this.getData().location;
+	};
+
+	this.setDescription = function(description) {
+		this.getData().description = description;
+	};
+
+	this.getDescription = function() {
+		return this.getData().description;
+	};
+
+	this.getData = function() {
+		return _data;
 	};
 };

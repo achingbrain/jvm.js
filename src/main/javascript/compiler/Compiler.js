@@ -46,6 +46,8 @@ jjvm.compiler.Compiler = function() {
 
 			var classDef = classDefinitionParser.parse(iterator);
 
+			//console.debug(classDef.toJavaP());
+
 			if(isSystemClass) {
 				jjvm.core.SystemClassLoader.addClassDefinition(classDef);
 			} else {

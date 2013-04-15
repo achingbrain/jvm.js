@@ -1,0 +1,3 @@
+jjvm.runtime.Void = {
+	
+};

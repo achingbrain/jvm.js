@@ -126,8 +126,6 @@ jjvm.ui.ClassOutliner = function(element) {
 					var listItem = jjvm.core.DOMUtil.create("li", [
 						checkbox,
 						" ",
-						instruction.getLocation().toString(),
-						": ",
 						instruction.toString()
 					]);
 
@@ -224,7 +222,7 @@ jjvm.ui.ClassOutliner = function(element) {
 		var output = [];
 
 		for(var i = 0; i < classDef.getInterfaces().length; i++) {
-			output.push(classDef.getInterfaces()[i].getClassDef().getName());
+			output.push(classDef.getInterfaces()[i]);
 		}
 
 		return output.join(", ");

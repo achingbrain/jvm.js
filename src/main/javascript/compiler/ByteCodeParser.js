@@ -84,123 +84,104 @@ jjvm.compiler.ByteCodeParser = function() {
 		0x10: {
 			mnemonic: "bipush",
 			operation: "push",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x11: {
 			mnemonic: "sipush",
 			operation: "push",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x12: {
 			mnemonic: "ldc",
-			operation: "push",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			operation: "push_constant",
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [constantPool.load(args.index).getValue()];
+			description: function(args, constantPool, location) {
+				var value = constantPool.load(args[0]).getValue();
+
+				return this.mnemonic + "\t\t// #" + args[0] + " " + constantPool.load(args[0]).getValue();
 			}
 		},
 		0x13: {
 			mnemonic: "ldc_w",
-			operation: "push",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			operation: "push_constant",
+			index: null,
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				// should return String, int or float
-				return [constantPool.load(args.index).getValue()];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + "\t\t// #" + args[0] + " " + constantPool.load(args[0]).getValue();
 			}
 		},
 		0x14: {
 			mnemonic: "ldc2_w",
-			operation: "push",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			operation: "push_constant",
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				// should return double or long
-				return [constantPool.load(args.index).getValue()];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + "\t\t// #" + args[0] + " " + constantPool.load(args[0]).getValue();
 			}
 		},
 		0x15: {
 			mnemonic: "iload",
 			operation: "load",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [constantPool.load(args.index).getValue()];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x16: {
 			mnemonic: "lload",
 			operation: "load",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [constantPool.load(args.index).getValue()];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x17: {
 			mnemonic: "fload",
 			operation: "load",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [constantPool.load(args.index).getValue()];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x18: {
 			mnemonic: "dload",
 			operation: "load",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [constantPool.load(args.index).getValue()];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x19: {
 			mnemonic: "aload",
 			operation: "load",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [constantPool.load(args.index).getValue()];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x1A: {
@@ -335,7 +316,7 @@ jjvm.compiler.ByteCodeParser = function() {
 		},
 		0x34: {
 			mnemonic: "caload",
-			operation: "array_load",
+			operation: "array_load_character",
 			args: []
 		},
 		0x35: {
@@ -346,61 +327,51 @@ jjvm.compiler.ByteCodeParser = function() {
 		0x36: {
 			mnemonic: "istore",
 			operation: "store",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x37: {
 			mnemonic: "lstore",
 			operation: "store",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x38: {
 			mnemonic: "fstore",
 			operation: "store",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x39: {
 			mnemonic: "dstore",
 			operation: "store",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x3A: {
 			mnemonic: "dstore",
 			operation: "store",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0x3B: {
@@ -535,7 +506,7 @@ jjvm.compiler.ByteCodeParser = function() {
 		},
 		0x55: {
 			mnemonic: "castore",
-			operation: "array_store",
+			operation: "array_store_character",
 			args: []
 		},
 		0x56: {
@@ -771,14 +742,11 @@ jjvm.compiler.ByteCodeParser = function() {
 		0x84: {
 			mnemonic: "iinc",
 			operation: "increment",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8(),
-					value: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8(), iterator.read8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index, args.value];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0] + " " + args[1];
 			}
 		},
 		0x85: {
@@ -884,211 +852,177 @@ jjvm.compiler.ByteCodeParser = function() {
 		0x99: {
 			mnemonic: "ifeq",
 			operation: "if_equal_to_zero",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0x9A: {
 			mnemonic: "ifne",
 			operation: "if_not_equal_to_zero",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0x9B: {
 			mnemonic: "iflt",
 			operation: "if_less_than_zero",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0x9C: {
 			mnemonic: "ifge",
 			operation: "if_greater_than_or_equal_to_zero",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0x9D: {
 			mnemonic: "ifgt",
 			operation: "if_greater_than_zero",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0x9E: {
 			mnemonic: "ifle",
 			operation: "if_less_than_or_equal_to_zero",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0x9F: {
 			mnemonic: "if_icmpeq",
 			operation: "if_equal",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA0: {
 			mnemonic: "if_icmpne",
 			operation: "if_not_equal",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA1: {
 			mnemonic: "if_icmplt",
 			operation: "if_less_than",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA2: {
 			mnemonic: "if_icmpge",
 			operation: "if_greater_than_or_equal",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA3: {
 			mnemonic: "if_icmpgt",
 			operation: "if_greater_than",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA4: {
 			mnemonic: "if_icmple",
 			operation: "if_less_than_or_equal",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA5: {
 			mnemonic: "if_acmpeq",
 			operation: "if_equal",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA6: {
 			mnemonic: "if_acmpne",
 			operation: "if_not_equal",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA7: {
 			mnemonic: "goto",
 			operation: "goto",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA8: {
 			mnemonic: "jsr",
 			operation: "jsr",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xA9: {
 			mnemonic: "ret",
 			operation: "ret",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0xAA: {
 			mnemonic: "tableswitch",
 			operation: "tableswitch",
-			pre_args: function(iterator) {
+			args: function(iterator, constantPool, location) {
 				var default_offset;
 
 				// there are 0-3 bytes of padding before default_offset
@@ -1113,20 +1047,20 @@ jjvm.compiler.ByteCodeParser = function() {
 					table.push(iterator.readU32());
 				}
 
-				return {
-					low: low,
-					high: high,
-					table: table
-				};
+				return [
+					low,
+					high,
+					table
+				];
 			},
-			args: function(args, constantPool) {
-				return [args.low, args.high, args.table];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0] + " " + args[1] + " " + args[2];
 			}
 		},
 		0xAB: {
 			mnemonic: "lookupswitch",
 			operation: "lookupswitch",
-			pre_args: function(iterator) {
+			args: function(iterator, constantPool, location) {
 				var default_offset;
 
 				// there are 0-3 bytes of padding before default_offset
@@ -1150,188 +1084,173 @@ jjvm.compiler.ByteCodeParser = function() {
 					table[iterator.readU32()] = iterator.readU32();
 				}
 
-				return {
-					table: table
-				};
+				return [table];
 			},
-			args: function(args, constantPool) {
-				return [args.table];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0xAC: {
 			mnemonic: "ireturn",
-			operation: "return",
+			operation: "return_value",
 			args: []
 		},
 		0xAD: {
 			mnemonic: "lreturn",
-			operation: "return",
+			operation: "return_value",
 			args: []
 		},
 		0xAE: {
 			mnemonic: "flreturn",
-			operation: "return",
+			operation: "return_value",
 			args: []
 		},
 		0xAF: {
 			mnemonic: "dreturn",
-			operation: "return",
+			operation: "return_value",
 			args: []
 		},
 		0xB0: {
 			mnemonic: "areturn",
-			operation: "return",
+			operation: "return_value",
 			args: []
 		},
 		0xB1: {
 			mnemonic: "return",
-			operation: "nop",
+			operation: "return_void",
 			args: []
 		},
 		0xB2: {
 			mnemonic: "getstatic",
 			operation: "get_static",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0] + "; // " + constantPool.load(args[0]);
 			}
 		},
 		0xB3: {
 			mnemonic: "putstatic",
 			operation: "put_static",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0] + "; // " + constantPool.load(args[0]);
 			}
 		},
 		0xB4: {
 			mnemonic: "getfield",
 			operation: "get_field",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0] + "; // " + constantPool.load(args[0]);
 			}
 		},
 		0xB5: {
 			mnemonic: "putfield",
 			operation: "put_field",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0] + " // " + constantPool.load(args[0]);
 			}
 		},
 		0xB6: {
 			mnemonic: "invokevirtual",
 			operation: "invoke_virtual",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0] + " // " + constantPool.load(args[0]);
 			}
 		},
 		0xB7: {
 			mnemonic: "invokespecial",
 			operation: "invoke_special",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0] + " // " + constantPool.load(args[0]);
 			}
 		},
 		0xB8: {
 			mnemonic: "invokestatic",
 			operation: "invoke_static",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0] + " // " + constantPool.load(args[0]);
 			}
 		},
 		0xB9: {
 			mnemonic: "invokeinterface",
 			operation: "invoke_interface",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16(),
-					count: iterator.readU8(),
-					_: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16(), iterator.readU8(), iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index, args.count, args._];
+			description: function(args, constantPool, location) {
+				var method = constantPool.load(args[0]);
+				var numArgs = args[1];
+
+				return this.mnemonic + " // " + method;
 			}
 		},
 		0xBA: {
 			mnemonic: "invokedynamic",
 			operation: "invoke_dynamic",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0] + " // " + constantPool.load(args[0]);
 			}
 		},
 		0xBB: {
 			mnemonic: "new",
 			operation: "new",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0xBC: {
 			mnemonic: "newarray",
 			operation: "array_create",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				var types = [];
+				types[4] = "boolean";
+				types[5] = "char";
+				types[6] = "float";
+				types[7] = "double";
+				types[8] = "byte";
+				types[9] = "short";
+				types[10] = "int";
+				types[11] = "long";
+
+				return this.mnemonic + " " + types[args[0]];
 			}
 		},
 		0xBD: {
 			mnemonic: "anewarray",
 			operation: "array_create",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0xBE: {
@@ -1347,25 +1266,21 @@ jjvm.compiler.ByteCodeParser = function() {
 		0xC0: {
 			mnemonic: "checkcast",
 			operation: "check_cast",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0xC1: {
 			mnemonic: "instanceof",
 			operation: "instance_of",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16()];
 			},
-			args: function(args, constantPool) {
-				return [args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0xC2: {
@@ -1381,75 +1296,61 @@ jjvm.compiler.ByteCodeParser = function() {
 		0xC4: {
 			mnemonic: "wide",
 			operation: "wide",
-			pre_args: function(iterator) {
-				return {
-					opcode: iterator.readU8(),
-					index: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU8(), iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.opcode, args.index];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0] + " " + args[1];
 			}
 		},
 		0xC5: {
 			mnemonic: "multianewarray",
 			operation: "multi_dimensional_array_create",
-			pre_args: function(iterator) {
-				return {
-					index: iterator.readU16(),
-					dimensions: iterator.readU8()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU16(), iterator.readU8()];
 			},
-			args: function(args, constantPool) {
-				return [args.index, args.dimensions];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0] + " " + args[1];
 			}
 		},
 		0xC6: {
 			mnemonic: "ifnull",
 			operation: "if_null",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xC7: {
 			mnemonic: "ifnonnull",
 			operation: "if_non_null",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU16()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read16() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xC8: {
 			mnemonic: "goto_w",
 			operation: "goto",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU32()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.read32() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " #" + args[0];
 			}
 		},
 		0xC9: {
 			mnemonic: "jsr_w",
 			operation: "jsr",
-			pre_args: function(iterator) {
-				return {
-					jumpto: iterator.readU32()
-				};
+			args: function(iterator, constantPool, location) {
+				return [iterator.readU32() + location];
 			},
-			args: function(args, constantPool) {
-				return [args.jumpto];
+			description: function(args, constantPool, location) {
+				return this.mnemonic + " " + args[0];
 			}
 		},
 		0xCA: {
@@ -1475,7 +1376,7 @@ jjvm.compiler.ByteCodeParser = function() {
 		};
 	};
 
-	this._createArgFunction2 = function(code) {
+	this._createDefaultArgFunction = function(code) {
 		return function() {
 			return _bytecode_mapping[code].args;
 		};
@@ -1488,25 +1389,37 @@ jjvm.compiler.ByteCodeParser = function() {
 			var location = iterator.getLocation();
 			var code = iterator.readU8();
 
-			if(_bytecode_mapping[code]) {
-				var args = {};
-				if(_bytecode_mapping[code].pre_args instanceof Function) {
-					// read any values from the iterator as necessary
-					args = _bytecode_mapping[code].pre_args(iterator);
-				}
+			if(!_bytecode_mapping[code]) {
+				console.warn("No bytecode mapping for " + code.toString(16) + " mapping to nop");
 
-				instructions.push(new jjvm.types.ByteCode(
-					_bytecode_mapping[code].mnemonic, 
-					_bytecode_mapping[code].operation, 
-					_bytecode_mapping[code].args instanceof Function ? 
-					this._createArgFunction(code, args, constantPool) : 
-					this._createArgFunction2(code),
-					location,
-					constantPool)
-				);
-			} else {
-				throw "Cannot map bytecode 0x" + (code < 16 ? "0" : "") + code.toString(16);
+				_bytecode_mapping[code] = {
+					mnemonic: "undefined " + code.toString(16),
+					operation: "nop",
+					args: []
+				};
 			}
+
+			var args = _bytecode_mapping[code].args;
+
+			if(_bytecode_mapping[code].args instanceof Function) {
+				args = _bytecode_mapping[code].args(iterator, constantPool, location);
+			}
+
+			var description = _bytecode_mapping[code].mnemonic;
+
+			if(_bytecode_mapping[code].description instanceof Function) {
+				// read any values from the iterator as necessary
+				description = _bytecode_mapping[code].description(args, constantPool, location);
+			}
+
+			var byteCode = new jjvm.types.ByteCode();
+			byteCode.setMnemonic(_bytecode_mapping[code].mnemonic);
+			byteCode.setArgs(args);
+			byteCode.setLocation(location);
+			byteCode.setDescription(description);
+			byteCode.setOperation(_bytecode_mapping[code].operation);
+
+			instructions.push(byteCode);
 		}
 
 		return instructions;

@@ -1,104 +1,98 @@
-jjvm.types.FieldDefinition = function(name, type, classDef) {
-	var _visibility = "package";
-	var _isStatic = false;
-	var _isFinal = false;
-	var _isVolatile = false;
-	var _isTransient = false;
-	var _type = _.str.trim(type);
-	var _name = _.str.trim(name);
-	var _deprecated = false;
-	var _synthetic = false;
-	var _constantValue = null;
-	var _classDef = classDef;
+jjvm.types.FieldDefinition = function(data) {
+	// will be serialized to JSON so don't put any functions in here...
+	var _data = data ? data : {};
 
 	this.getVisibility = function() {
-		return _visibility;
+		return _data.visibility ? _data.visibility : "package";
 	};
 
 	this.setVisibility = function(visibility) {
-		_visibility = visibility;
+		_data.visibility = _.string.trim(visibility);
 	};
 
 	this.isStatic = function() {
-		return _isStatic;
+		return _data.isStatic ? true : false;
 	};
 
 	this.setIsStatic = function(isStatic) {
-		_isStatic = isStatic;
+		_data.isStatic = isStatic ? true : false;
 	};
 
 	this.isFinal = function() {
-		return _isFinal;
+		return _data.isFinal ? true : false;
 	};
 
 	this.setIsFinal = function(isFinal) {
-		_isFinal = isFinal;
+		_data.isFinal = isFinal ? true : false;
 	};
 
 	this.isVolatile = function() {
-		return _isVolatile;
+		return _data.isVolatile ? true : false;
 	};
 
 	this.setIsVolatile = function(isVolatile) {
-		_isVolatile = isVolatile;
+		_data.isVolatile = isVolatile ? true : false;
 	};
 
 	this.isTransient = function() {
-		return _isTransient;
+		return _data.isTransient ? true : false;
 	};
 
 	this.setIsTransient = function(isTransient) {
-		_isTransient = isTransient;
+		_data.isTransient = isTransient ? true : false;
+	};
+
+	this.setType = function(type) {
+		_data.type = _.str.trim(type);
 	};
 
 	this.getType = function() {
-		return _type;
+		return _data.type;
+	};
+
+	this.setName = function(name) {
+		_data.name = _.str.trim(name);
 	};
 
 	this.getName = function() {
-		return _name;
+		return _data.name;
 	};
 
-	this.setDeprecated = function(deprecated) {
-		_deprecated = deprecated;
+	this.setDeprecated = function(isDeprecated) {
+		_data.isDeprecated = isDeprecated ? true : false;
 	};
 
-	this.getDeprecated = function() {
-		return _deprecated;
+	this.isDeprecated = function() {
+		return _data.isDeprecated ? true : false;
 	};
 
-	this.setSynthetic = function(synthetic) {
-		_synthetic = synthetic;
+	this.setSynthetic = function(isSynthetic) {
+		_data.isSynthetic = isSynthetic ? true : false;
 	};
 
-	this.getSynthetic = function() {
-		return _synthetic;
+	this.isSynthetic = function() {
+		return _data.isSynthetic ? true : false;
 	};
 
 	this.setConstantValue = function(constantValue) {
-		_constantValue = constantValue;
+		_data.constantValue = constantValue;
 	};
 
 	this.getConstantValue = function() {
-		return _constantValue;
+		return _data.constantValue;
 	};
 
-	this.setClassDef = function(classDef) {
-		_classDef = classDef;
+	this.getData = function() {
+		return _data;
 	};
-
-	this.getClassDef = function() {
-		return _classDef;
-	};
-
 
 	this.toJavaP = function() {
-		var output = _visibility;
-		output += _isStatic ? " static" : "";
-		output += _isFinal ? " final" : "";
-		output += _isVolatile ? " volatile" : "";
-		output += _isTransient ? " transient" : "";
-		output += " " + _type + " " + _name + ");\r\n";
+		var output = this.getVisibility();
+		output += this.isStatic() ? " static" : "";
+		output += this.isFinal() ? " final" : "";
+		output += this.isVolatile() ? " volatile" : "";
+		output += this.isTransient() ? " transient" : "";
+		output += " " + this.getType() + " " + this.getName() + ");\r\n";
 
 		return output;
 	};
