@@ -25,6 +25,10 @@ jjvm.types.ExceptionTable = function(table) {
 		return output;
 	};
 
+	this.getData = function() {
+		return table;
+	};
+
 	this.toString = function() {
 		return "ExceptionTable";
 	};

@@ -18,6 +18,8 @@ jjvm.types.ConstantPool = function(data) {
 				value = new jjvm.types.ConstantPoolPrimitiveValue(_data.constants[i]);
 			} else if(_data.constants[i].type == jjvm.types.ConstantPoolStringReferenceValue.type) {
 				value = new jjvm.types.ConstantPoolStringReferenceValue(_data.constants[i]);
+			} else {
+				throw "Unknown constant pool type " + _data.constants[i].type;
 			}
 
 			pool[value.getIndex()] = value;

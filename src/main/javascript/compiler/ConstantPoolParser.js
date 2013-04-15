@@ -117,7 +117,7 @@ jjvm.compiler.ConstantPoolParser = function() {
 
 	this._createLongValue = function(iterator) {
 		var value = new jjvm.types.ConstantPoolPrimitiveValue();
-		value.setType(jjvm.types.ConstantPoolPrimitiveValue.types.L);
+		value.setType(jjvm.types.ConstantPoolPrimitiveValue.types.J);
 		value.setValue(iterator.read64());
 
 		return value;

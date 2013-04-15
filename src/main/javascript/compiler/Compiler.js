@@ -54,6 +54,10 @@ jjvm.compiler.Compiler = function() {
 				jjvm.core.ClassLoader.addClassDefinition(classDef);
 			}
 
+			if(isSystemClass) {
+				jjvm.core.ClassCache.store(classDef);
+			}
+
 			jjvm.core.NotificationCentre.dispatch(this, "onClassDefined", [classDef, isSystemClass]);
 			jjvm.core.NotificationCentre.dispatch(this, "onCompileSuccess", [this]);
 		} catch(error) {

@@ -19,7 +19,29 @@ jjvm.types.ClassDefinition = function(data) {
 	var _staticFields = {};
 
 	if(data) {
-		_parent = jjvm.core.ClassLoader.loadClass(data.parent);
+		if(data.parent) {
+			_parent = jjvm.core.ClassLoader.loadClass(data.parent);
+		}
+
+		for(var m in data.methods) {
+			var method = new jjvm.types.MethodDefinition(data.methods[m]);
+			method.setClassDef(this);
+
+			if(jjvm.nativeMethods[data.name] && jjvm.nativeMethods[data.name][method.getSignature()]) {
+				// we've overriden the method implementation
+				method.setImplementation(jjvm.nativeMethods[data.name][method.getSignature()]);
+			}
+
+			_methods.push(method);
+		}
+
+		for(var f in data.fields) {
+			_fields.push(new jjvm.types.FieldDefinition(data.fields[f]));
+		}
+
+		if(data.enclosingMethod) {
+			_enclosingMethod = new jjvm.types.EnclosingMethod(data.enclosingMethod);
+		}
 	}
 
 	this.getName = function() {
@@ -148,7 +170,7 @@ jjvm.types.ClassDefinition = function(data) {
 			_data.methods = {};
 		}
 
-		_data.methods[methodDef.getName()] = methodDef.getData();
+		_data.methods[methodDef.getSignature()] = methodDef.getData();
 	};
 
 	this.getFields = function() {
@@ -258,47 +280,51 @@ jjvm.types.ClassDefinition = function(data) {
 	};
 
 	this.setSourceFile = function(sourceFile) {
-		_sourceFile = sourceFile;
+		_data.sourceFile = sourceFile;
 	};
 
 	this.getSourceFile = function() {
-		return _sourceFile;
+		return _data.sourceFile;
 	};
 
 	this.setMinorVersion = function(minorVersion) {
-		_minorVersion = minorVersion;
+		_data.minorVersion = minorVersion;
 	};
 
 	this.getMinorVersion = function() {
-		return _minorVersion;
+		return _data.minorVersion;
 	};
 
 	this.setMajorVersion = function(majorVersion) {
-		_majorVersion = majorVersion;
+		_data.majorVersion = majorVersion;
 	};
 
 	this.getMajorVersion = function() {
-		return _majorVersion;
+		return _data.majorVersion;
 	};
 
 	this.setDeprecated = function(deprecated) {
-		_deprecated = deprecated;
+		_data.deprecated = deprecated;
 	};
 
 	this.getDeprecated = function() {
-		return _deprecated;
+		return _data.deprecated;
 	};
 
 	this.setSynthetic = function(synthetic) {
-		_synthetic = synthetic;
+		_data.synthetic = synthetic;
 	};
 
 	this.getSynthetic = function() {
-		return _synthetic;
+		return _data.synthetic;
 	};
 
 	this.setEnclosingMethod = function(enclosingMethod) {
 		_enclosingMethod = enclosingMethod;
+
+		if(enclosingMethod) {
+			_data.enclosingMethod = enclosingMethod.getData();
+		}
 	};
 
 	this.getEnclosingMethod = function() {
@@ -325,7 +351,7 @@ jjvm.types.ClassDefinition = function(data) {
 			0x34: "Java 8"
 		};
 
-		return versions[_majorVersion];
+		return versions[_data.majorVersion];
 	};
 
 	this.isChildOf = function(classDef) {

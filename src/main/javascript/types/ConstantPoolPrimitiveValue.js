@@ -1,16 +1,9 @@
 jjvm.types.ConstantPoolPrimitiveValue = function(data) {
 	_.extend(this, new jjvm.types.ConstantPoolValue(data));
 
-	this.getType = function() {
-		var type = this.getData().type;
-
-		if(jjvm.types.Primitives.jvmTypesToPrimitive[type]) {
-			// convert I to int, Z to boolean, etc
-			return jjvm.types.Primitives.jvmTypesToPrimitive[type];
-		}
-
-		return type;
-	};
+	if(data) {
+		this.setType(jjvm.types.Primitives.jvmTypesToPrimitive[data.type]);
+	}
 
 	this.toString = function() {
 		return this.getType() + "\t\t\t// " + this.getValue() + ";";

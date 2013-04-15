@@ -18,6 +18,10 @@ jjvm.types.LineNumberTable = function(table) {
 		return output;
 	};
 
+	this.getData = function() {
+		return table;
+	};
+
 	this.toString = function() {
 		return "LineNumberTable";
 	};

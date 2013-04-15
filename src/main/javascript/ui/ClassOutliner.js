@@ -118,7 +118,7 @@ jjvm.ui.ClassOutliner = function(element) {
 					var checkbox = jjvm.core.DOMUtil.create("input", {
 						type: "checkbox",
 						checked: instruction.hasBreakpoint(),
-						onChange: function() {
+						onchange: function() {
 							instruction.setBreakpoint(this.value);
 						}
 					});

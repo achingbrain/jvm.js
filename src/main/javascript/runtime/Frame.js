@@ -91,10 +91,6 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		_thread.register("onDropToFrame", dropToFrameCallback);
 		_thread.register("onResumeExecution", resumeExecutionCallback);
 
-		if(methodDef.getName() == "<clinit>" && classDef.getName() == "java.util.Arrays") {
-			var afsdfj = "asfa";
-		}
-
 		if(methodDef.getImplementation()) {
 			// special case - where we have overriden method behaviour to stub 
 			// functionality like writing to System.out

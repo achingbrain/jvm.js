@@ -7,6 +7,10 @@ jjvm.types.StackMapTable = function(className, methodName) {
 		return output;
 	};
 
+	this.getData = function() {
+		return table;
+	};
+
 	this.toString = function() {
 		return "EnclosingMethod";
 	};

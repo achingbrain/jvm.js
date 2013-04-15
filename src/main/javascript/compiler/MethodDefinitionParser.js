@@ -47,6 +47,7 @@ jjvm.compiler.MethodDefinitionParser = function() {
 		methodDef.setName(name);
 		methodDef.setArgs(args);
 		methodDef.setReturns(returns);
+		methodDef.setSignature(methodDef.getName() + type);
 		methodDef.setClassDef(classDef);
 
 		if(accessFlags & 0x0001) {

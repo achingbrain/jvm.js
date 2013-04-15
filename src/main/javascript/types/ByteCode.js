@@ -5,10 +5,6 @@ jjvm.types.ByteCode = function(data) {
 	var _operation;
 
 	var invokeMethod = function(methodDef, frame) {
-		if(methodDef.getName() == "getChars" && methodDef.getClassDef().getName() == "java.lang.Integer") {
-			var sdfpojsdo = "asdoifjs";
-		}
-
 		var args = [];
 
 		for(var i = 0; i < methodDef.getArgs().length; i++) {
@@ -29,10 +25,6 @@ jjvm.types.ByteCode = function(data) {
 		if(methodDef.isStatic()) {
 			console.info("Invoking static method " + methodDef.getName() + " on " + methodDef.getClassDef().getName() + " with args " + args);
 		} else {
-			/*if(!args[0] || !args[0].getClass) {
-				var sdofijsd = "asdfhsd";
-			}*/
-
 			console.info("Invoking instance method " + methodDef.getName() + " on " + args[0].getClass().getName() + " as " + methodDef.getClassDef().getName() + " with args " + args);
 		}
 
@@ -54,6 +46,10 @@ jjvm.types.ByteCode = function(data) {
 			this.execute = function(frame, constantPool) {
 				// should return String, int or float
 				var value = constantPool.load(index);
+
+				if(!value) {
+					throw "Constant value was falsy!";
+				}
 
 				if(value instanceof jjvm.types.ConstantPoolClassValue) {
 					value = value.getClassDef();
@@ -759,7 +755,7 @@ jjvm.types.ByteCode = function(data) {
 	};
 
 	this.hasBreakpoint = function() {
-		return _breakpoint;
+		return _breakpoint ? true : false;
 	};
 
 	this.setBreakpoint = function(breakpoint) {

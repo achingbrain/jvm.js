@@ -1,21 +1,43 @@
 jjvm.types.MethodDefinition = function(data) {
 	// will be serialized to JSON so don't put any functions in here...
-	var _data = data ? data : {};
+	var _data = data ? data : {
+		instructions: []
+	};
 
 	// holds a function
 	var _implementation = null;
 
 	// holds a list of bytecode instructions
 	var _instructions = [];
-	
-	if(_data.instructions) {
-
-	}
-
 	var _lineNumberTable = null;
 	var _localVariableTable = null;
 	var _stackMapTable = null;
+	var _exceptionTable = null;
 	var _classDef = null;
+	
+	if(data) {
+		if(data.lineNumberTable) {
+			_lineNumberTable = new jjvm.types.LineNumberTable(data.lineNumberTable);
+		}
+
+		if(data.localVariableTable) {
+			_localVariableTable = new jjvm.types.LocalVariableTable(data.localVariableTable);
+		}
+
+		if(data.stackMapTable) {
+			_stackMapTable = new jjvm.types.StackMapTable(data.stackMapTable);
+		}
+
+		if(data.exceptionTable) {
+			_exceptionTable = new jjvm.types.ExceptionTable(data.exceptionTable);
+		}
+
+		if(data.instructions) {
+			_.each(data.instructions, function(data) {
+				_instructions.push(new jjvm.types.ByteCode(data));
+			});
+		}
+	}
 
 	this.getVisibility = function() {
 		return _data.visibility ? _data.visibility : "package";
@@ -23,6 +45,14 @@ jjvm.types.MethodDefinition = function(data) {
 
 	this.setVisibility = function(visibility) {
 		_data.visibility = visibility;
+	};
+
+	this.getSignature = function() {
+		return _data.signature;
+	};
+
+	this.setSignature = function(signature) {
+		_data.signature = signature;
 	};
 
 	this.isStatic = function() {
@@ -161,6 +191,10 @@ jjvm.types.MethodDefinition = function(data) {
 
 	this.setExceptionTable = function(exceptionTable) {
 		_exceptionTable = exceptionTable;
+
+		if(exceptionTable) {
+			_data.exceptionTable = exceptionTable.getData();
+		}
 	};
 
 	this.getExceptionTable = function() {
@@ -169,6 +203,10 @@ jjvm.types.MethodDefinition = function(data) {
 
 	this.setLineNumberTable = function(lineNumberTable) {
 		_lineNumberTable = lineNumberTable;
+
+		if(lineNumberTable) {
+			_data.lineNumberTable = lineNumberTable.getData();
+		}
 	};
 
 	this.getLineNumberTable = function() {
@@ -177,6 +215,10 @@ jjvm.types.MethodDefinition = function(data) {
 
 	this.setLocalVariableTable = function(localVariableTable) {
 		_localVariableTable = localVariableTable;
+
+		if(localVariableTable) {
+			_data.localVariableTable = localVariableTable.getData();
+		}		
 	};
 
 	this.getLocalVariableTable = function() {
@@ -185,6 +227,10 @@ jjvm.types.MethodDefinition = function(data) {
 
 	this.setStackMapTable = function(stackMapTable) {
 		_stackMapTable = stackMapTable;
+
+		if(stackMapTable) {
+			_data.stackMapTable = stackMapTable.getData();
+		}
 	};
 
 	this.getStackMapTable = function() {

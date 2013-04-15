@@ -51,6 +51,14 @@ jjvm.core.SystemClassLoader = {
 			return clazz;
 		}
 
+		var cached = jjvm.core.ClassCache.load(className);
+
+		if(cached) {
+			jjvm.core.SystemClassLoader._classes.push(cached);
+
+			return cached;
+		}
+
 		// Have to use synchronous request here and as such can't use html5
 		// response types.  Thanks for nothing W3C.
 		jjvm.ui.JJVM.console.info("Downloading " + className);
