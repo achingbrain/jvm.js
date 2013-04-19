@@ -112,7 +112,7 @@ jjvm.types.MethodDefinition = function(data) {
 	};
 
 	this.setArgs = function(args) {
-		return _data.args = args;
+		_data.args = args;
 	};
 
 	this.getArgs = function() {
