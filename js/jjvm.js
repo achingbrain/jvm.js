@@ -2154,7 +2154,7 @@ jjvm.ui.JJVM = {
 	}
 };
 jjvm.ui.JVM = function() {
-	var _worker = new Worker("/js/jjvm_compiler_worker.js");
+	var _worker = new Worker("js/jjvm_compiler_worker.js");
 
 	_worker.onmessage = function(event) {
 		var actions = {
