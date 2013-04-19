@@ -1,166 +1,104 @@
 jjvm.ui.ClassOutliner = function(element) {
 	var _userList = $(element).find("ul.user").get(0);
 	var _systemList = $(element).find("ul.system").get(0);
-	var _listElements = [];
+	var _listElements = {};
 
 	this._onExecutionComplete = function() {
 		$(_userList).find("li").removeClass("executing");
 		$(_systemList).find("li").removeClass("executing");
 	};
 
-	this._onBeforeInstructionExecution = function(frame, instruction) {
-		if(frame.isSystemFrame()) {
+	this._onBeforeInstructionExecution = function(__, frame) {
+		if(frame.isSystemFrame || !frame.isCurrentFrame || !frame.isExecutionSuspended) {
 			return;
 		}
 
-		for(var i = 0; i < _listElements.length; i++) {
-			var item = _listElements[i];
+		this._highlight(frame.className, frame.methodSignature, frame.currentInstruction);
+	};
 
-			if(item.instruction == instruction) {
-				$(item.listItem).addClass("executing");
-				currentInstruction = item.listItem;
-			} else {
-				$(item.listItem).removeClass("executing");
-			}
+	this._onAfterInstructionExecution = function(__, frame) {
+		if(frame.isSystemFrame || !frame.isCurrentFrame || !frame.isExecutionSuspended) {
+			return;
+		}
+
+		// if there's no next instruction we are returning so don't remove the highlight
+		if(frame.nextInstruction) {
+			this._highlight(frame.nextInstruction.className, frame.nextInstruction.methodSignature, frame.nextInstruction.instruction);
 		}
 	};
 
-	this._buildClassList = function(sender, classDef, isSystemClass) {
-		//$(_userList).empty();
-		//$(_systemList).empty();
-		//_listElements = [];
+	this._onBreakpointEncountered = function(__, frame) {
+		if(frame.isSystemFrame || !frame.isCurrentFrame || !frame.isExecutionSuspended) {
+			return;
+		}
 
+		this._highlight(frame.className, frame.methodSignature, frame.currentInstruction);
+	};
+
+	this._highlight = function(className, methodSignature, instruction) {
+		$(element + " li").removeClass("executing");
+		
+		var listElement = _listElements[className][methodSignature][instruction.location];
+
+		$(listElement).addClass("executing");
+
+		if(_.string.endsWith(instruction.mnemonic, "return")) {
+			$(listElement).addClass("return");
+		}
+
+		// ensure whatever's highlighted is visible are expanded
+		var parent = listElement.parentNode;
+
+		while(parent) {
+			if(parent.style && parent.style.display == "none") {
+				parent.style.display = "block";
+			}
+
+			parent = parent.parentNode;
+		}
+
+		// stop previous scroll animation
+		$(element).stop(true, false);
+		$(element).scrollTo(listElement, 200, {"axis": "y", "offset": -100});
+	};
+
+	this._buildClassList = function(sender, classDef, isSystemClass) {
 		if(isSystemClass) {
 			this._buildClassOutline(classDef, _systemList, false);
 		} else {
 			this._buildClassOutline(classDef, _userList, true);
 		}
-/*
-		$.each(jjvm.core.ClassLoader.getClassDefinitions(), _.bind(function(index, classDef) {
-			this._buildClassOutline(classDef, _userList, true);
-		}, this));
-
-		$.each(jjvm.core.SystemClassLoader.getClassDefinitions(), _.bind(function(index, classDef) {
-			this._buildClassOutline(classDef, _systemList, false);
-		}, this));*/
 	};
 
 	this._buildClassOutline = function(classDef, list, startExpanded) {
 		var innerList = jjvm.core.DOMUtil.create("ul");
 
-		$.each(classDef.getFields(), _.bind(function(index, fieldDef) {
-			var cssClass = "field " + fieldDef.getVisibility() + (index === 0 ? " first" : "");
-			var iconClass = "icon-white ";
-
-			if(fieldDef.getVisibility() == "public") {
-				iconClass += "icon-plus";
-			} else if(fieldDef.getVisibility() == "private") {
-				iconClass += "icon-minus";
-			} else if(fieldDef.getVisibility() == "protected") {
-				iconClass += "icon-asterisk";
-			}
-
-			innerList.appendChild(jjvm.core.DOMUtil.create("li", [
-				jjvm.core.DOMUtil.create("icon", {className: iconClass}),
-				" ", 
-				this._formatVisibility(fieldDef.getVisibility()),
-				" ",
-				this._formatType(fieldDef.getType()),
-				" ",
-				(fieldDef.isStatic() ? this._formatKeyword("static") : ""),
-				" ",
-				(fieldDef.isFinal() ? this._formatKeyword("final") : ""),
-				" ",
-				fieldDef.getName()
-			]));
-		}, this));
-
-		$.each(classDef.getMethods(), _.bind(function(index, methodDef) {
-			var cssClass = "method " + methodDef.getVisibility() + (index === 0 ? " first" : "");
-			var iconClass = "icon-white ";
-
-			if(methodDef.getVisibility() == "public") {
-				iconClass += "icon-plus";
-			} else if(methodDef.getVisibility() == "private") {
-				iconClass += "icon-minus";
-			} else if(methodDef.getVisibility() == "protected") {
-				iconClass += "icon-asterisk";
-			}
-
-			var method = jjvm.core.DOMUtil.create("li", [
-				jjvm.core.DOMUtil.create("icon", {className: iconClass}),
-				" ", 
-				this._formatVisibility(methodDef.getVisibility()),
-				" ",
-				(methodDef.isStatic() ? this._formatKeyword("static") : ""),
-				" ",
-				(methodDef.isFinal() ? this._formatKeyword("final") : ""),
-				" ", 
-				(methodDef.isSynchronized() ? this._formatKeyword("synchronized") : ""),
-				" ",
-				this._formatType(methodDef.getReturns()),
-				" ",
-				methodDef.getName(),
-				"(",
-				this._formatTypes(methodDef.getArgs()),
-				")"
-			]);
-
-			innerList.appendChild(method);
-
-			var instructionList = jjvm.core.DOMUtil.create("ul", {className: "instruction_list"});
-			method.appendChild(instructionList);
-
-			if(methodDef.getImplementation()) {
-				jjvm.core.DOMUtil.append(jjvm.core.DOMUtil.create("li", "Native code", {className: "muted"}), instructionList);
-			} else if(methodDef.getInstructions()) {
-				$.each(methodDef.getInstructions(), function(index, instruction) {
-					var checkbox = jjvm.core.DOMUtil.create("input", {
-						type: "checkbox",
-						checked: instruction.hasBreakpoint(),
-						onchange: function() {
-							instruction.setBreakpoint(this.value);
-						}
-					});
-
-					var listItem = jjvm.core.DOMUtil.create("li", [
-						checkbox,
-						" ",
-						instruction.toString()
-					]);
-
-					_listElements.push({listItem: listItem, instruction: instruction});
-
-					instructionList.appendChild(listItem);
-				});
-			} else if(!classDef.isInterface()) {
-				jjvm.core.DOMUtil.append(jjvm.core.DOMUtil.create("li", "Missing"), instructionList);
-			}
-		}, this));
+		this._buildFieldList(innerList, classDef.name, classDef.fields);
+		this._buildMethodList(innerList, classDef.name, classDef.methods);
 
 		var link = jjvm.core.DOMUtil.create("a", [
-			(classDef.getVisibility() == "public" ? this._formatKeyword("public") : ""),
+			(classDef.visibility == "public" ? this._formatKeyword("public") : ""),
 			" ",
-			(classDef.isAbstract() ? this._formatKeyword("abstract") : ""),
+			(classDef.isAbstract ? this._formatKeyword("abstract") : ""),
 			" ",
-			(classDef.isFinal() ? this._formatKeyword("final") : ""),
+			(classDef.isFinal ? this._formatKeyword("final") : ""),
 			" ",
-			(classDef.isInterface() ? this._formatKeyword("interface") : this._formatKeyword("class")),
+			(classDef.isInterface ? this._formatKeyword("interface") : this._formatKeyword("class")),
 			" ",
-			classDef.getName(),
-			(classDef.getParent() ? [
-				" ", this._formatKeyword("extends"), " ", classDef.getParent().getName()
+			classDef.name,
+			(classDef.parent ? [
+				" ", this._formatKeyword("extends"), " ", classDef.parent
 			] : ""),
-			(classDef.getInterfaces().length > 0 ? [
-				" ", this._formatKeyword("implements"), " ", this._formatInterfaces(classDef)
+			(classDef.interfaces.length > 0 ? [
+				" ", this._formatKeyword("implements"), " ", this._formatInterfaces(classDef.interfaces)
 			] : "")
 		]);
 
 		var classInfo = "";
 
-		if(classDef.getSourceFile()) {
+		if(classDef.sourceFile) {
 			classInfo = jjvm.core.DOMUtil.create("small", [
-				classDef.getSourceFile(), " / ", classDef.getVersion()
+				classDef.sourceFile, " / ", this._formatVersion(classDef.majorVersion, classDef.minorVersion)
 			], {className: "muted"});
 		}
 
@@ -180,6 +118,122 @@ jjvm.ui.ClassOutliner = function(element) {
 		}
 
 		list.appendChild(listHolder);
+	};
+
+	this._buildFieldList = function(list, className, fields) {
+		var index = 0;
+
+		for(var name in fields) {
+			var field = fields[name];
+			var cssClass = "field " + field.visibility + (index === 0 ? " first" : "");
+			var iconClass = "icon-white ";
+
+			if(field.visibility == "public") {
+				iconClass += "icon-plus";
+			} else if(field.visibility == "private") {
+				iconClass += "icon-minus";
+			} else if(field.visibility == "protected") {
+				iconClass += "icon-asterisk";
+			}
+
+			list.appendChild(jjvm.core.DOMUtil.create("li", [
+				jjvm.core.DOMUtil.create("icon", {className: iconClass}),
+				" ", 
+				this._formatVisibility(field.visibility),
+				" ",
+				this._formatType(field.type),
+				" ",
+				(field.isStatic ? this._formatKeyword("static") : ""),
+				" ",
+				(field.isFinal ? this._formatKeyword("final") : ""),
+				" ",
+				field.name
+			]));
+
+			index++;
+		}
+	};
+
+	this._buildMethodList = function(list, className, methods) {
+		var index = 0;
+
+		for(var name in methods) {
+			var method = methods[name];
+			var cssClass = "method " + method.visibility + (index === 0 ? " first" : "");
+			var iconClass = "icon-white ";
+
+			if(method.visibility == "public") {
+				iconClass += "icon-plus";
+			} else if(method.visibility == "private") {
+				iconClass += "icon-minus";
+			} else if(method.visibility == "protected") {
+				iconClass += "icon-asterisk";
+			}
+
+			var methodSignature = jjvm.core.DOMUtil.create("li", [
+				jjvm.core.DOMUtil.create("icon", {className: iconClass}),
+				" ", 
+				this._formatVisibility(method.visibility),
+				" ",
+				(method.isStatic ? this._formatKeyword("static") : ""),
+				" ",
+				(method.isFinal ? this._formatKeyword("final") : ""),
+				" ", 
+				(method.isSynchronized ? this._formatKeyword("synchronized") : ""),
+				" ",
+				this._formatType(method.returns),
+				" ",
+				method.name,
+				"(",
+				this._formatTypes(method.args),
+				")"
+			]);
+
+			list.appendChild(methodSignature);
+
+			var instructionList = jjvm.core.DOMUtil.create("ul", {className: "instruction_list"});
+			methodSignature.appendChild(instructionList);
+
+			if(method.isNative) {
+				jjvm.core.DOMUtil.append(jjvm.core.DOMUtil.create("li", "Native code", {className: "muted"}), instructionList);
+			} else if(method.instructions.length > 0) {
+				for(var i = 0; i < method.instructions.length; i++) {
+					var instruction = method.instructions[i];
+					var checkbox = jjvm.core.DOMUtil.create("input", {
+						type: "checkbox",
+						onchange: this._getBreakpointCallback(className, method.signature, instruction)
+					});
+
+					var listItem = jjvm.core.DOMUtil.create("li", [
+						checkbox,
+						" ",
+						instruction.location + ": " + instruction.description
+					]);
+
+					if(!_listElements[className]) {
+						_listElements[className] = {};
+					}
+
+					if(!_listElements[className][method.signature]) {
+						_listElements[className][method.signature] = [];
+					}
+
+					_listElements[className][method.signature][instruction.location] = listItem;
+
+					instructionList.appendChild(listItem);
+				}
+			} else if(!method.isAbstract) {
+				jjvm.core.DOMUtil.append(jjvm.core.DOMUtil.create("li", "Missing"), instructionList);
+			}
+
+			index++;
+		}
+	};
+
+	this._getBreakpointCallback = function(className, methodSignature, instruction) {
+		return function() {
+			jjvm.ui.JJVM.jvm.setBreakpoint(className, methodSignature, instruction.location, this.checked);
+		};
 	};
 
 	this._formatVisibility = function(visibility) {
@@ -218,17 +272,34 @@ jjvm.ui.ClassOutliner = function(element) {
 		return output;
 	};
 
-	this._formatInterfaces = function(classDef) {
+	this._formatInterfaces = function(interfaces) {
 		var output = [];
 
-		for(var i = 0; i < classDef.getInterfaces().length; i++) {
-			output.push(classDef.getInterfaces()[i]);
+		for(var i = 0; i < interfaces.length; i++) {
+			output.push(interfaces[i]);
 		}
 
 		return output.join(", ");
 	};
 
+	this._formatVersion = function(majorVersion, minorVersion) {
+		var versions = {
+			0x2D: "Java 1.1",
+			0x2E: "Java 1.2",
+			0x2F: "Java 1.3",
+			0x30: "Java 1.4",
+			0x31: "Java 5",
+			0x32: "Java 6",
+			0x33: "Java 7",
+			0x34: "Java 8"
+		};
+
+		return versions[majorVersion];
+	};
+
 	jjvm.core.NotificationCentre.register("onClassDefined", _.bind(this._buildClassList, this));
 	jjvm.core.NotificationCentre.register("onBeforeInstructionExecution", _.bind(this._onBeforeInstructionExecution, this));
+	jjvm.core.NotificationCentre.register("onAfterInstructionExecution", _.bind(this._onAfterInstructionExecution, this));
+	jjvm.core.NotificationCentre.register("onBreakpointEncountered", _.bind(this._onBreakpointEncountered, this));
 	jjvm.core.NotificationCentre.register("onExecutionComplete", _.bind(this._onExecutionComplete, this));
 };

@@ -197,7 +197,7 @@ jjvm.nativeMethods = {
 	"java.io.PrintStream": {
 		"println(Ljava/lang/String;)V": function(frame, classDef, methodDef, objectRef, stringRef) {
 			var line = stringRef.getField("value").join("");
-			jjvm.ui.JJVM.console.info(line);
+			console.info(line);
 		}
 	},
 

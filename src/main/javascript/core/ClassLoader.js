@@ -49,7 +49,7 @@ jjvm.core.ClassLoader = {
 			var frame = new jjvm.runtime.Frame(output, output.getMethod(jjvm.types.MethodDefinition.CLASS_INITIALISER));
 			frame.setIsSystemFrame(true);
 			var thread = new jjvm.runtime.Thread(frame);
-			frame.execute(thread);
+			thread.run();
 		}
 
 		return output;

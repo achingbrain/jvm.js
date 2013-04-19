@@ -1,15 +1,15 @@
 jjvm.ui.FrameWatcher = function(localVariableTable, stackTable, title) {
 	
 	this._update = function(frame) {
-		if(frame.isSystemFrame()) {
+		if(frame.isSystemFrame) {
 			return;
 		}
 
-		this._updateLocalVariableTable(frame.getLocalVariables().getLocalVariables());
-		this._updateStackTable(frame.getStack().getStack());
+		this._updateLocalVariableTable(frame.localVariables);
+		this._updateStackTable(frame.stack);
 
 		$(title).empty();
-		$(title).append(frame.getClassDef().getName() + "#" + frame.getMethodDef().getName());
+		$(title).append(_.escape(frame.className + "#" + frame.methodSignature));
 	};
 
 	this._updateLocalVariableTable = function(localVariables) {
@@ -46,10 +46,16 @@ jjvm.ui.FrameWatcher = function(localVariableTable, stackTable, title) {
 		}
 	};
 
-	jjvm.core.NotificationCentre.register("onInstructionExecution", _.bind(function(frame, instruction) {
-		this._update(frame.getThread().getCurrentFrame());
+	jjvm.core.NotificationCentre.register("onInstructionExecution", _.bind(function(_, frame) {
+		this._update(frame);
 	}, this));
-	jjvm.core.NotificationCentre.register("onCurrentFrameChanged", _.bind(function(thread, frame) {
-		this._update(thread.getCurrentFrame());
+	jjvm.core.NotificationCentre.register("onBeforeInstructionExecution", _.bind(function(_, frame) {
+		this._update(frame);
+	}, this));
+	jjvm.core.NotificationCentre.register("onAfterInstructionExecution", _.bind(function(_, frame) {
+		this._update(frame);
+	}, this));
+	jjvm.core.NotificationCentre.register("onCurrentFrameChanged", _.bind(function(_, thread, frame) {
+		this._update(frame);
 	}, this));
 };

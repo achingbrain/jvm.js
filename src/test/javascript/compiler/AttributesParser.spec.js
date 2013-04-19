@@ -1,6 +1,4 @@
 describe("jjvm.compiler.AttributesParser test", function () {
-	var parser = new jjvm.compiler.AttributesParser();
-
 	it("should parse attributes block", function () {
 		var buffer = [
 			// the number of attributes
@@ -43,10 +41,12 @@ describe("jjvm.compiler.AttributesParser test", function () {
 		var iterable = new jjvm.core.ByteIterator(bytes);
 
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "Attribute1Name", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "Attribute2Name", constantPool));
-		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "Attribute3Name", constantPool));
-		constantPool.store(5, new jjvm.types.ConstantPoolValue("Asciz", "WillBeUnrecognised", constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Asciz", value: "Attribute1Name"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue({type: "Asciz", value: "Attribute2Name"}));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue({type: "Asciz", value: "Attribute3Name"}));
+		constantPool.store(5, new jjvm.types.ConstantPoolValue({type: "Asciz", value: "WillBeUnrecognised"}));
+
+		var parser = new jjvm.compiler.AttributesParser(iterable, constantPool);
 
 		var invocations = 0;
 

@@ -23,6 +23,13 @@ jjvm.core.NotificationCentre = {
 	},
 
 	dispatch: function(sender, eventType, args) {
+		if(self.postMessage) {
+			self.postMessage({
+				action: "postNotification", 
+				args: JSON.stringify([eventType, args])
+			});
+		}
+
 		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
 			return;
 		}

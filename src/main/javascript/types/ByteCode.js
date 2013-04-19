@@ -23,9 +23,9 @@ jjvm.types.ByteCode = function(data) {
 		}
 
 		if(methodDef.isStatic()) {
-			console.info("Invoking static method " + methodDef.getName() + " on " + methodDef.getClassDef().getName() + " with args " + args);
+			console.debug("Invoking static method " + methodDef.getName() + " on " + methodDef.getClassDef().getName() + " with args " + args);
 		} else {
-			console.info("Invoking instance method " + methodDef.getName() + " on " + args[0].getClass().getName() + " as " + methodDef.getClassDef().getName() + " with args " + args);
+			console.debug("Invoking instance method " + methodDef.getName() + " on " + args[0].getClass().getName() + " as " + methodDef.getClassDef().getName() + " with args " + args);
 		}
 
 		frame.executeChild(methodDef.getClassDef(), methodDef, args);
@@ -800,6 +800,10 @@ jjvm.types.ByteCode = function(data) {
 
 	this.getDescription = function() {
 		return this.getData().description;
+	};
+
+	this.canStepInto = function() {
+		return _.string.startsWith(this.getOperation(), "invoke");
 	};
 
 	this.getData = function() {

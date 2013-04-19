@@ -41,6 +41,10 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		return _currentInstruction;
 	};
 
+	this.getNextInstruction = function() {
+		return _instructions.peek();
+	};
+
 	this.getOutput = function() {
 		return _output;
 	};
@@ -69,6 +73,22 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		this._executeNextInstruction();
 	};
 
+	this._stepInto = function(sender) {
+		if(!_thread.isCurrentFrame(this)) {
+			return;
+		}
+
+		var nextInstruction = _instructions.peek();
+
+		if(!nextInstruction.canStepInto()) {
+			console.warn("Can only step into methods that create a new frame.");
+			return;
+		}
+
+		// start stepping
+		this._executeNextInstruction();
+	};
+
 	this._dropToFrame = function(sender) {
 		if(!_thread.isCurrentFrame(this)) {
 			return;
@@ -76,11 +96,13 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 
 		// reset execution index and enabled stepping
 		_instructions.reset();
+		_stack = new jjvm.runtime.Stack();
 		_currentInstruction = _instructions.peek();
-		this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
+		this._dispatchNotification("onBeforeInstructionExecution");
 	};
 
 	var stepOverCallback = _.bind(this._stepOver, this);
+	var stepIntoCallback = _.bind(this._stepInto, this);
 	var dropToFrameCallback = _.bind(this._dropToFrame, this);
 	var resumeExecutionCallback = _.bind(this._resumeExecution, this);
 
@@ -88,6 +110,7 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		_thread = thread;
 		_thread.setCurrentFrame(this);
 		_thread.register("onStepOver", stepOverCallback);
+		_thread.register("onStepInto", stepIntoCallback);
 		_thread.register("onDropToFrame", dropToFrameCallback);
 		_thread.register("onResumeExecution", resumeExecutionCallback);
 
@@ -110,7 +133,7 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		} else {
 			if(_thread.isExecutionSuspended()) {
 				_currentInstruction = _instructions.peek();
-				this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
+				this._dispatchNotification("onBeforeInstructionExecution");
 			} else {
 				this._executeNextInstruction();
 			}
@@ -141,6 +164,7 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 			this.dispatch("onChildFrameCompleted", [childOutput]);
 		} else {
 			_child = new jjvm.runtime.Frame(classDef, methodDef, args, this);
+			_child.setIsSystemFrame(_isSystemFrame);
 
 			_child.registerOneTimeListener("onFrameComplete", _.bind(function(frame, output) {
 				// child frame produced output so push it onto the stack
@@ -152,10 +176,6 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 				_thread.setCurrentFrame(this);
 
 				this.dispatch("onChildFrameCompleted", [output]);
-
-				// highlight our next instruction
-				_currentInstruction = _instructions.peek();
-				this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
 			}, this));
 			_child.registerOneTimeListener("onExceptionThrown", _.bind(function(frame, thrown) {
 				if(!this.getMethodDef().getExceptionTable()) {
@@ -194,10 +214,6 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 
 				_child = null;
 				_thread.setCurrentFrame(this);
-
-				// highlight our next instruction
-				_currentInstruction = _instructions.peek();
-				this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
 			}, this));
 
 			_child.execute(_thread, _executionHalted);
@@ -240,11 +256,11 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 		// get instruction to execute
 		_currentInstruction = _instructions.next();
 
-		this.dispatch("onBeforeInstructionExecution", [_currentInstruction]);
+		this._dispatchNotification("onBeforeInstructionExecution");
 
 		if(this._shouldStopOnBreakpoint()) {
-			this.dispatch("onBreakpointEncountered", [_currentInstruction]);
-			_thread.setExecutionSuspended(true);
+			_thread.setExecutionSuspended(true, this);
+			this._dispatchNotification("onBreakpointEncountered");
 			_instructions.rewind();
 
 			return;
@@ -290,12 +306,13 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 				return;
 			} else {
 				// don't know what to do
+				console.error(error);
 				throw error;
 			}
 		}
 
-		this.dispatch("onInstructionExecution", [_currentInstruction]);
-		this.dispatch("onAfterInstructionExecution", [_currentInstruction]);
+		this._dispatchNotification("onInstructionExecution");
+		this._dispatchNotification("onAfterInstructionExecution");
 
 		if(!_instructions.hasNext()) {
 			// all done
@@ -305,16 +322,11 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 			return;
 		}
 
-		if(_thread.isExecutionSuspended() !== true) {
-			// execute next instruction in one second
+		//if(!_thread.isSuspendedInFrame(this)) {
+		if(!_thread.isExecutionSuspended()) {
 			this._executeNextInstruction();
+			// execute next instruction in one second
 			//setTimeout(_.bind(this._executeNextInstruction, this), 1000);
-		} else if(_instructions.hasNext() && _thread.isCurrentFrame(this)) {
-			
-			// we are suspended, highlight the next instruction
-			var next = _instructions.peek();
-
-			this.dispatch("onBeforeInstructionExecution", [next]);
 		}
 	};
 
@@ -332,8 +344,69 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 
 	this._tearDownThreadListeners = function() {
 		_thread.deRegister("onStepOver", stepOverCallback);
+		_thread.deRegister("onStepInto", stepIntoCallback);
 		_thread.deRegister("onDropToFrame", dropToFrameCallback);
 		_thread.deRegister("onResumeExecution", resumeExecutionCallback);
+	};
+
+	this._dispatchNotification = function(eventType) {
+		var stack = [];
+
+		_.each(this.getStack().getStack(), function(index, item) {
+			stack.push(item.toString());
+		});
+
+		var localVariables = [];
+
+		_.each(this.getLocalVariables().getLocalVariables(), function(index, item) {
+			localVariables.push(item.toString());
+		});
+
+		this.dispatch(eventType, [this.getData()]);
+	};
+
+	this.getData = function() {
+		var stack = [];
+
+		_.each(this.getStack().getStack(), function(item) {
+			stack.push(item ? item.toString() : item);
+		});
+
+		var localVariables = [];
+
+		_.each(this.getLocalVariables().getLocalVariables(), function(item) {
+			localVariables.push(item ? item.toString() : item);
+		});
+
+		var nextInstruction = {
+			className: classDef.getName(), 
+			methodSignature: methodDef.getSignature(), 
+			instruction: _instructions.peek()
+		};
+
+		if(!nextInstruction.instruction && parent) {
+			nextInstruction = {
+				className: parent.getClassDef().getName(), 
+				methodSignature: parent.getMethodDef().getSignature(), 
+				instruction: parent.getNextInstruction()
+			};
+		}
+
+		if(nextInstruction.instruction) {
+			nextInstruction.instruction = nextInstruction.instruction.getData();
+		}
+
+		return {
+			className: classDef.getName(), 
+			methodSignature: methodDef.getSignature(), 
+			currentInstruction: _currentInstruction ? _currentInstruction.getData() : null, 
+			nextInstruction: nextInstruction, 
+			isSystemFrame: _isSystemFrame, 
+			isCurrentFrame: _thread ? _thread.isCurrentFrame(this) : false,
+			isExecutionSuspended: _thread ? _thread.isExecutionSuspended() : false,
+			stack: stack, 
+			localVariables: localVariables
+		};
 	};
 };
 

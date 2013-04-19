@@ -8,6 +8,7 @@ jjvm.runtime.Thread = function(frame, parent) {
 	var _index = jjvm.runtime.Thread.index++;
 	var _status = jjvm.runtime.Thread.STATUS.NEW;
 	var _executionSuspended;
+	var _suspendedInFrame;
 
 	this.run = function() {
 		frame.register("onFrameComplete", _.bind(function() {
@@ -16,6 +17,8 @@ jjvm.runtime.Thread = function(frame, parent) {
 			if(parent === undefined && frame.getMethodDef().getName() == "main") {
 				this.dispatch("onExecutionComplete");
 			}
+
+			jjvm.runtime.ThreadPool.reap();
 		}, this));
 
 		this.setStatus(jjvm.runtime.Thread.STATUS.RUNNABLE);
@@ -26,8 +29,13 @@ jjvm.runtime.Thread = function(frame, parent) {
 		return _executionSuspended ? true : false;
 	};
 
-	this.setExecutionSuspended = function(executionSuspended) {
+	this.setExecutionSuspended = function(executionSuspended, frame) {
 		_executionSuspended  = executionSuspended;
+		_suspendedInFrame = frame;
+	};
+
+	this.isSuspendedInFrame = function(frame) {
+		return _suspendedInFrame == frame;
 	};
 
 	this.isCurrentFrame = function(frame) {
@@ -41,7 +49,7 @@ jjvm.runtime.Thread = function(frame, parent) {
 	this.setCurrentFrame = function(frame) {
 		_currentFrame = frame;
 
-		this.dispatch("onCurrentFrameChanged", [frame]);
+		this.dispatch("onCurrentFrameChanged", [this.getData(), frame.getData()]);
 	};
 
 	this.getInitialFrame = function(frame) {
@@ -51,7 +59,7 @@ jjvm.runtime.Thread = function(frame, parent) {
 	this.setStatus = function(status) {
 		_status = status;
 
-		this.dispatch("onThreadStatusChanged", [frame]);
+		this.dispatch("onThreadStatusChanged", [this.getData(), frame.getData()]);
 	};
 
 	this.getStatus = function() {
@@ -60,6 +68,29 @@ jjvm.runtime.Thread = function(frame, parent) {
 
 	this.toString = function() {
 		return "Thread#" + _index + " (" + _status + ")";
+	};
+
+	this.getData = function() {
+		var frames = [];
+		var frame = _initialFrame;
+
+		while(frame) {
+			var frameData = frame.getData();
+
+			if(_currentFrame == frame) {
+				frameData.currentFrame = true;
+			}
+
+			frames.push(frameData);
+
+			frame = frame.getChild();
+		}
+
+		return {
+			name: this.toString(), 
+			status: this.getStatus(),
+			frames: frames
+		};
 	};
 };
 

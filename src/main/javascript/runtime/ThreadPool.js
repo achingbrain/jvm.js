@@ -8,6 +8,16 @@ jjvm.runtime.ThreadPool = {
 			}
 		}
 
-		jjvm.core.NotificationCentre.dispatch(this, "onThreadGC");
+		jjvm.core.NotificationCentre.dispatch(this, "onThreadGC", [jjvm.runtime.ThreadPool.getData()]);
+	},
+
+	getData: function() {
+		var threads  = [];
+
+		_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
+			threads.push(thread.getData());
+		});
+
+		return threads;
 	}
 };

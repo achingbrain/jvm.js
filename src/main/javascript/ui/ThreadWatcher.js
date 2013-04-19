@@ -9,71 +9,73 @@ jjvm.ui.ThreadWatcher = function(list) {
 		_selectedThread = thread;
 	};
 
-	this._update = function(frame) {
-		if(frame instanceof jjvm.runtime.Frame && frame.isSystemFrame()) {
-			return;
-		}
-
+	this._update = function(sender, threads) {
 		$(list).empty();
 
-		for(var i = 0; i < jjvm.runtime.ThreadPool.threads.length; i++) {
+		_.each(threads, _.bind(function(thread) {
 			if(!_selectedThread) {
-				_selectedThread = jjvm.runtime.ThreadPool.threads[i];
+				_selectedThread = thread;
 			}
 
-			this._addThread(jjvm.runtime.ThreadPool.threads[i]);
-		}
+			this._addThread(thread);
+		}, this));
 	};
 
 	this._addThread = function(thread) {
 		var threadName;
 
-
 		if(_selectedThread == thread) {
 			threadName = jjvm.core.DOMUtil.create("span", 
-				jjvm.core.DOMUtil.create("i", thread.toString(), {className: "icon-arrow-right icon-white"})
+				jjvm.core.DOMUtil.create("i", thread.name, {className: "icon-arrow-right icon-white"})
 			);
 		} else {
-			threadName = jjvm.core.DOMUtil.create("a", thread);
+			threadName = jjvm.core.DOMUtil.create("a", thread.name);
 
 			threadName.onclick = _.bind(function(event) {
 				event.preventDefault();
 
 				_selectedThread = thread;
-				this._update();
+				//this._update();
 			}, this);
 		}
 
 		var li = jjvm.core.DOMUtil.create("li", threadName);
 
-		if(thread.getStatus() == jjvm.runtime.Thread.STATUS.RUNNABLE) {
+		if(thread.status == "RUNNABLE") {
 			threadName.className += " text-success";
-		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.TERMINATED) {
+		} else if(thread.status == "TERMINATED") {
 			threadName.className += " muted";
-		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.NEW) {
+		} else if(thread.status == "NEW") {
 			threadName.className += " text-info";
-		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.BLOCKED) {
+		} else if(thread.status == "BLOCKED") {
 			threadName.className += " text-error";
-		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.WAITING) {
+		} else if(thread.status == "WAITING") {
 			threadName.className += " text-warn";
-		} else if(thread.getStatus() == jjvm.runtime.Thread.STATUS.TIMED_WAITING) {
+		} else if(thread.status == "TIMED_WAITING") {
 			threadName.className += " text-warn";
 		}
 
 		var frameList = jjvm.core.DOMUtil.create("ul");
-		var frame = thread.getInitialFrame();
 
-		while(frame) {
-			frameList.appendChild(jjvm.core.DOMUtil.create("li", frame.toString()));	
-
-			frame = frame.getChild();
-		}
+		_.each(thread.frames, function(frame) {
+			frameList.appendChild(jjvm.core.DOMUtil.create("li", frame.className + "#" + frame.methodSignature));
+		});
 
 		li.appendChild(frameList);
 		$(list).append(li);
 	};
 
-	jjvm.core.NotificationCentre.register("onBeforeInstructionExecution", _.bind(this._update, this));
-	jjvm.core.NotificationCentre.register("onExecutionComplete", _.bind(this._update, this));
-	jjvm.core.NotificationCentre.register("onThreadGC", _.bind(this._update, this));
+	jjvm.core.NotificationCentre.register("onGotThreads", _.bind(this._update, this));
+	jjvm.core.NotificationCentre.register("onBreakpointEncountered", function() {
+		jjvm.ui.JJVM.jvm.getThreads();
+	});
+	jjvm.core.NotificationCentre.register("onExecutionStarted", function() {
+		jjvm.ui.JJVM.jvm.getThreads();
+	});
+	jjvm.core.NotificationCentre.register("onExecutionComplete", function() {
+		jjvm.ui.JJVM.jvm.getThreads();
+	});
+	jjvm.core.NotificationCentre.register("onThreadGC", function() {
+		jjvm.ui.JJVM.jvm.getThreads();
+	});
 };

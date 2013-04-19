@@ -126,6 +126,9 @@ h3 {
 #classes li.executing {
 	background-color: #444;
 }
+#classes li.executing.return {
+	background-color: #2b542c;
+}
 
 #program_run {
 	position: absolute;

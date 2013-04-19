@@ -45,7 +45,7 @@ jjvm.core.Watchable = {
 		var deregistered = lengthBefore != lengthAfter;
 
 		if(!deregistered) {
-			console.debug("Failed to deregister " + listener + " for event type " + eventType);
+			throw "Failed to deregister " + listener + " for event type " + eventType;
 		}
 
 		return deregistered;
@@ -81,6 +81,7 @@ jjvm.core.Watchable = {
 		}
 
 		// inform global listeners
+		//console.info("dispatching " + eventType + " with args " + args);
 		jjvm.core.NotificationCentre.dispatch(this, eventType, args);
 	}
 };

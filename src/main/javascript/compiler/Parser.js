@@ -8,7 +8,13 @@ jjvm.compiler.Parser = function() {
 		}
 
 		if(string) {
-			return string.replace(/\//g, ".");
+			string = string.replace(/\//g, ".");
+
+			if(_.string.startsWith(string, "L") && _.string.endsWith(string, ";")) {
+				string = string.substring(1, string.length - 1);
+			}
+
+			return string;
 		}
 
 		return undefined;

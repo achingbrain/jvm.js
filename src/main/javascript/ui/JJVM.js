@@ -4,10 +4,13 @@ jjvm.ui.JJVM = {
 	_classOutliner: null,
 	_threadWatcher: null,
 	_classDropper: null,
+	jvm: null,
 
 	init: function() {
 		// no compilation while we do setup
 		$("#button_compile").attr("disabled", true);
+
+		jjvm.ui.JJVM.jvm = new jjvm.ui.JVM();
 
 		// set up gui
 		jjvm.ui.JJVM.console = new jjvm.ui.Console("#console");
@@ -20,20 +23,24 @@ jjvm.ui.JJVM = {
 		$("#button_resume").attr("disabled", true);
 		$("#button_pause").attr("disabled", true);
 		$("#button_step_over").attr("disabled", true);
+		$("#button_step_into").attr("disabled", true);
 		$("#button_drop_to_frame").attr("disabled", true);
 
 		// set up debug button listeners
 		$("#button_resume").click(function() {
-			jjvm.ui.JJVM._threadWatcher.getSelectedThread().dispatch("onResumeExecution");
+			jjvm.ui.JJVM.jvm.resumeExecution();
 		});
 		$("#button_pause").click(function() {
-			jjvm.ui.JJVM._threadWatcher.getSelectedThread().dispatch("onSuspendExecution");
+			jjvm.ui.JJVM.jvm.suspendExecution();
 		});
 		$("#button_step_over").click(function() {
-			jjvm.ui.JJVM._threadWatcher.getSelectedThread().dispatch("onStepOver");
+			jjvm.ui.JJVM.jvm.stepOver(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
+		});
+		$("#button_step_into").click(function() {
+			jjvm.ui.JJVM.jvm.stepInto(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
 		});
 		$("#button_drop_to_frame").click(function() {
-			jjvm.ui.JJVM._threadWatcher.getSelectedThread().dispatch("onDropToFrame");
+			jjvm.ui.JJVM.jvm.dropToFrame(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
 		});
 
 		// enable compile and run buttons when we have source code
@@ -64,10 +71,13 @@ jjvm.ui.JJVM = {
 		});
 
 		jjvm.core.NotificationCentre.register("onBreakpointEncountered", function() {
+			console.info("encountered breakpoint");
+
 			$("#button_run").attr("disabled", true);
 			$("#button_resume").removeAttr("disabled");
 			$("#button_pause").attr("disabled", true);
 			$("#button_step_over").removeAttr("disabled");
+			$("#button_step_into").removeAttr("disabled");
 			$("#button_drop_to_frame").removeAttr("disabled");
 		});
 
@@ -77,6 +87,16 @@ jjvm.ui.JJVM = {
 			$("#button_resume").attr("disabled", true);
 			$("#button_pause").attr("disabled", true);
 			$("#button_step_over").attr("disabled", true);
+			$("#button_step_into").attr("disabled", true);
+			$("#button_drop_to_frame").attr("disabled", true);
+		});
+
+		jjvm.core.NotificationCentre.register("onExecutionStarted", function() {
+			$("#button_run").attr("disabled", true);
+			$("#button_resume").attr("disabled", true);
+			$("#button_pause").removeAttr("disabled");
+			$("#button_step_over").attr("disabled", true);
+			$("#button_step_into").attr("disabled", true);
 			$("#button_drop_to_frame").attr("disabled", true);
 		});
 
@@ -87,13 +107,6 @@ jjvm.ui.JJVM = {
 		if($("#source").val()) {
 			$("#button_compile").removeAttr("disabled");
 		}
-
-		// set up System.out & System.err
-		var system = jjvm.core.ClassLoader.loadClass("java.lang.System");
-		var voidClass = jjvm.core.ClassLoader.loadClass("java.lang.Void");
-		system.setStaticField("in", new jjvm.runtime.ObjectReference(voidClass));
-		system.setStaticField("out", new jjvm.runtime.ObjectReference(voidClass));
-		system.setStaticField("err", new jjvm.runtime.ObjectReference(voidClass));
 
 		// html5 notifications!
 		if(window.webkitNotifications) {
@@ -113,69 +126,6 @@ jjvm.ui.JJVM = {
 	run: function(event) {
 		event.preventDefault();
 
-		// find something to execute
-		var mainClass;
-		var mainMethod;
-
-		$.each(jjvm.core.ClassLoader.getClassDefinitions(), function(index, classDef) {
-			$.each(classDef.getMethods(), function(index, methodDef) {
-				if(methodDef.getName() == "main" && methodDef.isStatic() && methodDef.getReturns() == "void") {
-					mainClass = classDef;
-					mainMethod = methodDef;
-				}
-			});
-		});
-
-		if(!mainMethod) {
-			// nothing to execute, abort!
-			jjvm.ui.JJVM.console.warn("No main method present.");
-
-			return;
-		}
-
-		// parse program arguments
-		var args = [];
-
-		$.each($("#program_run input").val().split(","), function(index, arg) {
-			arg = _.str.trim(arg);
-
-			args.push(jjvm.Util.createStringRef(arg));
-		});
-
-		args = [args];
-
-		$("#button_run").attr("disabled", true);
-		$("#button_resume").attr("disabled", true);
-		$("#button_pause").removeAttr("disabled");
-		$("#button_step_over").attr("disabled", true);
-		$("#button_drop_to_frame").attr("disabled", true);
-
-		try {
-			jjvm.ui.JJVM.console.info("Executing...");
-			var thread = new jjvm.runtime.Thread(new jjvm.runtime.Frame(mainClass, mainMethod, args));
-			thread.register("onExecutionComplete", function() {
-				thread.deRegister("onExecutionComplete", this);
-
-				$("#button_run").removeAttr("disabled");
-				$("#button_resume").removeAttr("disabled");
-				$("#button_pause").attr("disabled", true);
-				$("#button_step_over").removeAttr("disabled");
-				$("#button_drop_to_frame").removeAttr("disabled");
-
-				jjvm.runtime.ThreadPool.reap();
-			});
-			jjvm.ui.JJVM._threadWatcher.setSelectedThread(thread);
-			thread.run();
-		} catch(error) {
-			console.error(error);
-			console.error(error.stack);
-			jjvm.ui.JJVM.console.error(error);
-
-			$("#button_run").removeAttr("disabled");
-			$("#button_resume").attr("disabled", true);
-			$("#button_pause").attr("disabled", true);
-			$("#button_step_over").attr("disabled", true);
-			$("#button_drop_to_frame").attr("disabled", true);
-		}
+		jjvm.ui.JJVM.jvm.run([$("#program_run input").val().split(",")]);
 	}
 };

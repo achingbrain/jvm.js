@@ -4,6 +4,11 @@ jjvm.ui.Console = function(element) {
 		this.clear();
 	}, this));
 
+	this.debug = function(message) {
+		console.debug(message);
+		this._addLogLine(message, "muted", "icon-wrench");
+	};
+
 	this.info = function(message) {
 		console.info(message);
 		this._addLogLine(message, "text-info", "icon-info-sign");

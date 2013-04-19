@@ -16,7 +16,7 @@ jjvm.core.DOMUtil = {
 			return jjvm.core.DOMUtil._createEmpty(type);
 		}
 
-		console.error("jjvm.core.DOMUtil.create passed wrong number of arguments.  Expected 1, 2 or 3, was " + arguments.length);
+		//console.error("jjvm.core.DOMUtil.create passed wrong number of arguments.  Expected 1, 2 or 3, was " + arguments.length);
 	},
 
 	_create: function(type, content, attributes) {
@@ -48,8 +48,6 @@ jjvm.core.DOMUtil = {
 			}
 		} else if(_.isElement(content)) {
 			node.appendChild(content);
-		} else {
-			console.warn("what is " + content);
 		}
 	},
 

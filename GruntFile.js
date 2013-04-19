@@ -15,9 +15,7 @@ module.exports = function(grunt) {
 					"src/main/javascript/native.js",
 
 					"src/main/javascript/core/*.js",
-					"src/main/javascript/types/*.js",
-					"src/main/javascript/runtime/*.js",
-					"src/main/javascript/compiler/*.js",
+					"src/main/javascript/main/*.js"
 				],
 				ui: [
 					"src/main/javascript/ui/*.js"
@@ -36,7 +34,9 @@ module.exports = function(grunt) {
 
 					"src/main/javascript/core/*.js",
 					"src/main/javascript/types/*.js",
-					"src/main/javascript/compiler/*.js"
+					"src/main/javascript/runtime/*.js",
+					"src/main/javascript/compiler/*.js",
+					"src/main/javascript/worker/*.js"
 				]
 			}
 		},
@@ -133,7 +133,11 @@ module.exports = function(grunt) {
 					base: "target/webapp"
 				}
 			}
-		}
+		},
+
+		clean: [
+			"target"
+		]
 	});
 
 	grunt.loadNpmTasks("grunt-contrib-jasmine");
@@ -142,6 +146,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks("grunt-contrib-concat");
 	grunt.loadNpmTasks("grunt-contrib-connect");
 	grunt.loadNpmTasks("grunt-contrib-watch");
+	grunt.loadNpmTasks("grunt-contrib-clean");
 
 	// default task
 	grunt.registerTask("default", ["jshint", "copy", "concat"]);

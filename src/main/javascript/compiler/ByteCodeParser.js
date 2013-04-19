@@ -1220,7 +1220,7 @@ jjvm.compiler.ByteCodeParser = function() {
 				return [iterator.readU16()];
 			},
 			description: function(args, constantPool, location) {
-				return this.mnemonic + " " + args[0];
+				return this.mnemonic + " #" + args[0] + " // " + constantPool.load(args[0]);
 			}
 		},
 		0xBC: {

@@ -51,17 +51,19 @@ jjvm.core.SystemClassLoader = {
 			return clazz;
 		}
 
-		var cached = jjvm.core.ClassCache.load(className);
+		/*var cached = jjvm.core.ClassCache.load(className);
 
 		if(cached) {
 			jjvm.core.SystemClassLoader._classes.push(cached);
 
 			return cached;
-		}
+		}*/
+
+		console.info("Downloading " + className);
 
 		// Have to use synchronous request here and as such can't use html5
-		// response types.  Thanks for nothing W3C.
-		jjvm.ui.JJVM.console.info("Downloading " + className);
+		// response types as they make the UI unresponsive even though
+		// we're in a non-UI thread.  Thanks for nothing W3C.
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", "/rt/" + className.replace(/\./g, "/") + ".json", false);
 		xhr.send();
