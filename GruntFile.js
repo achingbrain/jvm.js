@@ -149,7 +149,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks("grunt-contrib-clean");
 
 	// default task
-	grunt.registerTask("default", ["jshint", "copy", "concat"]);
+	grunt.registerTask("default", ["clean", "jshint", "copy", "concat"]);
 
 	// starts a web server and watches files for changes
 	grunt.registerTask("run", ["jshint", "copy", "concat", "connect", "watch"]);
