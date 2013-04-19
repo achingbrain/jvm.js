@@ -1,4 +1,4 @@
-jjvm [![Build Status](https://travis-ci.org/achingbrain/jjvm.png)](https://travis-ci.org/achingbrain/jjvm) [![Dependency Status](https://david-dm.org/achingbrain/jjvm.png)](https://david-dm.org/achingbrain/jjvm)
+jvm.js [![Build Status](https://travis-ci.org/achingbrain/jjvm.png)](https://travis-ci.org/achingbrain/jjvm) [![Dependency Status](https://david-dm.org/achingbrain/jjvm.png)](https://david-dm.org/achingbrain/jjvm)
 =====
 
 A JavaScript implementation of the JVM.
@@ -6,7 +6,7 @@ A JavaScript implementation of the JVM.
 Demo
 -----
 
-[http://achingbrain.github.com/jjvm](http://achingbrain.github.com/jjvm).  Skip to step 4 below.  Hope you're running a modern browser.
+[http://achingbrain.github.io/jvm.js](http://achingbrain.github.io/jvm.js).  Skip to step 4 below.  Hope you're running a modern browser.
 
 Getting started
 -----
