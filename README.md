@@ -1,7 +1,7 @@
-jvm.js [![Build Status](https://travis-ci.org/achingbrain/jjvm.png)](https://travis-ci.org/achingbrain/jjvm) [![Dependency Status](https://david-dm.org/achingbrain/jjvm.png)](https://david-dm.org/achingbrain/jjvm)
+jvm.js [![Build Status](https://travis-ci.org/achingbrain/jvm.js.png)](https://travis-ci.org/achingbrain/jvm.js) [![Dependency Status](https://david-dm.org/achingbrain/jvm.js.png)](https://david-dm.org/achingbrain/jvm.js)
 =====
 
-A JavaScript implementation of the JVM.
+A Java Virtual Machine implementation written in JavaScript.
 
 Demo
 -----
