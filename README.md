@@ -20,7 +20,7 @@ Getting started
 	grunt run
 
 3. Open http://localhost:8060
-4. Drop a .class with a main method file onto the box marked "Drop a .class file here"
+4. Drop a .class file with a main method file onto the box marked "Drop a .class file here"
 5. Set some breakpoints and hit run
 
 Other tasks
@@ -33,6 +33,10 @@ Run test suite:
 Run test suite with coverage (report appears in /target/reports/coverage/index.html):
 
 	grunt coverage
+
+Delete the "target" directory
+
+	grunt clean
 
 What doesn't work
 ----
@@ -47,8 +51,6 @@ To do
 
 Rather a lot
 
-1. Simplify Frame.js as there's a lot of code purely to emit events for the UI to pick up
-2. Test invoke_dynamic with some code that uses it (e.g. not Java)
-3. Increase test coverage..
-4. Support ConstantValue field attribute
-5. Compile using Web Workers
+1. Test invoke_dynamic with some code that uses it (e.g. not Java)
+2. Support ConstantValue field attribute
+3. Implement step-into and step-out functionality
