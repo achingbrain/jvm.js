@@ -1402,7 +1402,7 @@ jjvm.core.SystemClassLoader = {
 		// response types as they make the UI unresponsive even though
 		// we're in a non-UI thread.  Thanks for nothing W3C.
 		var xhr = new XMLHttpRequest();
-		xhr.open("GET", "/rt/" + className.replace(/\./g, "/") + ".json", false);
+		xhr.open("GET", "rt/" + className.replace(/\./g, "/") + ".json", false);
 		xhr.send();
 
 		if(xhr.status == 200) {
