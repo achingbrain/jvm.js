@@ -11,6 +11,7 @@
 
 		</script>
 		<script type="text/javascript" src="js/jquery.js"></script>
+		<script type="text/javascript" src="js/jquery.scrollTo.js"></script>
 		<script type="text/javascript" src="js/bootstrap.js"></script>
 		<script type="text/javascript" src="js/underscore.js"></script>
 		<script type="text/javascript" src="js/underscore.string.js"></script>
@@ -24,12 +25,14 @@ $(document).ready(jjvm.ui.JJVM.init);
 	<body>
 		<div id="program_run">
 			<div class="btn-toolbar">
-				<button class="btn btn-success" id="button_run">Run</button>
+				<button class="btn btn-success" id="button_run" title="A non-system class must have a main method">Run</button>
 				<div class="btn-group">
-					<button class="btn" id="button_resume"><i class="icon-play"></i></button>
-					<button class="btn" id="button_pause"><i class="icon-pause"></i></button>
-					<button class="btn" id="button_step_over"><i class="icon-arrow-right"></i></button>
-					<button class="btn" id="button_drop_to_frame"><i class="icon-retweet"></i></button>
+					<button class="btn" id="button_resume" title="Resume"><i class="icon-play"></i></button>
+					<button class="btn" id="button_pause" title="Pause"><i class="icon-pause"></i></button>
+					<button class="btn" id="button_step_over" title="Step over"><i class="icon-share-alt"></i></button>
+					<!-- <button class="btn" id="button_step_into" title="Step into"><i class="icon-arrow-down"></i></button> -->
+					<!-- <button class="btn" id="button_step_out" title="Step out"><i class="icon-arrow-up"></i></button> -->
+					<button class="btn" id="button_drop_to_frame" title="Drop to frame"><i class="icon-retweet"></i></button>
 				</div>
 			</div>
 			<input id="arguments" type="text" placeholder="Comma separated program arguments" />
