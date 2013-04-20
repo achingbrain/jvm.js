@@ -66,7 +66,7 @@ module.exports = function(grunt) {
 					"<%= meta.src.ui %>",
 					"src/main/javascript/compiler/!(CompilerWorker).js"
 				],
-				dest: "target/webapp/js/jjvm.js"
+				dest: "target/webapp/js/jvm.js"
 			},
 			compilerWorker: {
 				src: [
@@ -75,16 +75,16 @@ module.exports = function(grunt) {
 
 					"src/main/javascript/compiler/CompilerWorker.js"
 				],
-				dest: "target/webapp/js/jjvm_compiler_worker.js"
+				dest: "target/webapp/js/jvm_compiler_worker.js"
 			}
 		},
 
 		min: {
 			dist: {
 				src: [
-					"target/webapp/js/jjvm.js"
+					"target/webapp/js/jvm.js"
 				],
-				dest: "target/webapp/js/jjvm.min.js"
+				dest: "target/webapp/js/jvm.min.js"
 			}
   		},
 

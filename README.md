@@ -1,7 +1,12 @@
 jvm.js [![Build Status](https://travis-ci.org/achingbrain/jvm.js.png)](https://travis-ci.org/achingbrain/jvm.js) [![Dependency Status](https://david-dm.org/achingbrain/jvm.js.png)](https://david-dm.org/achingbrain/jvm.js)
+
 =====
 
-A Java Virtual Machine implementation written in JavaScript.
+A Java Virtual Machine implementation written in JavaScript, including libraries for Java, Scala and Closure.
+
+The main thread hosts the UI while all the bytecode parsing and program execution takes place in a web worker to keep things responsive.  When a non-present class definition is encoutered, the classloader will attempt to download the bytecode of the required class, otherwise the upfront load times would be outrageous.
+
+The initial class loads you see on the demo page are setting up java.lang.System.out which will write to the log window in the bottom right.
 
 Demo
 -----

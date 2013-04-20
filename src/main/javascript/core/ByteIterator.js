@@ -68,9 +68,12 @@ jjvm.core.ByteIterator = function(iterable) {
 		} else if(bits == 0xfff0000000000000) {
 			return -Infinity;
 		} else if(bits >= 0x7ff0000000000001 && bits <= 0x7fffffffffffffff) {
-			return NaN;
+			// the spec says NaN here but javap seems to say -0, 
+			// which is == to 0 in JavaScript but whatever..
+			return -0;
 		} else if(bits >= 0xfff0000000000001 && bits <= 0xffffffffffffffff) {
-			return NaN;
+			// the spec says NaN here but javap seems to say 0.
+			return 0;
 		}
 
 		var s = (this._shiftRight(bits, 63) === 0) ? 1 : -1;
@@ -78,7 +81,7 @@ jjvm.core.ByteIterator = function(iterable) {
 		var m = (e === 0) ?
 			this._shiftLeft(this._64bitAnd(bits, 0xfffffffffffff), 1) :
 			this._64bitOr(this._64bitAnd(bits, 0xfffffffffffff), 0x10000000000000);
-		
+
 		return s * m * Math.pow(2, e - 1075);
 	};
 
