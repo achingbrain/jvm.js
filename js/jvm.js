@@ -1,5 +1,3 @@
-(function(){var n=this,t=n._,r={},e=Array.prototype,u=Object.prototype,i=Function.prototype,a=e.push,o=e.slice,c=e.concat,l=u.toString,f=u.hasOwnProperty,s=e.forEach,p=e.map,h=e.reduce,v=e.reduceRight,d=e.filter,g=e.every,m=e.some,y=e.indexOf,b=e.lastIndexOf,x=Array.isArray,_=Object.keys,j=i.bind,w=function(n){return n instanceof w?n:this instanceof w?(this._wrapped=n,void 0):new w(n)};"undefined"!=typeof exports?("undefined"!=typeof module&&module.exports&&(exports=module.exports=w),exports._=w):n._=w,w.VERSION="1.4.4";var A=w.each=w.forEach=function(n,t,e){if(null!=n)if(s&&n.forEach===s)n.forEach(t,e);else if(n.length===+n.length){for(var u=0,i=n.length;i>u;u++)if(t.call(e,n[u],u,n)===r)return}else for(var a in n)if(w.has(n,a)&&t.call(e,n[a],a,n)===r)return};w.map=w.collect=function(n,t,r){var e=[];return null==n?e:p&&n.map===p?n.map(t,r):(A(n,function(n,u,i){e[e.length]=t.call(r,n,u,i)}),e)};var O="Reduce of empty array with no initial value";w.reduce=w.foldl=w.inject=function(n,t,r,e){var u=arguments.length>2;if(null==n&&(n=[]),h&&n.reduce===h)return e&&(t=w.bind(t,e)),u?n.reduce(t,r):n.reduce(t);if(A(n,function(n,i,a){u?r=t.call(e,r,n,i,a):(r=n,u=!0)}),!u)throw new TypeError(O);return r},w.reduceRight=w.foldr=function(n,t,r,e){var u=arguments.length>2;if(null==n&&(n=[]),v&&n.reduceRight===v)return e&&(t=w.bind(t,e)),u?n.reduceRight(t,r):n.reduceRight(t);var i=n.length;if(i!==+i){var a=w.keys(n);i=a.length}if(A(n,function(o,c,l){c=a?a[--i]:--i,u?r=t.call(e,r,n[c],c,l):(r=n[c],u=!0)}),!u)throw new TypeError(O);return r},w.find=w.detect=function(n,t,r){var e;return E(n,function(n,u,i){return t.call(r,n,u,i)?(e=n,!0):void 0}),e},w.filter=w.select=function(n,t,r){var e=[];return null==n?e:d&&n.filter===d?n.filter(t,r):(A(n,function(n,u,i){t.call(r,n,u,i)&&(e[e.length]=n)}),e)},w.reject=function(n,t,r){return w.filter(n,function(n,e,u){return!t.call(r,n,e,u)},r)},w.every=w.all=function(n,t,e){t||(t=w.identity);var u=!0;return null==n?u:g&&n.every===g?n.every(t,e):(A(n,function(n,i,a){return(u=u&&t.call(e,n,i,a))?void 0:r}),!!u)};var E=w.some=w.any=function(n,t,e){t||(t=w.identity);var u=!1;return null==n?u:m&&n.some===m?n.some(t,e):(A(n,function(n,i,a){return u||(u=t.call(e,n,i,a))?r:void 0}),!!u)};w.contains=w.include=function(n,t){return null==n?!1:y&&n.indexOf===y?n.indexOf(t)!=-1:E(n,function(n){return n===t})},w.invoke=function(n,t){var r=o.call(arguments,2),e=w.isFunction(t);return w.map(n,function(n){return(e?t:n[t]).apply(n,r)})},w.pluck=function(n,t){return w.map(n,function(n){return n[t]})},w.where=function(n,t,r){return w.isEmpty(t)?r?null:[]:w[r?"find":"filter"](n,function(n){for(var r in t)if(t[r]!==n[r])return!1;return!0})},w.findWhere=function(n,t){return w.where(n,t,!0)},w.max=function(n,t,r){if(!t&&w.isArray(n)&&n[0]===+n[0]&&65535>n.length)return Math.max.apply(Math,n);if(!t&&w.isEmpty(n))return-1/0;var e={computed:-1/0,value:-1/0};return A(n,function(n,u,i){var a=t?t.call(r,n,u,i):n;a>=e.computed&&(e={value:n,computed:a})}),e.value},w.min=function(n,t,r){if(!t&&w.isArray(n)&&n[0]===+n[0]&&65535>n.length)return Math.min.apply(Math,n);if(!t&&w.isEmpty(n))return 1/0;var e={computed:1/0,value:1/0};return A(n,function(n,u,i){var a=t?t.call(r,n,u,i):n;e.computed>a&&(e={value:n,computed:a})}),e.value},w.shuffle=function(n){var t,r=0,e=[];return A(n,function(n){t=w.random(r++),e[r-1]=e[t],e[t]=n}),e};var k=function(n){return w.isFunction(n)?n:function(t){return t[n]}};w.sortBy=function(n,t,r){var e=k(t);return w.pluck(w.map(n,function(n,t,u){return{value:n,index:t,criteria:e.call(r,n,t,u)}}).sort(function(n,t){var r=n.criteria,e=t.criteria;if(r!==e){if(r>e||r===void 0)return 1;if(e>r||e===void 0)return-1}return n.index<t.index?-1:1}),"value")};var F=function(n,t,r,e){var u={},i=k(t||w.identity);return A(n,function(t,a){var o=i.call(r,t,a,n);e(u,o,t)}),u};w.groupBy=function(n,t,r){return F(n,t,r,function(n,t,r){(w.has(n,t)?n[t]:n[t]=[]).push(r)})},w.countBy=function(n,t,r){return F(n,t,r,function(n,t){w.has(n,t)||(n[t]=0),n[t]++})},w.sortedIndex=function(n,t,r,e){r=null==r?w.identity:k(r);for(var u=r.call(e,t),i=0,a=n.length;a>i;){var o=i+a>>>1;u>r.call(e,n[o])?i=o+1:a=o}return i},w.toArray=function(n){return n?w.isArray(n)?o.call(n):n.length===+n.length?w.map(n,w.identity):w.values(n):[]},w.size=function(n){return null==n?0:n.length===+n.length?n.length:w.keys(n).length},w.first=w.head=w.take=function(n,t,r){return null==n?void 0:null==t||r?n[0]:o.call(n,0,t)},w.initial=function(n,t,r){return o.call(n,0,n.length-(null==t||r?1:t))},w.last=function(n,t,r){return null==n?void 0:null==t||r?n[n.length-1]:o.call(n,Math.max(n.length-t,0))},w.rest=w.tail=w.drop=function(n,t,r){return o.call(n,null==t||r?1:t)},w.compact=function(n){return w.filter(n,w.identity)};var R=function(n,t,r){return A(n,function(n){w.isArray(n)?t?a.apply(r,n):R(n,t,r):r.push(n)}),r};w.flatten=function(n,t){return R(n,t,[])},w.without=function(n){return w.difference(n,o.call(arguments,1))},w.uniq=w.unique=function(n,t,r,e){w.isFunction(t)&&(e=r,r=t,t=!1);var u=r?w.map(n,r,e):n,i=[],a=[];return A(u,function(r,e){(t?e&&a[a.length-1]===r:w.contains(a,r))||(a.push(r),i.push(n[e]))}),i},w.union=function(){return w.uniq(c.apply(e,arguments))},w.intersection=function(n){var t=o.call(arguments,1);return w.filter(w.uniq(n),function(n){return w.every(t,function(t){return w.indexOf(t,n)>=0})})},w.difference=function(n){var t=c.apply(e,o.call(arguments,1));return w.filter(n,function(n){return!w.contains(t,n)})},w.zip=function(){for(var n=o.call(arguments),t=w.max(w.pluck(n,"length")),r=Array(t),e=0;t>e;e++)r[e]=w.pluck(n,""+e);return r},w.object=function(n,t){if(null==n)return{};for(var r={},e=0,u=n.length;u>e;e++)t?r[n[e]]=t[e]:r[n[e][0]]=n[e][1];return r},w.indexOf=function(n,t,r){if(null==n)return-1;var e=0,u=n.length;if(r){if("number"!=typeof r)return e=w.sortedIndex(n,t),n[e]===t?e:-1;e=0>r?Math.max(0,u+r):r}if(y&&n.indexOf===y)return n.indexOf(t,r);for(;u>e;e++)if(n[e]===t)return e;return-1},w.lastIndexOf=function(n,t,r){if(null==n)return-1;var e=null!=r;if(b&&n.lastIndexOf===b)return e?n.lastIndexOf(t,r):n.lastIndexOf(t);for(var u=e?r:n.length;u--;)if(n[u]===t)return u;return-1},w.range=function(n,t,r){1>=arguments.length&&(t=n||0,n=0),r=arguments[2]||1;for(var e=Math.max(Math.ceil((t-n)/r),0),u=0,i=Array(e);e>u;)i[u++]=n,n+=r;return i},w.bind=function(n,t){if(n.bind===j&&j)return j.apply(n,o.call(arguments,1));var r=o.call(arguments,2);return function(){return n.apply(t,r.concat(o.call(arguments)))}},w.partial=function(n){var t=o.call(arguments,1);return function(){return n.apply(this,t.concat(o.call(arguments)))}},w.bindAll=function(n){var t=o.call(arguments,1);return 0===t.length&&(t=w.functions(n)),A(t,function(t){n[t]=w.bind(n[t],n)}),n},w.memoize=function(n,t){var r={};return t||(t=w.identity),function(){var e=t.apply(this,arguments);return w.has(r,e)?r[e]:r[e]=n.apply(this,arguments)}},w.delay=function(n,t){var r=o.call(arguments,2);return setTimeout(function(){return n.apply(null,r)},t)},w.defer=function(n){return w.delay.apply(w,[n,1].concat(o.call(arguments,1)))},w.throttle=function(n,t){var r,e,u,i,a=0,o=function(){a=new Date,u=null,i=n.apply(r,e)};return function(){var c=new Date,l=t-(c-a);return r=this,e=arguments,0>=l?(clearTimeout(u),u=null,a=c,i=n.apply(r,e)):u||(u=setTimeout(o,l)),i}},w.debounce=function(n,t,r){var e,u;return function(){var i=this,a=arguments,o=function(){e=null,r||(u=n.apply(i,a))},c=r&&!e;return clearTimeout(e),e=setTimeout(o,t),c&&(u=n.apply(i,a)),u}},w.once=function(n){var t,r=!1;return function(){return r?t:(r=!0,t=n.apply(this,arguments),n=null,t)}},w.wrap=function(n,t){return function(){var r=[n];return a.apply(r,arguments),t.apply(this,r)}},w.compose=function(){var n=arguments;return function(){for(var t=arguments,r=n.length-1;r>=0;r--)t=[n[r].apply(this,t)];return t[0]}},w.after=function(n,t){return 0>=n?t():function(){return 1>--n?t.apply(this,arguments):void 0}},w.keys=_||function(n){if(n!==Object(n))throw new TypeError("Invalid object");var t=[];for(var r in n)w.has(n,r)&&(t[t.length]=r);return t},w.values=function(n){var t=[];for(var r in n)w.has(n,r)&&t.push(n[r]);return t},w.pairs=function(n){var t=[];for(var r in n)w.has(n,r)&&t.push([r,n[r]]);return t},w.invert=function(n){var t={};for(var r in n)w.has(n,r)&&(t[n[r]]=r);return t},w.functions=w.methods=function(n){var t=[];for(var r in n)w.isFunction(n[r])&&t.push(r);return t.sort()},w.extend=function(n){return A(o.call(arguments,1),function(t){if(t)for(var r in t)n[r]=t[r]}),n},w.pick=function(n){var t={},r=c.apply(e,o.call(arguments,1));return A(r,function(r){r in n&&(t[r]=n[r])}),t},w.omit=function(n){var t={},r=c.apply(e,o.call(arguments,1));for(var u in n)w.contains(r,u)||(t[u]=n[u]);return t},w.defaults=function(n){return A(o.call(arguments,1),function(t){if(t)for(var r in t)null==n[r]&&(n[r]=t[r])}),n},w.clone=function(n){return w.isObject(n)?w.isArray(n)?n.slice():w.extend({},n):n},w.tap=function(n,t){return t(n),n};var I=function(n,t,r,e){if(n===t)return 0!==n||1/n==1/t;if(null==n||null==t)return n===t;n instanceof w&&(n=n._wrapped),t instanceof w&&(t=t._wrapped);var u=l.call(n);if(u!=l.call(t))return!1;switch(u){case"[object String]":return n==t+"";case"[object Number]":return n!=+n?t!=+t:0==n?1/n==1/t:n==+t;case"[object Date]":case"[object Boolean]":return+n==+t;case"[object RegExp]":return n.source==t.source&&n.global==t.global&&n.multiline==t.multiline&&n.ignoreCase==t.ignoreCase}if("object"!=typeof n||"object"!=typeof t)return!1;for(var i=r.length;i--;)if(r[i]==n)return e[i]==t;r.push(n),e.push(t);var a=0,o=!0;if("[object Array]"==u){if(a=n.length,o=a==t.length)for(;a--&&(o=I(n[a],t[a],r,e)););}else{var c=n.constructor,f=t.constructor;if(c!==f&&!(w.isFunction(c)&&c instanceof c&&w.isFunction(f)&&f instanceof f))return!1;for(var s in n)if(w.has(n,s)&&(a++,!(o=w.has(t,s)&&I(n[s],t[s],r,e))))break;if(o){for(s in t)if(w.has(t,s)&&!a--)break;o=!a}}return r.pop(),e.pop(),o};w.isEqual=function(n,t){return I(n,t,[],[])},w.isEmpty=function(n){if(null==n)return!0;if(w.isArray(n)||w.isString(n))return 0===n.length;for(var t in n)if(w.has(n,t))return!1;return!0},w.isElement=function(n){return!(!n||1!==n.nodeType)},w.isArray=x||function(n){return"[object Array]"==l.call(n)},w.isObject=function(n){return n===Object(n)},A(["Arguments","Function","String","Number","Date","RegExp"],function(n){w["is"+n]=function(t){return l.call(t)=="[object "+n+"]"}}),w.isArguments(arguments)||(w.isArguments=function(n){return!(!n||!w.has(n,"callee"))}),"function"!=typeof/./&&(w.isFunction=function(n){return"function"==typeof n}),w.isFinite=function(n){return isFinite(n)&&!isNaN(parseFloat(n))},w.isNaN=function(n){return w.isNumber(n)&&n!=+n},w.isBoolean=function(n){return n===!0||n===!1||"[object Boolean]"==l.call(n)},w.isNull=function(n){return null===n},w.isUndefined=function(n){return n===void 0},w.has=function(n,t){return f.call(n,t)},w.noConflict=function(){return n._=t,this},w.identity=function(n){return n},w.times=function(n,t,r){for(var e=Array(n),u=0;n>u;u++)e[u]=t.call(r,u);return e},w.random=function(n,t){return null==t&&(t=n,n=0),n+Math.floor(Math.random()*(t-n+1))};var M={escape:{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#x27;","/":"&#x2F;"}};M.unescape=w.invert(M.escape);var S={escape:RegExp("["+w.keys(M.escape).join("")+"]","g"),unescape:RegExp("("+w.keys(M.unescape).join("|")+")","g")};w.each(["escape","unescape"],function(n){w[n]=function(t){return null==t?"":(""+t).replace(S[n],function(t){return M[n][t]})}}),w.result=function(n,t){if(null==n)return null;var r=n[t];return w.isFunction(r)?r.call(n):r},w.mixin=function(n){A(w.functions(n),function(t){var r=w[t]=n[t];w.prototype[t]=function(){var n=[this._wrapped];return a.apply(n,arguments),D.call(this,r.apply(w,n))}})};var N=0;w.uniqueId=function(n){var t=++N+"";return n?n+t:t},w.templateSettings={evaluate:/<%([\s\S]+?)%>/g,interpolate:/<%=([\s\S]+?)%>/g,escape:/<%-([\s\S]+?)%>/g};var T=/(.)^/,q={"'":"'","\\":"\\","\r":"r","\n":"n","	":"t","\u2028":"u2028","\u2029":"u2029"},B=/\\|'|\r|\n|\t|\u2028|\u2029/g;w.template=function(n,t,r){var e;r=w.defaults({},r,w.templateSettings);var u=RegExp([(r.escape||T).source,(r.interpolate||T).source,(r.evaluate||T).source].join("|")+"|$","g"),i=0,a="__p+='";n.replace(u,function(t,r,e,u,o){return a+=n.slice(i,o).replace(B,function(n){return"\\"+q[n]}),r&&(a+="'+\n((__t=("+r+"))==null?'':_.escape(__t))+\n'"),e&&(a+="'+\n((__t=("+e+"))==null?'':__t)+\n'"),u&&(a+="';\n"+u+"\n__p+='"),i=o+t.length,t}),a+="';\n",r.variable||(a="with(obj||{}){\n"+a+"}\n"),a="var __t,__p='',__j=Array.prototype.join,"+"print=function(){__p+=__j.call(arguments,'');};\n"+a+"return __p;\n";try{e=Function(r.variable||"obj","_",a)}catch(o){throw o.source=a,o}if(t)return e(t,w);var c=function(n){return e.call(this,n,w)};return c.source="function("+(r.variable||"obj")+"){\n"+a+"}",c},w.chain=function(n){return w(n).chain()};var D=function(n){return this._chain?w(n).chain():n};w.mixin(w),A(["pop","push","reverse","shift","sort","splice","unshift"],function(n){var t=e[n];w.prototype[n]=function(){var r=this._wrapped;return t.apply(r,arguments),"shift"!=n&&"splice"!=n||0!==r.length||delete r[0],D.call(this,r)}}),A(["concat","join","slice"],function(n){var t=e[n];w.prototype[n]=function(){return D.call(this,t.apply(this._wrapped,arguments))}}),w.extend(w.prototype,{chain:function(){return this._chain=!0,this},value:function(){return this._wrapped}})}).call(this);
-!function(a,b){"use strict";var c=b.prototype.trim,d=b.prototype.trimRight,e=b.prototype.trimLeft,f=function(a){return a*1||0},g=function(a,b){if(b<1)return"";var c="";while(b>0)b&1&&(c+=a),b>>=1,a+=a;return c},h=[].slice,i=function(a){return a==null?"\\s":a.source?a.source:"["+n.escapeRegExp(a)+"]"},j={lt:"<",gt:">",quot:'"',apos:"'",amp:"&"},k={};for(var l in j)k[j[l]]=l;var m=function(){function a(a){return Object.prototype.toString.call(a).slice(8,-1).toLowerCase()}var c=g,d=function(){return d.cache.hasOwnProperty(arguments[0])||(d.cache[arguments[0]]=d.parse(arguments[0])),d.format.call(null,d.cache[arguments[0]],arguments)};return d.format=function(d,e){var f=1,g=d.length,h="",i,j=[],k,l,n,o,p,q;for(k=0;k<g;k++){h=a(d[k]);if(h==="string")j.push(d[k]);else if(h==="array"){n=d[k];if(n[2]){i=e[f];for(l=0;l<n[2].length;l++){if(!i.hasOwnProperty(n[2][l]))throw new Error(m('[_.sprintf] property "%s" does not exist',n[2][l]));i=i[n[2][l]]}}else n[1]?i=e[n[1]]:i=e[f++];if(/[^s]/.test(n[8])&&a(i)!="number")throw new Error(m("[_.sprintf] expecting number but found %s",a(i)));switch(n[8]){case"b":i=i.toString(2);break;case"c":i=b.fromCharCode(i);break;case"d":i=parseInt(i,10);break;case"e":i=n[7]?i.toExponential(n[7]):i.toExponential();break;case"f":i=n[7]?parseFloat(i).toFixed(n[7]):parseFloat(i);break;case"o":i=i.toString(8);break;case"s":i=(i=b(i))&&n[7]?i.substring(0,n[7]):i;break;case"u":i=Math.abs(i);break;case"x":i=i.toString(16);break;case"X":i=i.toString(16).toUpperCase()}i=/[def]/.test(n[8])&&n[3]&&i>=0?"+"+i:i,p=n[4]?n[4]=="0"?"0":n[4].charAt(1):" ",q=n[6]-b(i).length,o=n[6]?c(p,q):"",j.push(n[5]?i+o:o+i)}}return j.join("")},d.cache={},d.parse=function(a){var b=a,c=[],d=[],e=0;while(b){if((c=/^[^\x25]+/.exec(b))!==null)d.push(c[0]);else if((c=/^\x25{2}/.exec(b))!==null)d.push("%");else{if((c=/^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/.exec(b))===null)throw new Error("[_.sprintf] huh?");if(c[2]){e|=1;var f=[],g=c[2],h=[];if((h=/^([a-z_][a-z_\d]*)/i.exec(g))===null)throw new Error("[_.sprintf] huh?");f.push(h[1]);while((g=g.substring(h[0].length))!=="")if((h=/^\.([a-z_][a-z_\d]*)/i.exec(g))!==null)f.push(h[1]);else{if((h=/^\[(\d+)\]/.exec(g))===null)throw new Error("[_.sprintf] huh?");f.push(h[1])}c[2]=f}else e|=2;if(e===3)throw new Error("[_.sprintf] mixing positional and named placeholders is not (yet) supported");d.push(c)}b=b.substring(c[0].length)}return d},d}(),n={VERSION:"2.2.0rc",isBlank:function(a){return a==null&&(a=""),/^\s*$/.test(a)},stripTags:function(a){return a==null?"":b(a).replace(/<\/?[^>]+>/g,"")},capitalize:function(a){return a=a==null?"":b(a),a.charAt(0).toUpperCase()+a.slice(1)},chop:function(a,c){return a==null?[]:(a=b(a),c=~~c,c>0?a.match(new RegExp(".{1,"+c+"}","g")):[a])},clean:function(a){return n.strip(a).replace(/\s+/g," ")},count:function(a,c){return a==null||c==null?0:b(a).split(c).length-1},chars:function(a){return a==null?[]:b(a).split("")},swapCase:function(a){return a==null?"":b(a).replace(/\S/g,function(a){return a===a.toUpperCase()?a.toLowerCase():a.toUpperCase()})},escapeHTML:function(a){return a==null?"":b(a).replace(/[&<>"']/g,function(a){return"&"+k[a]+";"})},unescapeHTML:function(a){return a==null?"":b(a).replace(/\&([^;]+);/g,function(a,c){var d;return c in j?j[c]:(d=c.match(/^#x([\da-fA-F]+)$/))?b.fromCharCode(parseInt(d[1],16)):(d=c.match(/^#(\d+)$/))?b.fromCharCode(~~d[1]):a})},escapeRegExp:function(a){return a==null?"":b(a).replace(/([.*+?^=!:${}()|[\]\/\\])/g,"\\$1")},splice:function(a,b,c,d){var e=n.chars(a);return e.splice(~~b,~~c,d),e.join("")},insert:function(a,b,c){return n.splice(a,b,0,c)},include:function(a,c){return c===""?!0:a==null?!1:b(a).indexOf(c)!==-1},join:function(){var a=h.call(arguments),b=a.shift();return b==null&&(b=""),a.join(b)},lines:function(a){return a==null?[]:b(a).split("\n")},reverse:function(a){return n.chars(a).reverse().join("")},startsWith:function(a,c){return c===""?!0:a==null||c==null?!1:(a=b(a),c=b(c),a.length>=c.length&&a.slice(0,c.length)===c)},endsWith:function(a,c){return c===""?!0:a==null||c==null?!1:(a=b(a),c=b(c),a.length>=c.length&&a.slice(a.length-c.length)===c)},succ:function(a){return a==null?"":(a=b(a),a.slice(0,-1)+b.fromCharCode(a.charCodeAt(a.length-1)+1))},titleize:function(a){return a==null?"":b(a).replace(/(?:^|\s)\S/g,function(a){return a.toUpperCase()})},camelize:function(a){return n.trim(a).replace(/[-_\s]+(.)?/g,function(a,b){return b.toUpperCase()})},underscored:function(a){return n.trim(a).replace(/([a-z\d])([A-Z]+)/g,"$1_$2").replace(/[-\s]+/g,"_").toLowerCase()},dasherize:function(a){return n.trim(a).replace(/([A-Z])/g,"-$1").replace(/[-_\s]+/g,"-").toLowerCase()},classify:function(a){return n.titleize(b(a).replace(/_/g," ")).replace(/\s/g,"")},humanize:function(a){return n.capitalize(n.underscored(a).replace(/_id$/,"").replace(/_/g," "))},trim:function(a,d){return a==null?"":!d&&c?c.call(a):(d=i(d),b(a).replace(new RegExp("^"+d+"+|"+d+"+$","g"),""))},ltrim:function(a,c){return a==null?"":!c&&e?e.call(a):(c=i(c),b(a).replace(new RegExp("^"+c+"+"),""))},rtrim:function(a,c){return a==null?"":!c&&d?d.call(a):(c=i(c),b(a).replace(new RegExp(c+"+$"),""))},truncate:function(a,c,d){return a==null?"":(a=b(a),d=d||"...",c=~~c,a.length>c?a.slice(0,c)+d:a)},prune:function(a,c,d){if(a==null)return"";a=b(a),c=~~c,d=d!=null?b(d):"...";if(a.length<=c)return a;var e=function(a){return a.toUpperCase()!==a.toLowerCase()?"A":" "},f=a.slice(0,c+1).replace(/.(?=\W*\w*$)/g,e);return f.slice(f.length-2).match(/\w\w/)?f=f.replace(/\s*\S+$/,""):f=n.rtrim(f.slice(0,f.length-1)),(f+d).length>a.length?a:a.slice(0,f.length)+d},words:function(a,b){return n.isBlank(a)?[]:n.trim(a,b).split(b||/\s+/)},pad:function(a,c,d,e){a=a==null?"":b(a),c=~~c;var f=0;d?d.length>1&&(d=d.charAt(0)):d=" ";switch(e){case"right":return f=c-a.length,a+g(d,f);case"both":return f=c-a.length,g(d,Math.ceil(f/2))+a+g(d,Math.floor(f/2));default:return f=c-a.length,g(d,f)+a}},lpad:function(a,b,c){return n.pad(a,b,c)},rpad:function(a,b,c){return n.pad(a,b,c,"right")},lrpad:function(a,b,c){return n.pad(a,b,c,"both")},sprintf:m,vsprintf:function(a,b){return b.unshift(a),m.apply(null,b)},toNumber:function(a,c){if(a==null||a=="")return 0;a=b(a);var d=f(f(a).toFixed(~~c));return d===0&&!a.match(/^0+$/)?Number.NaN:d},numberFormat:function(a,b,c,d){if(isNaN(a)||a==null)return"";a=a.toFixed(~~b),d=d||",";var e=a.split("."),f=e[0],g=e[1]?(c||".")+e[1]:"";return f.replace(/(\d)(?=(?:\d{3})+$)/g,"$1"+d)+g},strRight:function(a,c){if(a==null)return"";a=b(a),c=c!=null?b(c):c;var d=c?a.indexOf(c):-1;return~d?a.slice(d+c.length,a.length):a},strRightBack:function(a,c){if(a==null)return"";a=b(a),c=c!=null?b(c):c;var d=c?a.lastIndexOf(c):-1;return~d?a.slice(d+c.length,a.length):a},strLeft:function(a,c){if(a==null)return"";a=b(a),c=c!=null?b(c):c;var d=c?a.indexOf(c):-1;return~d?a.slice(0,d):a},strLeftBack:function(a,b){if(a==null)return"";a+="",b=b!=null?""+b:b;var c=a.lastIndexOf(b);return~c?a.slice(0,c):a},toSentence:function(a,b,c,d){b=b||", ",c=c||" and ";var e=a.slice(),f=e.pop();return a.length>2&&d&&(c=n.rtrim(b)+c),e.length?e.join(b)+c+f:f},toSentenceSerial:function(){var a=h.call(arguments);return a[3]=!0,n.toSentence.apply(n,a)},slugify:function(a){if(a==null)return"";var c="ąàáäâãćęèéëêìíïîłńòóöôõùúüûñçżź",d="aaaaaaceeeeeiiiilnooooouuuunczz",e=new RegExp(i(c),"g");return a=b(a).toLowerCase().replace(e,function(a){var b=c.indexOf(a);return d.charAt(b)||"-"}),n.dasherize(a.replace(/[^\w\s-]/g,""))},surround:function(a,b){return[b,a,b].join("")},quote:function(a){return n.surround(a,'"')},exports:function(){var a={};for(var b in this){if(!this.hasOwnProperty(b)||b.match(/^(?:include|contains|reverse)$/))continue;a[b]=this[b]}return a},repeat:function(a,c,d){if(a==null)return"";c=~~c;if(d==null)return g(b(a),c);for(var e=[];c>0;e[--c]=a);return e.join(d)},levenshtein:function(a,c){if(a==null&&c==null)return 0;if(a==null)return b(c).length;if(c==null)return b(a).length;a=b(a),c=b(c);var d=[],e,f;for(var g=0;g<=c.length;g++)for(var h=0;h<=a.length;h++)g&&h?a.charAt(h-1)===c.charAt(g-1)?f=e:f=Math.min(d[h],d[h-1],e)+1:f=g+h,e=d[h],d[h]=f;return d.pop()}};n.strip=n.trim,n.lstrip=n.ltrim,n.rstrip=n.rtrim,n.center=n.lrpad,n.rjust=n.lpad,n.ljust=n.rpad,n.contains=n.include,n.q=n.quote,typeof exports!="undefined"?(typeof module!="undefined"&&module.exports&&(module.exports=n),exports._s=n):typeof define=="function"&&define.amd?define("underscore.string",[],function(){return n}):(a._=a._||{},a._.string=a._.str=n)}(this,String);
 jjvm = {
 	core: {
 
@@ -1033,9 +1031,12 @@ jjvm.core.ByteIterator = function(iterable) {
 		} else if(bits == 0xfff0000000000000) {
 			return -Infinity;
 		} else if(bits >= 0x7ff0000000000001 && bits <= 0x7fffffffffffffff) {
-			return NaN;
+			// the spec says NaN here but javap seems to say -0, 
+			// which is == to 0 in JavaScript but whatever..
+			return -0;
 		} else if(bits >= 0xfff0000000000001 && bits <= 0xffffffffffffffff) {
-			return NaN;
+			// the spec says NaN here but javap seems to say 0.
+			return 0;
 		}
 
 		var s = (this._shiftRight(bits, 63) === 0) ? 1 : -1;
@@ -1043,7 +1044,7 @@ jjvm.core.ByteIterator = function(iterable) {
 		var m = (e === 0) ?
 			this._shiftLeft(this._64bitAnd(bits, 0xfffffffffffff), 1) :
 			this._64bitOr(this._64bitAnd(bits, 0xfffffffffffff), 0x10000000000000);
-		
+
 		return s * m * Math.pow(2, e - 1075);
 	};
 
@@ -1526,1161 +1527,376 @@ jjvm.core.Watchable = {
 		jjvm.core.NotificationCentre.dispatch(this, eventType, args);
 	}
 };
-jjvm.types.ByteCode = function(data) {
-	var _data = data ? data : {};
+jjvm.core.NotificationCentre = {
+	_listeners: {},
 
-	var _breakpoint;
-	var _operation;
-
-	var invokeMethod = function(methodDef, frame) {
-		var args = [];
-
-		for(var i = 0; i < methodDef.getArgs().length; i++) {
-			args.unshift(frame.getStack().pop());
+	register: function(eventType, listener) {
+		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
+			jjvm.core.NotificationCentre._listeners[eventType] = [];
 		}
 
-		if(!methodDef.isStatic()) {
-			// place reference to current object at position 0 of local arguments
-			args.unshift(frame.getStack().pop());
+		jjvm.core.NotificationCentre._listeners[eventType].push(listener);
+	},
+
+	deRegister: function(eventType, listener) {
+		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
+			return;
 		}
 
-		if(args[0] instanceof jjvm.types.ClassDefinition) {
-			// swap ClassDefinition for it's object ref
-			var classDef = args.shift();
-			args.unshift(classDef.getObjectRef());
-		}
-
-		if(methodDef.isStatic()) {
-			console.debug("Invoking static method " + methodDef.getName() + " on " + methodDef.getClassDef().getName() + " with args " + args);
-		} else {
-			console.debug("Invoking instance method " + methodDef.getName() + " on " + args[0].getClass().getName() + " as " + methodDef.getClassDef().getName() + " with args " + args);
-		}
-
-		frame.executeChild(methodDef.getClassDef(), methodDef, args);
-	};
-
-	var operations = {
-		"nop": function() {
-			this.execute = function(frame, constantPool) {
-				
-			};
-		},
-		"push": function(value) {
-			this.execute = function(frame, constantPool) {
-				frame.getStack().push(value);
-			};
-		},
-		"push_constant": function(index) {
-			this.execute = function(frame, constantPool) {
-				// should return String, int or float
-				var value = constantPool.load(index);
-
-				if(!value) {
-					throw "Constant value was falsy!";
-				}
-
-				if(value instanceof jjvm.types.ConstantPoolClassValue) {
-					value = value.getClassDef();
-				} else if(value instanceof jjvm.types.ConstantPoolStringReferenceValue) {
-					value = value.getStringReference();
-				} else {
-					value = value.getValue();
-				}
-
-				frame.getStack().push(value);
-			};
-		},
-		"load": function(location) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getLocalVariables().load(location);
-				frame.getStack().push(value);
-			};
-		},
-		"array_load": function() {
-			this.execute = function(frame, constantPool) {
-				var index = frame.getStack().pop();
-				var array = frame.getStack().pop();
-
-				if(index >= array.length) {
-					throw "ArrayIndexOutOfBoundsExecption: " + index;
-				}
-
-				frame.getStack().push(array[index]);
-			};
-		},
-		"array_load_character": function() {
-			this.execute = function(frame, constantPool) {
-				var index = frame.getStack().pop();
-				var array = frame.getStack().pop();
-
-				if(index >= array.length) {
-					throw "ArrayIndexOutOfBoundsExecption: " + index;
-				}
-
-				frame.getStack().push(array[index].charCodeAt(0));
-			};
-		},
-		"store": function(location) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				frame.getLocalVariables().store(location, value);
-			};
-		},
-		"array_store": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-				var index = frame.getStack().pop();
-				var array = frame.getStack().pop();
-
-				array[index] = value;
-			};
-		},
-		"array_store_character": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-				var index = frame.getStack().pop();
-				var array = frame.getStack().pop();
-
-				// convert ascii code to string
-				array[index] = String.fromCharCode(value);
-			};
-		},
-		"pop": function() {
-			this.execute = function(frame, constantPool) {
-				frame.getStack().pop();
-			};
-		},
-		"pop2": function() {
-			this.execute = function(frame, constantPool) {
-				frame.getStack().pop();
-				frame.getStack().pop();
-			};
-		},
-		"dup": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				frame.getStack().push(value);
-				frame.getStack().push(value);
-			};
-		},
-		"dup2": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"dup2_x1": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-				var value3 = frame.getStack().pop();
-
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-				frame.getStack().push(value3);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"dup2_x2": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-				var value3 = frame.getStack().pop();
-				var value4 = frame.getStack().pop();
-
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-				frame.getStack().push(value4);
-				frame.getStack().push(value3);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"dup_x1": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value1);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"dup_x2": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-				var value3 = frame.getStack().pop();
-
-				frame.getStack().push(value1);
-				frame.getStack().push(value3);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"swap": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value1);
-				frame.getStack().push(value2);
-			};
-		},
-		"add": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value1 + value2);
-			};
-		},
-		"sub": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value2 - value1);
-			};	
-		},
-		"mul": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value1 * value2);
-			};	
-		},
-		"div": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value2 / value1);
-			};	
-		},
-		"rem": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value2 % value1);
-			};	
-		},
-		"neg": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(-1 * value1);
-			};	
-		},
-		"shift_left": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				// bitwise operators don't work for > 32bit integers in JavaScript
-				var result = value2 * Math.pow(2, value1);
-
-				frame.getStack().push(result);
-			};
-		},
-		"arithmetic_shift_right": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				// bitwise operators don't work for > 32bit integers in JavaScript
-				var result = value2 / Math.pow(2, value1);
-
-				frame.getStack().push(result);
-			};
-		},
-		"logical_shift_right": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				// probably won't work for > 32bit integers in JavaScript
-				frame.getStack().push(value2 >>> value1);
-			};
-		},
-		"and": function() {
-			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(value1 & value2);
-			};
-		},
-		"or": function() {
-			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(value1 | value2);
-			};
-		},
-		"xor": function() {
-			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(value1 ^ value2);
-			};
-		},
-		"increment": function(location, amount) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getLocalVariables().load(location);
-
-				frame.getLocalVariables().store(location, value + amount);
-			};
-		},
-		"compare": function() {
-			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(value1 == value2);
-			};	
-		},
-		"convert": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				frame.getStack().push(value);
-			};	
-		},
-		"convert_to_boolean": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				frame.getStack().push(value ? true : false);
-			};	
-		},
-		"if_equal": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 == value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmpeq #" + jumpTo;
-			};
-		},
-		"if_not_equal": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 != value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmpne #" + jumpTo;
-			};
-		},
-		"if_less_than": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 < value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmplt #" + jumpTo;
-			};
-		},
-		"if_greater_than_or_equal": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 >= value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmpge #" + jumpTo;
-			};
-		},
-		"if_greater_than": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 > value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmpgt #" + jumpTo;
-			};
-		},
-		"if_less_than_or_equal": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 <= value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmple #" + jumpTo;
-			};
-		},
-		"if_equal_to_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value === 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_not_equal_to_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value !== 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_less_than_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value < 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_greater_than_or_equal_to_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value >= 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_greater_than_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value > 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_less_than_or_equal_to_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value <= 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"goto": function(goingTo) {
-			this.execute = function(frame, constantPool) {
-				throw new jjvm.runtime.Goto(goingTo);
-			};
-		},
-		"jsr": function(goingTo) {
-			this.execute = function(frame, constantPool) {
-				throw new jjvm.runtime.Goto(goingTo);
-			};
-		},
-		"ret": function(location) {
-			this.execute = function(frame, constantPool) {
-				var goingTo = frame.getLocalVariables().load(location);
-
-				throw new jjvm.runtime.Goto(goingTo);
-			};
-		},
-		"tableswitch": function(low, high, table) {
-			this.execute = function(frame, constantPool) {
-				throw "tableswitch is not implemented";
-			};
-		},
-		"lookupswitch": function(table) {
-			this.execute = function(frame, constantPool) {
-				throw "lookupswitch is not implemented";
-			};
-		},
-		"return_value": function(string) {
-			this.execute = function(frame, constantPool) {
-				return frame.getStack().pop();
-			};
-		},
-		"return_void": function(string) {
-			this.execute = function(frame, constantPool) {
-				return jjvm.runtime.Void;
-			};
-		},
-		"get_static": function(index) {
-			this.execute = function(frame, constantPool) {
-				var fieldDef = constantPool.load(index).getFieldDef();
-				var classDef = constantPool.load(index).getClassDef();
-				var value = classDef.getStaticField(fieldDef.getName());
-
-				frame.getStack().push(value);
-			};
-		},
-		"put_static": function(index) {
-			this.execute = function(frame, constantPool) {
-				var fieldDef = constantPool.load(index).getFieldDef();
-				var classDef = constantPool.load(index).getClassDef();
-				var value = frame.getStack().pop();
-
-				classDef.setStaticField(fieldDef.getName(), value);
-			};
-		},
-		"get_field": function(index) {
-			this.execute = function(frame, constantPool) {
-				var fieldDef = constantPool.load(index).getFieldDef();
-				var objectRef = frame.getStack().pop();
-				var value = objectRef.getField(fieldDef.getName());
-
-				frame.getStack().push(value);
-			};
-		},
-		"put_field": function(index) {
-			this.execute = function(frame, constantPool) {
-				var fieldDef = constantPool.load(index).getFieldDef();
-
-				var value = frame.getStack().pop();
-				var objectRef = frame.getStack().pop();
-
-				objectRef.setField(fieldDef.getName(), value);
-			};
-		},
-		"invoke_virtual": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"invoke_special": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"invoke_static": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"invoke_interface": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				// special case - the interface contract demands that the object reference on the stack
-				// will implement a method with the same name and arguments as the interface method def
-				// so execute that instead
-
-				var objectRef = frame.getStack().pop();
-				var classDef = objectRef.getClass();
-				methodDef = classDef.getMethod(methodDef.getName());
-
-				// put the ref back on the stack
-				frame.getStack().push(objectRef);
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"invoke_dynamic": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"new": function(index) {
-			this.execute = function(frame, constantPool) {
-				var classDef = constantPool.load(index).getClassDef();
-
-				frame.getStack().push(new jjvm.runtime.ObjectReference(classDef));
-			};
-			this.describe = function() {
-				return "new #" + index + " // " + constantPool.load(index);
-			};
-		},
-		"array_create": function(index) {
-			this.execute = function(frame, constantPool) {
-				var length = frame.getStack().pop();
-				var array = [];
-				array.length = length;
-
-				frame.getStack().push(array);
-			};
-		},
-		"array_length": function() {
-			this.execute = function(frame, constantPool) {
-				var array = frame.getStack().pop();
-
-				frame.getStack().push(array.length);
-			};
-		},
-		"throw": function(string) {
-			this.execute = function(frame, constantPool) {
-				var throwable = frame.getStack().pop();
-
-				throw new jjvm.runtime.Thrown(throwable);
-			};
-		},
-		"check_cast": function(index) {
-			this.execute = function(frame, constantPool) {
-				var classDef = constantPool.load(index).getClassDef();
-				var objectRef = frame.getStack().pop();
-
-				if(!objectRef.isInstanceOf(classDef)) {
-					throw "ClassCastException: Object of type " + objectRef.getClass().getName() + " cannot be cast to " + classDef.getName();
-				}
-
-				// put it back on the stack
-				frame.getStack().push(objectRef);
-			};	
-		},
-		"instance_of": function(index) {
-			this.execute = function(frame, constantPool) {
-				var classDef = constantPool.load(index).getClassDef();
-				var objectRef = frame.getStack().pop();
-
-				frame.getStack().push(objectRef.isInstanceOf(classDef));
-			};
-		},
-		"monitor_enter": function() {
-			this.execute = function(frame, constantPool) {
-				// don't support synchronisation so just pop the ref
-				frame.getStack().pop();
-			};
-		},
-		"monitor_exit": function() {
-			this.execute = function(frame, constantPool) {
-				// don't support synchronisation so just pop the ref
-				frame.getStack().pop();
-			};
-		},
-		"wide": function() {
-			this.execute = function(frame, constantPool) {
-				throw "Wide is not implemented. Your program will probably now crash.";
-			};
-		},		
-		"multi_dimensional_array_create": function(index, dimensions) {
-			this.execute = function(frame, constantPool) {
-				var array = [];
-				var lengths = [];
-
-				for(var i = (dimensions - 1); i > -1; i--) {
-					lengths[i] = frame.getStack().pop();
-				}
-
-				this._createArray(frame, array, lengths, 0);
-
-				frame.getStack().push(array);
-			};
-
-			this._createArray = function(frame, parent, lengths, index) {
-				if(index === (lengths.length - 1)) {
-					return;
-				}
-
-				var length = lengths[index];
-
-				for(var i = 0; i < length; i++) {
-					var innerArray = [];
-
-					if((index + 1) === (lengths.length - 1)) {
-						innerArray.length = lengths[index + 1];
-					}
-
-					parent.push(innerArray);
-
-					this._createArray(frame, innerArray, lengths, index + 1);
-				}
-			};
-		},
-		"if_null": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value === null) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_non_null": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value !== null) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		}
-	};
-
-	this._getOperation = function() {
-		if(!_operation) {
-
-			// lets us call .apply on a function constructor
-			var construct = _.bind(function(constructor) {
-				function F() {
-					return constructor.apply(this, _data.args);
-				}
-				F.prototype = constructor.prototype;
-
-				return new F();
-			}, this);
-
-			_operation = construct(operations[this.getOperation()]);
-
-			// allow for overriding description as sometimes we want to show specific 
-			// arguments and bytecode for instructions that have been grouped together
-			if(_data.description) {
-				_operation.describe = function() {
-					return _data.description;
-				};
+		for(var i = 0; i < jjvm.core.NotificationCentre._listeners[eventType].length; i++) {
+			if(jjvm.core.NotificationCentre._listeners[eventType][i] == listener) {
+				jjvm.core.NotificationCentre._listeners[eventType].splice(i, 1);
+				i--;
 			}
 		}
+	},
 
-		return _operation;
-	};
-
-	this.execute = function(frame, constantPool) {
-		return this._getOperation().execute(frame, constantPool);
-	};
-
-	this.getLocation = function() {
-		return location;
-	};
-
-	this.toString = function() {
-		return this.getLocation() + ": " + this.getDescription();
-	};
-
-	this.hasBreakpoint = function() {
-		return _breakpoint ? true : false;
-	};
-
-	this.setBreakpoint = function(breakpoint) {
-		_breakpoint = breakpoint;
-	};
-
-	this.setMnemonic = function(mnemonic) {
-		this.getData().mnemonic = mnemonic;
-	};
-
-	this.getMnemonic = function() {
-		return this.getData().mnemonic;
-	};
-
-	this.setOperation = function(operation) {
-		this.getData().operation = operation;
-	};
-
-	this.getOperation = function() {
-		return this.getData().operation;
-	};
-
-	this.setArgs = function(args) {
-		this.getData().args = args;
-	};
-
-	this.getArgs = function() {
-		return this.getData().args;
-	};
-
-	this.setLocation = function(location) {
-		this.getData().location = location;
-	};
-
-	this.getLocation = function() {
-		return this.getData().location;
-	};
-
-	this.setDescription = function(description) {
-		this.getData().description = description;
-	};
-
-	this.getDescription = function() {
-		return this.getData().description;
-	};
-
-	this.canStepInto = function() {
-		return _.string.startsWith(this.getOperation(), "invoke");
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-};
-
-jjvm.types.ClassDefinition = function(data) {
-	var _data = data ? data : {
-		interfaces: [],
-		methods: {},
-		fields: {}
-	};
-
-	var _parent;
-	var _methods = [];
-	var _fields = [];
-	var _exceptionTable = null;
-	var _constantPool = new jjvm.types.ConstantPool(_data.constantPool);
-	var _enclosingMethod = null;
-	var _objectRef = null;
-	var _initialized = false;
-	var _classLoader = null;
-
-	// holds values of static fields
-	var _staticFields = {};
-
-	if(data) {
-		if(data.parent) {
-			_parent = jjvm.core.ClassLoader.loadClass(data.parent);
+	dispatch: function(sender, eventType, args) {
+		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
+			return;
 		}
 
-		for(var m in data.methods) {
-			var method = new jjvm.types.MethodDefinition(data.methods[m]);
-			method.setClassDef(this);
-
-			if(jjvm.nativeMethods[data.name] && jjvm.nativeMethods[data.name][method.getSignature()]) {
-				// we've overriden the method implementation
-				method.setImplementation(jjvm.nativeMethods[data.name][method.getSignature()]);
-			}
-
-			_methods.push(method);
-		}
-
-		for(var f in data.fields) {
-			_fields.push(new jjvm.types.FieldDefinition(data.fields[f]));
-		}
-
-		if(data.enclosingMethod) {
-			_enclosingMethod = new jjvm.types.EnclosingMethod(data.enclosingMethod);
-		}
-	}
-
-	this.getName = function() {
-		return _data.name;
-	};
-
-	this.setName = function(name) {
-		_data.name = _.string.trim(name);
-	};
-
-	this.getParent = function() {
-		return _parent;
-	};
-
-	this.setParent = function(parent) {
-		delete _data.parent;
-
-		if(parent) {
-			_parent = jjvm.core.ClassLoader.loadClass(parent);
-			_data.parent = parent;
-		}
-	};
-
-	this.getVisibility = function() {
-		return _data.visibility;
-	};
-
-	this.setVisibility = function(visibility) {
-		_data.visibility = visibility;
-	};
-
-	this.isAbstract = function() {
-		return _data.isAbstract ? true : false;
-	};
-
-	this.setIsAbstract = function(isAbstract) {
-		_data.isAbstract = isAbstract ? true : false;
-	};
-
-	this.isFinal = function() {
-		return _data.isFinal ? true : false;
-	};
-
-	this.setIsFinal = function(isFinal) {
-		_data.isFinal = isFinal ? true : false;
-	};
-
-	this.isInterface = function() {
-		return _data.isInterface ? true : false;
-	};
-
-	this.setIsInterface = function(isInterface) {
-		_data.isInterface = isInterface ? true : false;
-	};
-
-	this.isSuper = function() {
-		return _data.isSuper ? true : false;
-	};
-
-	this.setIsSuper = function(isSuper) {
-		_data.isSuper = isSuper ? true : false;
-	};
-
-	this.getInterfaces = function() {
-		return _data.interfaces;
-	};
-
-	this.addInterface = function(anInterface) {
-		_data.interfaces.push(anInterface);
-	};
-
-	this.getMethods = function() {
-		return _methods;
-	};
-
-	this.hasMethod = function(name) {
-		for(var i = 0; i < _methods.length; i++) {
-			if(_methods[i].getName() == name) {
-				return true;
-			}
-		}
-
-		if(_parent) {
-			return _parent.hasMethod(name);
-		}
-
-		return false;
-	};
-
-	this.getMethod = function(name, args) {
 		if(!args) {
 			args = [];
 		}
 
-		for(var i = 0; i < _methods.length; i++) {
-			if(_methods[i].getName() == name && this._argsMatch(_methods[i].getArgs(), args)) {
-				return _methods[i];
-			}
+		if(!_.isArray(args)) {
+			throw "Please only pass arrays to jjvm.core.NotificationCentre#dispatch as args";
 		}
 
-		if(_parent) {
-			return _parent.getMethod(name);
-		}
+		var observerArgs = [sender];
+		observerArgs = observerArgs.concat(args);
 
-		throw "Method " + name + " with args " + args + " does not exist on class " + this.getName();
+		// copy the array in case the listener deregisters itself as part of the callback
+		var observers = jjvm.core.NotificationCentre._listeners[eventType].concat([]);
+
+		for(var i = 0; i < observers.length; i++) {
+			observers[i].apply(observers[i], observerArgs);
+		}
+	}
+};
+
+jjvm.ui.ClassDropper = function(element) {
+	
+	this.onDragEnter = function(event) {
+		event.preventDefault();
+
+		$(element).addClass("dragging");
 	};
 
-	this._argsMatch = function(arr1, arr2) {
-		if(arr1.length != arr2.length) {
-			return false;
-		}
+	this.onDragExit = function(event) {
+		event.preventDefault();	
 
-		for(var i = 0; i < arr1.length; i++) {
-			if(arr1[i] != arr2[i]) {
-				return false;
-			}
-		}
-
-		return true;
+		$(element).removeClass("dragging");
 	};
 
-	this.addMethod = function(methodDef) {
-		_methods.push(methodDef);
-
-		if(!_data.methods) {
-			_data.methods = {};
-		}
-
-		_data.methods[methodDef.getSignature()] = methodDef.getData();
+	this.onDragOver = function(event) {
+		event.preventDefault();
 	};
 
-	this.getFields = function() {
-		return _fields;
-	};
+	this.onDrop = function(event) {
+		event.preventDefault();
 
-	this.getField = function(name) {
-		for(var i = 0; i < _fields.length; i++) {
-			if(_fields[i].getName() == name) {
-				return _fields[i];
-			}
-		}
+		$(element).removeClass("dragging");
 
-		if(_parent) {
-			return _parent.getField(name);
+		var files = event.originalEvent.dataTransfer.files;
+
+		for(var i = 0; i < files.length; i++) {
+			jjvm.ui.JJVM.jvm.compile(files[i]);
 		}
 	};
 
-	this.addField = function(fieldDef) {
-		_fields.push(fieldDef);
+	$(element).on("dragenter", _.bind(this.onDragEnter, this));
+	$(element).on("dragexit", _.bind(this.onDragExit, this));
+	$(element).on("dragover", _.bind(this.onDragOver, this));
+	$(element).on("drop", _.bind(this.onDrop, this));
+};
 
-		if(!_data.fields) {
-			_data.fields = {};
-		}
+jjvm.ui.ClassOutliner = function(element) {
+	var _userList = $(element).find("ul.user").get(0);
+	var _systemList = $(element).find("ul.system").get(0);
+	var _listElements = {};
 
-		_data.fields[fieldDef.getName()] = fieldDef.getData();
+	this._onExecutionComplete = function() {
+		$(_userList).find("li").removeClass("executing");
+		$(_systemList).find("li").removeClass("executing");
 	};
 
-	this.hasField = function(name) {
-		for(var i = 0; i < _fields.length; i++) {
-			if(_fields[i].getName() == name && !_fields[i].isStatic()) {
-				return true;
-			}
+	this._onBeforeInstructionExecution = function(__, frame) {
+		if(frame.isSystemFrame || !frame.isCurrentFrame || !frame.isExecutionSuspended) {
+			return;
 		}
 
-		if(_parent) {
-			return _parent.hasField(name);
-		}
-
-		return false;
+		this._highlight(frame.className, frame.methodSignature, frame.currentInstruction);
 	};
 
-	this.invokeStaticMethod = function(name, args) {
+	this._onAfterInstructionExecution = function(__, frame) {
+		if(frame.isSystemFrame || !frame.isCurrentFrame || !frame.isExecutionSuspended) {
+			return;
+		}
+
+		// if there's no next instruction we are returning so don't remove the highlight
+		if(frame.nextInstruction) {
+			this._highlight(frame.nextInstruction.className, frame.nextInstruction.methodSignature, frame.nextInstruction.instruction);
+		}
+	};
+
+	this._onBreakpointEncountered = function(__, frame) {
+		if(frame.isSystemFrame || !frame.isCurrentFrame || !frame.isExecutionSuspended) {
+			return;
+		}
+
+		this._highlight(frame.className, frame.methodSignature, frame.currentInstruction);
+	};
+
+	this._highlight = function(className, methodSignature, instruction) {
+		$(element + " li").removeClass("executing");
 		
-	};
+		var listElement = _listElements[className][methodSignature][instruction.location];
 
-	this.getStaticField = function(name) {
-		this.hasStaticField(name);
+		$(listElement).addClass("executing");
 
-		if(_staticFields[name] === undefined) {
-			// we have the field but it's not been used yet so initialise it.
+		if(_.string.endsWith(instruction.mnemonic, "return")) {
+			$(listElement).addClass("return");
+		}
 
-			var fieldDef = this.getField(name);
+		// ensure whatever's highlighted is visible are expanded
+		var parent = listElement.parentNode;
 
-			if(fieldDef.getType() == "boolean" || fieldDef.getType() == "byte" || fieldDef.getType() == "short" || fieldDef.getType() == "int" || fieldDef.getType() == "long" || fieldDef.getType() == "char") {
-				_staticFields[name] = 0;
-			} else if(fieldDef.getType() == "float" || fieldDef.getType() == "double") {
-				_staticFields[name] = 0.0;
-			} else {
-				_staticFields[name] = null;				
+		while(parent) {
+			if(parent.style && parent.style.display == "none") {
+				parent.style.display = "block";
 			}
+
+			parent = parent.parentNode;
 		}
 
-		return _staticFields[name];
+		// stop previous scroll animation
+		$(element).stop(true, false);
+		$(element).scrollTo(listElement, 200, {"axis": "y", "offset": -100});
 	};
 
-	this.getStaticFields = function() {
-		return _staticFields;
+	this._buildClassList = function(sender, classDef, isSystemClass) {
+		if(isSystemClass) {
+			this._buildClassOutline(classDef, _systemList, false);
+		} else {
+			this._buildClassOutline(classDef, _userList, true);
+		}
 	};
 
-	this.setStaticField = function(name, value) {
-		this.hasStaticField(name);
+	this._buildClassOutline = function(classDef, list, startExpanded) {
+		var innerList = jjvm.core.DOMUtil.create("ul");
 
-		_staticFields[name] = value;
+		this._buildFieldList(innerList, classDef.name, classDef.fields);
+		this._buildMethodList(innerList, classDef.name, classDef.methods);
+
+		var link = jjvm.core.DOMUtil.create("a", [
+			(classDef.visibility == "public" ? this._formatKeyword("public") : ""),
+			" ",
+			(classDef.isAbstract ? this._formatKeyword("abstract") : ""),
+			" ",
+			(classDef.isFinal ? this._formatKeyword("final") : ""),
+			" ",
+			(classDef.isInterface ? this._formatKeyword("interface") : this._formatKeyword("class")),
+			" ",
+			classDef.name,
+			(classDef.parent ? [
+				" ", this._formatKeyword("extends"), " ", classDef.parent
+			] : ""),
+			(classDef.interfaces.length > 0 ? [
+				" ", this._formatKeyword("implements"), " ", this._formatInterfaces(classDef.interfaces)
+			] : "")
+		]);
+
+		var classInfo = "";
+
+		if(classDef.sourceFile) {
+			classInfo = jjvm.core.DOMUtil.create("small", [
+				classDef.sourceFile, " / ", this._formatVersion(classDef.majorVersion, classDef.minorVersion)
+			], {className: "muted"});
+		}
+
+		$(link).click(function(event) {
+			event.preventDefault();
+			innerList.style.display = innerList.style.display == "none" ? "block" : "none";
+		});
+
+		var listHolder = jjvm.core.DOMUtil.create("li", [
+			classInfo,
+			link,
+			innerList
+		]);
+
+		if(!startExpanded) {
+			innerList.style.display = "none";
+		}
+
+		list.appendChild(listHolder);
 	};
 
-	this.hasStaticField = function(name) {
-		var foundField = false;
+	this._buildFieldList = function(list, className, fields) {
+		var index = 0;
 
-		for(var i = 0; i < _fields.length; i++) {
-			if(_fields[i].getName() == name && _fields[i].isStatic()) {
-				foundField = true;
+		for(var name in fields) {
+			var field = fields[name];
+			var cssClass = "field " + field.visibility + (index === 0 ? " first" : "");
+			var iconClass = "icon-white ";
+
+			if(field.visibility == "public") {
+				iconClass += "icon-plus";
+			} else if(field.visibility == "private") {
+				iconClass += "icon-minus";
+			} else if(field.visibility == "protected") {
+				iconClass += "icon-asterisk";
 			}
-		}
 
-		if(!foundField) {
-			throw "field " + name + " does not exist on class " + this.getName();
-		}
-	};
+			list.appendChild(jjvm.core.DOMUtil.create("li", [
+				jjvm.core.DOMUtil.create("icon", {className: iconClass}),
+				" ", 
+				this._formatVisibility(field.visibility),
+				" ",
+				this._formatType(field.type),
+				" ",
+				(field.isStatic ? this._formatKeyword("static") : ""),
+				" ",
+				(field.isFinal ? this._formatKeyword("final") : ""),
+				" ",
+				field.name
+			]));
 
-	this.setExceptionTable = function(exceptionTable) {
-		_exceptionTable = exceptionTable;
-	};
-
-	this.getExceptionTable = function() {
-		return _exceptionTable;
-	};
-
-	this.setConstantPool = function(constantPool) {
-		_constantPool = constantPool;
-
-		_data.constantPool = constantPool.getData();
-	};
-
-	this.getConstantPool = function() {
-		return _constantPool;
-	};
-
-	this.setSourceFile = function(sourceFile) {
-		_data.sourceFile = sourceFile;
-	};
-
-	this.getSourceFile = function() {
-		return _data.sourceFile;
-	};
-
-	this.setMinorVersion = function(minorVersion) {
-		_data.minorVersion = minorVersion;
-	};
-
-	this.getMinorVersion = function() {
-		return _data.minorVersion;
-	};
-
-	this.setMajorVersion = function(majorVersion) {
-		_data.majorVersion = majorVersion;
-	};
-
-	this.getMajorVersion = function() {
-		return _data.majorVersion;
-	};
-
-	this.setDeprecated = function(deprecated) {
-		_data.deprecated = deprecated;
-	};
-
-	this.getDeprecated = function() {
-		return _data.deprecated;
-	};
-
-	this.setSynthetic = function(synthetic) {
-		_data.synthetic = synthetic;
-	};
-
-	this.getSynthetic = function() {
-		return _data.synthetic;
-	};
-
-	this.setEnclosingMethod = function(enclosingMethod) {
-		_enclosingMethod = enclosingMethod;
-
-		if(enclosingMethod) {
-			_data.enclosingMethod = enclosingMethod.getData();
+			index++;
 		}
 	};
 
-	this.getEnclosingMethod = function() {
-		return _enclosingMethod;
+	this._buildMethodList = function(list, className, methods) {
+		var index = 0;
+
+		for(var name in methods) {
+			var method = methods[name];
+			var cssClass = "method " + method.visibility + (index === 0 ? " first" : "");
+			var iconClass = "icon-white ";
+
+			if(method.visibility == "public") {
+				iconClass += "icon-plus";
+			} else if(method.visibility == "private") {
+				iconClass += "icon-minus";
+			} else if(method.visibility == "protected") {
+				iconClass += "icon-asterisk";
+			}
+
+			var methodSignature = jjvm.core.DOMUtil.create("li", [
+				jjvm.core.DOMUtil.create("icon", {className: iconClass}),
+				" ", 
+				this._formatVisibility(method.visibility),
+				" ",
+				(method.isStatic ? this._formatKeyword("static") : ""),
+				" ",
+				(method.isFinal ? this._formatKeyword("final") : ""),
+				" ", 
+				(method.isSynchronized ? this._formatKeyword("synchronized") : ""),
+				" ",
+				this._formatType(method.returns),
+				" ",
+				method.name,
+				"(",
+				this._formatTypes(method.args),
+				")"
+			]);
+
+			list.appendChild(methodSignature);
+
+			var instructionList = jjvm.core.DOMUtil.create("ul", {className: "instruction_list"});
+			methodSignature.appendChild(instructionList);
+
+			if(method.isNative) {
+				jjvm.core.DOMUtil.append(jjvm.core.DOMUtil.create("li", "Native code", {className: "muted"}), instructionList);
+			} else if(method.instructions.length > 0) {
+				for(var i = 0; i < method.instructions.length; i++) {
+					var instruction = method.instructions[i];
+					var checkbox = jjvm.core.DOMUtil.create("input", {
+						type: "checkbox",
+						onchange: this._getBreakpointCallback(className, method.signature, instruction)
+					});
+
+					var listItem = jjvm.core.DOMUtil.create("li", [
+						checkbox,
+						" ",
+						instruction.location + ": " + instruction.description
+					]);
+
+					if(!_listElements[className]) {
+						_listElements[className] = {};
+					}
+
+					if(!_listElements[className][method.signature]) {
+						_listElements[className][method.signature] = [];
+					}
+
+					_listElements[className][method.signature][instruction.location] = listItem;
+
+					instructionList.appendChild(listItem);
+				}
+			} else if(!method.isAbstract) {
+				jjvm.core.DOMUtil.append(jjvm.core.DOMUtil.create("li", "Missing"), instructionList);
+			}
+
+			index++;
+		}
 	};
 
-	this.getObjectRef = function() {
-		if(!_objectRef) {
-			_objectRef = jjvm.Util.createObjectRef("java.lang.Class");
+	this._getBreakpointCallback = function(className, methodSignature, instruction) {
+		return function() {
+			jjvm.ui.JJVM.jvm.setBreakpoint(className, methodSignature, instruction.location, this.checked);
+		};
+	};
+
+	this._formatVisibility = function(visibility) {
+		var cssClass;
+
+		if(visibility == "public") {
+			cssClass = "text-success";
+		} else if(visibility == "protected") {
+			cssClass = "text-warning";
+		} else {
+			cssClass = "text-error";
 		}
 
-		return _objectRef;
+		return jjvm.core.DOMUtil.create("span", visibility, {className: cssClass});
 	};
 
-	this.getVersion = function() {
+	this._formatKeyword = function(keyword) {
+		return jjvm.core.DOMUtil.create("span", keyword, {className: "text-warning"});
+	};
+
+	this._formatType = function(type) {
+		return jjvm.core.DOMUtil.create("span", type, {className: "text-info"});
+	};
+
+	this._formatTypes = function(types) {
+		var output = [];
+
+		$.each(types, _.bind(function(index, type) {
+			output.push(this._formatType(type));
+
+			if(index < (types.length - 1)) {
+				output.push(", ");
+			}
+		}, this));
+
+		return output;
+	};
+
+	this._formatInterfaces = function(interfaces) {
+		var output = [];
+
+		for(var i = 0; i < interfaces.length; i++) {
+			output.push(interfaces[i]);
+		}
+
+		return output.join(", ");
+	};
+
+	this._formatVersion = function(majorVersion, minorVersion) {
 		var versions = {
 			0x2D: "Java 1.1",
 			0x2E: "Java 1.2",
@@ -2692,1651 +1908,443 @@ jjvm.types.ClassDefinition = function(data) {
 			0x34: "Java 8"
 		};
 
-		return versions[_data.majorVersion];
+		return versions[majorVersion];
 	};
 
-	this.isChildOf = function(classDef) {
-		if(this.getName() == classDef.getName()) {
-			return true;
-		}
+	jjvm.core.NotificationCentre.register("onClassDefined", _.bind(this._buildClassList, this));
+	jjvm.core.NotificationCentre.register("onBeforeInstructionExecution", _.bind(this._onBeforeInstructionExecution, this));
+	jjvm.core.NotificationCentre.register("onAfterInstructionExecution", _.bind(this._onAfterInstructionExecution, this));
+	jjvm.core.NotificationCentre.register("onBreakpointEncountered", _.bind(this._onBreakpointEncountered, this));
+	jjvm.core.NotificationCentre.register("onExecutionComplete", _.bind(this._onExecutionComplete, this));
+};
 
-		for(var i = 0; i < this.getInterfaces().length; i++) {
-			var interfaceDef = jjvm.core.ClassLoader.loadClass(this.getInterfaces()[i]);
+jjvm.ui.Console = function(element) {
+	$(element).find("button").click(_.bind(function(event) {
+		event.preventDefault();
+		this.clear();
+	}, this));
 
-			if(interfaceDef.isChildOf(classDef)) {
-				return true;
-			}
-		}
-
-		if(this.getParent()) {
-			return this.getParent().isChildOf(classDef);
-		}
-
-		return false;
+	this.debug = function(message) {
+		console.debug(message);
+		this._addLogLine(message, "muted", "icon-wrench");
 	};
 
-	this.getInitialized = function() {
-		return this._initialized;
+	this.info = function(message) {
+		console.info(message);
+		this._addLogLine(message, "text-info", "icon-info-sign");
 	};
 
-	this.setInitialized = function(initialized) {
-		this._initialized = initialized;
+	this.warn = function(message) {
+		console.warn(message);
+		this._addLogLine(message, "text-warning", "icon-exclamation-sign");
 	};
 
-	this.getClassLoader = function() {
-		return this._classLoader;
+	this.error = function(message) {
+		console.error(message);
+		this._addLogLine(message, "text-error", "icon-remove-sign");
 	};
 
-	this.setClassLoader = function(classLoader) {
-		this._classLoader = classLoader;
+	this.clear = function() {
+		$(element).find("ul").empty();
 	};
 
-	this.getData = function() {
-		return _data;
-	};
+	this._addLogLine = function(message, cssClass, iconClass) {
+		var icon = document.createElement("i");
+		icon.className = "icon-white " + iconClass;
 
-	this.toString = function() {
-		return "ClassDef#" + this.getName();
-	};
+		var logLine = document.createElement("li");
+		logLine.className = cssClass;
+		logLine.appendChild(icon);
+		logLine.appendChild(document.createTextNode(" " + message));
 
-	this.toJavaP = function() {
-		var output = this.getVisibility();
-		output += this.isAbstract() ? " abstract" : "";
-		output += this.isFinal() ? " final" : "";
-		output += this.isInterface() ? " interface" : " class";
-		output += " " + this.getName();
-		output += this.getParent() ? " extends " + this.getParent() : "";
-		output += "\r\n";
-		output += "\tSourceFile: \"" + this.getSourceFile() + "\"\r\n";
-		output += "\tMinor version: " + this.getMinorVersion() + "\r\n";
-		output += "\tMajor version: " + this.getMajorVersion() + "\r\n";
-		output += "\r\n";
-		output += _constantPool.toJavaP();
-		output += "\r\n";
+		$(element).find("ul").append(logLine);
 
-		if(_fields.length > 0) {
-			for(var f = 0; f < _fields.length; f++) {
-				output += _fields[f].toJavaP();
-			}
-
-			output += "\r\n";
-		}
-
-		for(var m = 0; m < _methods.length; m++) {
-			output += _methods[m].toJavaP();
-			output += "\r\n";
-		}
-
-		return output;
+		$(element).scrollTop($(element)[0].scrollHeight);
 	};
 };
 
-jjvm.types.ConstantPool = function(data) {
-	var _data = data ? data : {};
-	var pool = [];
-
-	if(_data.constants) {
-		for(var i = 0; i < _data.constants.length; i++) {
-			var value;
-
-			if(_data.constants[i].type == jjvm.types.ConstantPoolClassValue.type) {
-				value = new jjvm.types.ConstantPoolClassValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolFieldValue.type) {
-				value = new jjvm.types.ConstantPoolFieldValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolMethodValue.type) {
-				value = new jjvm.types.ConstantPoolMethodValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolNameAndTypeValue.type) {
-				value = new jjvm.types.ConstantPoolNameAndTypeValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.S || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.I || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.F || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.J || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.D) {
-				value = new jjvm.types.ConstantPoolPrimitiveValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolStringReferenceValue.type) {
-				value = new jjvm.types.ConstantPoolStringReferenceValue(_data.constants[i]);
-			} else {
-				throw "Unknown constant pool type " + _data.constants[i].type;
-			}
-
-			pool[value.getIndex()] = value;
-		}
-	} else {
-		_data.constants = [];
-	}
-
-	this.store = function(index, value) {
-		pool[index] = value;
-
-		for(var i = 0; i < _data.constants.length; i++) {
-			if(_data.constants[i].index == index) {
-				// we've defined this constant before, overwrite it
-				_data.constants[i] = value.getData();
-
-				return;
-			}
-		}
-
-		// this is a new constant, store it
-		_data.constants.push(value.getData());
-	};
-
-	this.load = function(index) {
-		return pool[index];
-	};
-
-	this.getPool = function() {
-		return pool;
-	};
-
-	this.toString = function() {
-		return "ConstantPool";
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-
-	this.toJavaP = function() {
-		var output = "\tConstant pool:\r\n";
-
-		for(var i = 0; i < pool.length; i++) {
-			if(!pool[i]) {
-				continue;
-			}
-
-			output += "\tconst #" + i + "\t= " + pool[i] + "\r\n";
-		}
-
-		return output;
-	};
-};
-
-jjvm.types.ConstantPoolClassValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolClassValue.type);
-
-	this.getClassDef = function() {
-		var className = this.getValue();
-		className = className.replace(/\//g, ".");
-
-		return jjvm.core.ClassLoader.loadClass(className);
-	};
-
-	this.setClassIndex = function(classIndex) {
-		this.getData().classIndex = classIndex;
-	};
-
-	this.getClassIndex = function() {
-		return this.getData().classIndex;
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t\t\t#" + this.getClassIndex() + ";\t\t// " + this.getValue();
-	};
-};
-
-jjvm.types.ConstantPoolClassValue.type = "class";
-jjvm.types.ConstantPoolFieldValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolFieldValue.type);
-
-	this.setClassIndex = function(classIndex) {
-		this.getData().classIndex = classIndex;
-	};
-
-	this.getClassIndex = function() {
-		return this.getData().classIndex;
-	};
-
-	this.setNameAndTypeIndex = function(nameAndTypeIndex) {
-		this.getData().nameAndTypeIndex = nameAndTypeIndex;
-	};
-
-	this.getNameAndTypeIndex = function() {
-		return this.getData().nameAndTypeIndex;
-	};
-
-	this.setClassName = function(className) {
-		this.getData().className = className;
-	};
-
-	this.getClassName = function() {
-		return this.getData().className;
-	};
-
-	this.setFieldName = function(fieldName) {
-		this.getData().fieldName = fieldName;
-	};
-
-	this.getFieldName = function() {
-		return this.getData().fieldName;
-	};
-
-	this.setFieldType = function(fieldType) {
-		this.getData().fieldType = fieldType;
-	};
-
-	this.getFieldType = function() {
-		return this.getData().fieldType;
-	};
-
-	this.getFieldDef = function() {
-		var classDef = this.getClassDef();
-
-		return classDef.getField(this.getFieldName());
-	};
-
-	this.getClassDef = function() {
-		return jjvm.core.ClassLoader.loadClass(this.getClassName());
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t\t\t#" + this.getClassIndex() + ".#" + this.getNameAndTypeIndex() + ";\t// " + this.getClassName() + "." + this.getFieldName() + ":" + this.getFieldType();
-	};
-};
-
-jjvm.types.ConstantPoolFieldValue.type = "Field";
-
-jjvm.types.ConstantPoolMethodValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolMethodValue.type);
-
-	this.setClassIndex = function(classIndex) {
-		this.getData().classIndex = classIndex;
-	};
-
-	this.getClassIndex = function() {
-		return this.getData().classIndex;
-	};
-
-	this.setNameAndTypeIndex = function(nameAndTypeIndex) {
-		this.getData().nameAndTypeIndex = nameAndTypeIndex;
-	};
-
-	this.getNameAndTypeIndex = function() {
-		return this.getData().nameAndTypeIndex;
-	};
-
-	this.setClassName = function(className) {
-		this.getData().className = className;
-	};
-
-	this.getClassName = function() {
-		return this.getData().className;
-	};
-
-	this.setMethodName = function(methodName) {
-		this.getData().methodName = methodName;
-	};
-
-	this.getMethodName = function() {
-		return this.getData().methodName;
-	};
-
-	this.setMethodType = function(methodType) {
-		this.getData().methodType = methodType;
-	};
-
-	this.getMethodType = function() {
-		return this.getData().methodType;
-	};
-
-	this.getMethodDef = function() {
-		var classDef = jjvm.core.ClassLoader.loadClass(this.getClassName());
-		var methodName = this.getMethodName();
-		var type = this.getMethodType();
-		var args = jjvm.Util.parseArgs(type);
-
-		return classDef.getMethod(methodName, args);
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t\t#" + this.getClassIndex() + ".#" + this.getNameAndTypeIndex() + ";\t\t// " + this.getClassName() + "." + this.getMethodName() + this.getMethodType();
-	};
-};
-
-jjvm.types.ConstantPoolMethodValue.type = "Method";
-
-jjvm.types.ConstantPoolNameAndTypeValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolNameAndTypeValue.type);
-
-	this.getValue = function() {
-		return this.getName() + ":" + this.getNameType();
-	};
-
-	this.setName = function(name) {
-		this.getData().name = name;
-	};
-
-	this.getName = function() {
-		return this.getData().name;
-	};
-
-	this.setNameIndex = function(nameIndex) {
-		this.getData().nameIndex = nameIndex;
-	};
-
-	this.getNameIndex = function() {
-		return this.getData().nameIndex;
-	};
-
-	this.setNameType = function(nameType) {
-		this.getData().nameType = nameType;
-	};
-
-	this.getNameType = function() {
-		return this.getData().nameType;
-	};
-
-	this.setNameTypeIndex = function(nameTypeIndex) {
-		this.getData().nameTypeIndex = nameTypeIndex;
-	};
-
-	this.getNameTypeIndex = function() {
-		return this.getData().nameTypeIndex;
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t#" + this.getNameIndex() + ":#" + this.getNameTypeIndex() + ";\t\t// " + this.getValue();
-	};
-};
-
-jjvm.types.ConstantPoolNameAndTypeValue.type = "NameAndType";
-
-jjvm.types.ConstantPoolPrimitiveValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	if(data) {
-		this.setType(jjvm.types.Primitives.jvmTypesToPrimitive[data.type]);
-	}
-
-	this.toString = function() {
-		return this.getType() + "\t\t\t// " + this.getValue() + ";";
-	};
-};
-
-jjvm.types.ConstantPoolPrimitiveValue.types = {
-	S: "Utf8",
-	I: "int",
-	F: "float",
-	J: "long",
-	D: "double"
-};
-
-jjvm.types.ConstantPoolStringReferenceValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolStringReferenceValue.type);
-
-	// holds the string reference
-	var _objectRef = null;
-
-	this.setStringIndex = function(stringIndex) {
-		this.getData().stringIndex = stringIndex;
-	};
-
-	this.getStringIndex = function() {
-		return this.getData().stringIndex;
-	};
-
-	this.getStringReference = function() {
-		if(!_objectRef) {
-			_objectRef = jjvm.Util.createStringRef(this.getValue());
-		}
-
-		return _objectRef;
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t\t#" + this.getStringIndex() + ";\t\t// " + this.getValue();
-	};
-};
-
-jjvm.types.ConstantPoolStringReferenceValue.type = "String";
-
-jjvm.types.ConstantPoolValue = function(data) {
-	var _data = data ? data : {};
-
-	this.setValue = function(value) {
-		_data.value = value;
-	};
-
-	this.getValue = function() {
-		return _data.value;
-	};
-
-	this.setType = function(type) {
-		_data.type = type;
-	};
-
-	this.getType = function() {
-		return _data.type;
-	};
-
-	this.setIndex = function(index) {
-		_data.index = index;
-	};
-
-	this.getIndex = function() {
-		return _data.index;
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-};
-
-jjvm.types.EnclosingMethod = function(data) {
-	var _data = data ? data : {};
-
-	this.setClassName = function(className) {
-		_data.className = className;
-	};
-
-	this.getClassName = function() {
-		return _data.className;
-	};
-
-	this.setMethodName = function() {
-		return _data.methodName;
-	};
-
-	this.getMethodName = function(methodName) {
-		_data.methodName = methodName;
-	};
-
-	this.getData = function() {
-		return _data;	
-	};
-
-	this.toJavaP = function() {
-		var output = "\t\tEnclosingMethod:\r\n";
-		output += "\t\t\t" + this.getClassName() + "." + this.getMethodName();
-
-		return output;
-	};
-
-	this.toString = function() {
-		return "EnclosingMethod";
-	};
-};
-
-jjvm.types.ExceptionTable = function(table) {
-
-	this.resolve = function(line, type) {
-		for(var i = 0; i < table.length; i++) {
-			if(table[i].from <= line && table[i].to >= line && type.getClass().isChildOf(table[i].type.getClassDef())) {
-				return table[i].target;
-			}
-		}
-
-		return null;
-	};
-
-	this.toJavaP = function() {
-		var output = "\t\tExceptionTable:\r\n";
-		output += "\t\t\tfrom\tto\ttarget\ttype\r\n";
-
-		for(var i = 0; i < table.length; i++) {
-			if(!table[i]) {
-				continue;
-			}
-
-			output += "\t\t\t" + table[i].from + "\t\t" + table[i].to + "\t\t" + table[i].target + "\t" + table[i].type.getClassDef().getName() + "\r\n";
-		}
-
-		return output;
-	};
-
-	this.getData = function() {
-		return table;
-	};
-
-	this.toString = function() {
-		return "ExceptionTable";
-	};
-};
-
-jjvm.types.FieldDefinition = function(data) {
-	// will be serialized to JSON so don't put any functions in here...
-	var _data = data ? data : {};
-
-	this.getVisibility = function() {
-		return _data.visibility ? _data.visibility : "package";
-	};
-
-	this.setVisibility = function(visibility) {
-		_data.visibility = _.string.trim(visibility);
-	};
-
-	this.isStatic = function() {
-		return _data.isStatic ? true : false;
-	};
-
-	this.setIsStatic = function(isStatic) {
-		_data.isStatic = isStatic ? true : false;
-	};
-
-	this.isFinal = function() {
-		return _data.isFinal ? true : false;
-	};
-
-	this.setIsFinal = function(isFinal) {
-		_data.isFinal = isFinal ? true : false;
-	};
-
-	this.isVolatile = function() {
-		return _data.isVolatile ? true : false;
-	};
-
-	this.setIsVolatile = function(isVolatile) {
-		_data.isVolatile = isVolatile ? true : false;
-	};
-
-	this.isTransient = function() {
-		return _data.isTransient ? true : false;
-	};
-
-	this.setIsTransient = function(isTransient) {
-		_data.isTransient = isTransient ? true : false;
-	};
-
-	this.setType = function(type) {
-		_data.type = _.str.trim(type);
-	};
-
-	this.getType = function() {
-		return _data.type;
-	};
-
-	this.setName = function(name) {
-		_data.name = _.str.trim(name);
-	};
-
-	this.getName = function() {
-		return _data.name;
-	};
-
-	this.setDeprecated = function(isDeprecated) {
-		_data.isDeprecated = isDeprecated ? true : false;
-	};
-
-	this.isDeprecated = function() {
-		return _data.isDeprecated ? true : false;
-	};
-
-	this.setSynthetic = function(isSynthetic) {
-		_data.isSynthetic = isSynthetic ? true : false;
-	};
-
-	this.isSynthetic = function() {
-		return _data.isSynthetic ? true : false;
-	};
-
-	this.setConstantValue = function(constantValue) {
-		_data.constantValue = constantValue;
-	};
-
-	this.getConstantValue = function() {
-		return _data.constantValue;
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-
-	this.toJavaP = function() {
-		var output = this.getVisibility();
-		output += this.isStatic() ? " static" : "";
-		output += this.isFinal() ? " final" : "";
-		output += this.isVolatile() ? " volatile" : "";
-		output += this.isTransient() ? " transient" : "";
-		output += " " + this.getType() + " " + this.getName() + ");\r\n";
-
-		return output;
-	};
-
-	this.toString = function() {
-		return "Field#" + this.getName();
-	};
-};
-
-jjvm.types.LineNumberTable = function(table) {
-
-	this.getTable = function() {
-		return table;
-	};
-
-	this.toJavaP = function() {
-		var output = "\t\tLineNumberTable:\r\n";
-
-		for(var i = 0; i < table.length; i++) {
-			if(!table[i]) {
-				continue;
-			}
-
-			output += "\t\t\tline " + table[i] + ":\t" + i + "\r\n";
-		}
-
-		return output;
-	};
-
-	this.getData = function() {
-		return table;
-	};
-
-	this.toString = function() {
-		return "LineNumberTable";
-	};
-};
-
-jjvm.types.LocalVariableTable = function(table) {
-
-	this.getTable = function() {
-		return table;
-	};
-
-	this.getData = function() {
-		return table;
-	};
-};
-
-jjvm.types.MethodDefinition = function(data) {
-	// will be serialized to JSON so don't put any functions in here...
-	var _data = data ? data : {
-		instructions: []
-	};
-
-	// holds a function
-	var _implementation = null;
-
-	// holds a list of bytecode instructions
-	var _instructions = [];
-	var _lineNumberTable = null;
-	var _localVariableTable = null;
-	var _stackMapTable = null;
-	var _exceptionTable = null;
-	var _classDef = null;
+jjvm.ui.FrameWatcher = function(localVariableTable, stackTable, title) {
 	
-	if(data) {
-		if(data.lineNumberTable) {
-			_lineNumberTable = new jjvm.types.LineNumberTable(data.lineNumberTable);
+	this._update = function(frame) {
+		if(frame.isSystemFrame) {
+			return;
 		}
 
-		if(data.localVariableTable) {
-			_localVariableTable = new jjvm.types.LocalVariableTable(data.localVariableTable);
-		}
+		this._updateLocalVariableTable(frame.localVariables);
+		this._updateStackTable(frame.stack);
 
-		if(data.stackMapTable) {
-			_stackMapTable = new jjvm.types.StackMapTable(data.stackMapTable);
-		}
-
-		if(data.exceptionTable) {
-			_exceptionTable = new jjvm.types.ExceptionTable(data.exceptionTable);
-		}
-
-		if(data.instructions) {
-			_.each(data.instructions, function(data) {
-				_instructions.push(new jjvm.types.ByteCode(data));
-			});
-		}
-	}
-
-	this.getVisibility = function() {
-		return _data.visibility ? _data.visibility : "package";
+		$(title).empty();
+		$(title).append(_.escape(frame.className + "#" + frame.methodSignature));
 	};
 
-	this.setVisibility = function(visibility) {
-		_data.visibility = visibility;
-	};
+	this._updateLocalVariableTable = function(localVariables) {
+		$(localVariableTable).empty();
+		var topRow = $("<tr></tr>");
+		var bottomRow = $("<tr></tr>");
+		var thead = $("<thead></thead>");
+		$(thead).append(topRow);
+		var tbody = $("<tbody></tbody>");
+		$(tbody).append(bottomRow);
+		$(localVariableTable).append(thead);
+		$(localVariableTable).append(tbody);
 
-	this.getSignature = function() {
-		return _data.signature;
-	};
-
-	this.setSignature = function(signature) {
-		_data.signature = signature;
-	};
-
-	this.isStatic = function() {
-		return _data.isStatic ? true : false;
-	};
-
-	this.setIsStatic = function(isStatic) {
-		_data.isStatic = isStatic ? true : false;
-	};
-
-	this.isFinal = function() {
-		return _data.isFinal ? true : false;
-	};
-
-	this.setIsFinal = function(isFinal) {
-		_data.isFinal = isFinal ? true : false;
-	};
-
-	this.isSynchronized = function() {
-		return _data.isSynchronized ? true : false;
-	};
-
-	this.setIsSynchronized = function(isSynchronized) {
-		_data.isSynchronized = isSynchronized ? true : false;
-	};
-
-	this.isNative = function() {
-		return _data.isNative ? true : false;
-	};
-
-	this.setIsNative = function(isNative) {
-		_data.isNative = isNative ? true : false;
-	};
-
-	this.isAbstract = function() {
-		return _data.isAbstract ? true : false;
-	};
-
-	this.setIsAbstract = function(isAbstract) {
-		_data.isAbstract = isAbstract ? true : false;
-	};
-
-	this.getIsStrict = function() {
-		return _data.isStrict ? true : false;
-	};
-
-	this.setIsStrict = function(isStrict) {
-		_data.isStrict = isStrict ? true : false;
-	};
-
-	this.setName = function(name) {
-		_data.name = _.string.trim(name);
-	};
-
-	this.getName = function() {
-		return _data.name;
-	};
-
-	this.setArgs = function(args) {
-		return _data.args = args;
-	};
-
-	this.getArgs = function() {
-		return _data.args;
-	};
-
-	this.setReturns = function(returns) {
-		_data.returns = _.str.trim(returns);
-	};
-
-	this.getReturns = function() {
-		return _data.returns ? _data.returns : "void";
-	};
-
-	this.getInstructions = function() {
-		return _instructions;
-	};
-
-	this.setInstructions = function(instructions) {
-		_instructions = instructions;
-
-		_data.instructions = [];
-
-		_.each(instructions, function(instruction) {
-			_data.instructions.push(instruction.getData());
+		$.each(localVariables, function(index, entry) {
+			$(topRow).append("<th>" + index + "</th>");
+			$(bottomRow).append("<td>" + entry + "</td>");
 		});
 	};
 
-	this.setDeprecated = function(deprecated) {
-		_data.isDeprecated = deprecated ? true : false;
-	};
+	this._updateStackTable = function(stack) {
+		$(stackTable).empty();
+		
+		var tbody = $("<tbody></tbody>");
+		$(stackTable).append(tbody);
 
-	this.isDeprecated = function() {
-		return _data.isDeprecated;
-	};
+		var minItems = 5 - stack.length;
 
-	this.setSynthetic = function(synthetic) {
-		_data.synthetic = synthetic ? true : false;
-	};
+		for(var i = 0; i < minItems; i++) {
+			$(tbody).append("<tr><td>&nbsp;</td></tr>");
+		}
 
-	this.isSynthetic = function() {
-		return _data.isSynthetic;
-	};
-
-	this.setThrows = function(list) {
-		_data.throws = list;
-	};
-
-	this.getThrows = function() {
-		return _data.throws;
-	};
-
-	this.setMaxStackSize = function(maxStackSize) {
-		_data.maxStackSize = maxStackSize;
-	};
-
-	this.getMaxStackSize = function() {
-		return _data.maxStackSize;
-	};
-
-	this.setMaxLocalVariables = function(maxLocalVariables) {
-		_data.maxLocalVariables = maxLocalVariables;
-	};
-
-	this.getMaxLocalVariables = function() {
-		return _data.maxLocalVariables;
-	};
-
-	this.getImplementation = function() {
-		return _implementation;
-	};
-
-	this.setImplementation = function(implementation) {
-		_implementation = implementation;
-	};
-
-	this.setExceptionTable = function(exceptionTable) {
-		_exceptionTable = exceptionTable;
-
-		if(exceptionTable) {
-			_data.exceptionTable = exceptionTable.getData();
+		for(var n = (stack.length -1); n >= 0; n--) {
+			$(tbody).append("<tr><td>" + stack[n] + "</td></tr>");
 		}
 	};
 
-	this.getExceptionTable = function() {
-		return _exceptionTable;
-	};
-
-	this.setLineNumberTable = function(lineNumberTable) {
-		_lineNumberTable = lineNumberTable;
-
-		if(lineNumberTable) {
-			_data.lineNumberTable = lineNumberTable.getData();
-		}
-	};
-
-	this.getLineNumberTable = function() {
-		return _lineNumberTable;
-	};
-
-	this.setLocalVariableTable = function(localVariableTable) {
-		_localVariableTable = localVariableTable;
-
-		if(localVariableTable) {
-			_data.localVariableTable = localVariableTable.getData();
-		}		
-	};
-
-	this.getLocalVariableTable = function() {
-		return _localVariableTable;
-	};
-
-	this.setStackMapTable = function(stackMapTable) {
-		_stackMapTable = stackMapTable;
-
-		if(stackMapTable) {
-			_data.stackMapTable = stackMapTable.getData();
-		}
-	};
-
-	this.getStackMapTable = function() {
-		return _stackMapTable;
-	};
-
-	this.setClassDef = function(classDef) {
-		_classDef = classDef;
-	};
-
-	this.getClassDef = function() {
-		return _classDef;
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-
-	this.toJavaP = function() {
-		var output = this.getVisibility();
-		output += this.isStatic() ? " static" : "";
-		output += this.isFinal() ? " final" : "";
-		output += this.isAbstract() ? " abstract" : "";
-		output += this.isSynchronized() ? " synchronized" : "";
-		output += " " + this.getReturns() + " " + this.getName() + "(" + this.getArgs().join(", ") + ");\r\n";
-		output += "\tCode:\r\n";
-		output += "\t\tStack=" + this.getMaxStackSize() + ", Locals="+ this.getMaxLocalVariables() + ", Args_size=" + this.getArgs().length + "\r\n";
-
-		if(this.getImplementation()) {
-			output += "\t\tNative code\r\n";
-		} else {
-			for(var i = 0; i < this.getInstructions().length; i++) {
-				output += "\t\t" + this.getInstructions()[i].getLocation() + ":\t" + this.getInstructions()[i] + "\r\n";
-			}
-		}
-
-		if(this.getLineNumberTable()) {
-			output += this.getLineNumberTable().toJavaP();
-		}
-
-		if(this.getExceptionTable()) {
-			output += this.getExceptionTable().toJavaP();
-		}
-
-		return output;
-	};
-
-	this.toString = function() {
-		return "Method#" + this.getName();
-	};
+	jjvm.core.NotificationCentre.register("onInstructionExecution", _.bind(function(_, frame) {
+		this._update(frame);
+	}, this));
+	jjvm.core.NotificationCentre.register("onBeforeInstructionExecution", _.bind(function(_, frame) {
+		this._update(frame);
+	}, this));
+	jjvm.core.NotificationCentre.register("onAfterInstructionExecution", _.bind(function(_, frame) {
+		this._update(frame);
+	}, this));
+	jjvm.core.NotificationCentre.register("onCurrentFrameChanged", _.bind(function(_, thread, frame) {
+		this._update(frame);
+	}, this));
 };
 
-jjvm.types.MethodDefinition.CLASS_INITIALISER = "<clinit>";
-jjvm.types.MethodDefinition.OBJECT_INITIALISER = "<init>";
-jjvm.types.Primitives = {
-	jvmTypesToPrimitive: {
-		"Z": "boolean",
-		"B": "byte",
-		"C": "char",
-		"S": "short",
-		"I": "int",
-		"J": "long",
-		"F": "float",
-		"D": "double",
-		"V": "void"
+jjvm.ui.JJVM = {
+	console: null,
+	_frameWatcher: null,
+	_classOutliner: null,
+	_threadWatcher: null,
+	_classDropper: null,
+	jvm: null,
+
+	init: function() {
+		// no compilation while we do setup
+		$("#button_compile").attr("disabled", true);
+
+		jjvm.ui.JJVM.jvm = new jjvm.ui.JVM();
+
+		// set up gui
+		jjvm.ui.JJVM.console = new jjvm.ui.Console("#console");
+		jjvm.ui.JJVM._frameWatcher = new jjvm.ui.FrameWatcher("#localVariables", "#stack", "#frame h3 small"),
+		jjvm.ui.JJVM._classOutliner = new jjvm.ui.ClassOutliner("#classes"),
+		jjvm.ui.JJVM._threadWatcher = new jjvm.ui.ThreadWatcher("#threads > ul"),
+		jjvm.ui.JJVM._classDropper = new jjvm.ui.ClassDropper("#program_define");
+
+		// initialy disabled debug buttons
+		$("#button_resume").attr("disabled", true);
+		$("#button_pause").attr("disabled", true);
+		$("#button_step_over").attr("disabled", true);
+		$("#button_step_into").attr("disabled", true);
+		$("#button_drop_to_frame").attr("disabled", true);
+
+		// set up debug button listeners
+		$("#button_resume").click(function() {
+			jjvm.ui.JJVM.jvm.resumeExecution();
+		});
+		$("#button_pause").click(function() {
+			jjvm.ui.JJVM.jvm.suspendExecution();
+		});
+		$("#button_step_over").click(function() {
+			jjvm.ui.JJVM.jvm.stepOver(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
+		});
+		$("#button_step_into").click(function() {
+			jjvm.ui.JJVM.jvm.stepInto(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
+		});
+		$("#button_drop_to_frame").click(function() {
+			jjvm.ui.JJVM.jvm.dropToFrame(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
+		});
+
+		// enable compile and run buttons when we have source code
+		$("#source").bind("keyup", function() {
+			if($("#source").val()) {
+				$("#button_compile").removeAttr("disabled");
+			} else {
+				$("#button_compile").attr("disabled", true);
+			}
+		});
+
+		// set up button listeners
+		$("#button_run").click(jjvm.ui.JJVM.run);
+
+		jjvm.core.NotificationCentre.register("onCompileSuccess", function() {
+			if(window.webkitNotifications && window.webkitNotifications.checkPermission() === 0) {
+				var notification = window.webkitNotifications.createNotification("icon.png", "JJVM", "Compilation complete");
+				notification.show();
+			}
+		});
+		jjvm.core.NotificationCentre.register("onCompileError", function(sender, error) {
+			jjvm.ui.JJVM.console.error("Compilation error!");
+			jjvm.ui.JJVM.console.error(error);
+		});
+
+		jjvm.core.NotificationCentre.register("onCompileWarning", function(sender, warning) {
+			jjvm.ui.JJVM.console.warn(warning);
+		});
+
+		jjvm.core.NotificationCentre.register("onBreakpointEncountered", function() {
+			console.info("encountered breakpoint");
+
+			$("#button_run").attr("disabled", true);
+			$("#button_resume").removeAttr("disabled");
+			$("#button_pause").attr("disabled", true);
+			$("#button_step_over").removeAttr("disabled");
+			$("#button_step_into").removeAttr("disabled");
+			$("#button_drop_to_frame").removeAttr("disabled");
+		});
+
+		jjvm.core.NotificationCentre.register("onExecutionComplete", function() {
+			// reset buttons
+			$("#button_run").removeAttr("disabled");
+			$("#button_resume").attr("disabled", true);
+			$("#button_pause").attr("disabled", true);
+			$("#button_step_over").attr("disabled", true);
+			$("#button_step_into").attr("disabled", true);
+			$("#button_drop_to_frame").attr("disabled", true);
+		});
+
+		jjvm.core.NotificationCentre.register("onExecutionStarted", function() {
+			$("#button_run").attr("disabled", true);
+			$("#button_resume").attr("disabled", true);
+			$("#button_pause").removeAttr("disabled");
+			$("#button_step_over").attr("disabled", true);
+			$("#button_step_into").attr("disabled", true);
+			$("#button_drop_to_frame").attr("disabled", true);
+		});
+
+		// all done, enable input
+		$("#source").removeAttr("disabled");
+
+		// if we've already got input, enable the compile button
+		if($("#source").val()) {
+			$("#button_compile").removeAttr("disabled");
+		}
+
+		// html5 notifications!
+		if(window.webkitNotifications) {
+			var permissions = window.webkitNotifications.checkPermission();
+
+			if(permissions === 0) {
+				// granted
+			} else if(permissions === 1) {
+				// not yet granted
+				window.webkitNotifications.requestPermission();
+			} else if(permissions === 2) {
+				// blocked
+			}
+		}
 	},
 
-	classToPrimitive: {
-		"java.lang.Boolean": "boolean",
-		"java.lang.Byte": "byte",
-		"java.lang.Char": "char",
-		"java.lang.Short": "short",
-		"java.lang.Integer": "int",
-		"java.lang.Long": "long",
-		"java.lang.Float": "float",
-		"java.lang.Double": "double",
-		"java.lang.Void": "void"
-	},
+	run: function(event) {
+		event.preventDefault();
 
-	primitiveToClass: {
-		"boolean": "java.lang.Boolean",
-		"byte": "java.lang.Byte",
-		"char": "java.lang.Char",
-		"short": "java.lang.Short",
-		"int": "java.lang.Integer",
-		"long": "java.lang.Long",
-		"float": "java.lang.Float",
-		"double": "java.lang.Double",
-		"void": "java.lang.Void"
+		jjvm.ui.JJVM.jvm.run([$("#program_run input").val().split(",")]);
 	}
 };
+jjvm.ui.JVM = function() {
+	var _worker = new Worker("js/jvm_compiler_worker.js");
 
-jjvm.types.StackMapTable = function(className, methodName) {
-
-	this.toJavaP = function() {
-		var output = "\t\tEnclosingMethod:\r\n";
-		output += "\t\t\t" + className + methodName;
-
-		return output;
-	};
-
-	this.getData = function() {
-		return table;
-	};
-
-	this.toString = function() {
-		return "EnclosingMethod";
-	};
-};
-
-jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
-	_.extend(this, jjvm.core.Watchable);
-
-	var _stack = new jjvm.runtime.Stack();
-	var _variables = new jjvm.runtime.LocalVariables(args ? args : []);
-	var _child;
-	var _thread;
-	var _output;
-	var _currentInstruction;
-	var _version = jjvm.runtime.Frame.index++;
-	var _instructions = new jjvm.core.Iterator(methodDef.getInstructions());
-	var _skipBreakpointAtLocation;
-	var _executionHalted;
-	var _isSystemFrame;
-
-	this.getLocalVariables = function() {
-		return _variables;
-	};
-
-	this.getStack = function() {
-		return _stack;
-	};
-
-	this.getClassDef = function() {
-		return classDef;
-	};
-
-	this.getMethodDef = function() {
-		return methodDef;
-	};
-
-	this.getParent = function() {
-		return parent;
-	};
-
-	this.getChild = function() {
-		return _child;
-	};
-
-	this.getCurrentInstruction = function() {
-		return _currentInstruction;
-	};
-
-	this.getNextInstruction = function() {
-		return _instructions.peek();
-	};
-
-	this.getOutput = function() {
-		return _output;
-	};
-
-	this.getThread = function() {
-		return _thread;
-	};
-
-	this._resumeExecution = function(sender) {
-		if(!_thread.isCurrentFrame(this)) {
-			return;
-		}
-
-		_thread.setExecutionSuspended(false);
-		_skipBreakpointAtLocation = _currentInstruction.getLocation();
-
-		this._executeNextInstruction();
-	};
-
-	this._stepOver = function(sender) {
-		if(!_thread.isCurrentFrame(this)) {
-			return;
-		}
-
-		// start stepping
-		this._executeNextInstruction();
-	};
-
-	this._stepInto = function(sender) {
-		if(!_thread.isCurrentFrame(this)) {
-			return;
-		}
-
-		var nextInstruction = _instructions.peek();
-
-		if(!nextInstruction.canStepInto()) {
-			console.warn("Can only step into methods that create a new frame.");
-			return;
-		}
-
-		// start stepping
-		this._executeNextInstruction();
-	};
-
-	this._dropToFrame = function(sender) {
-		if(!_thread.isCurrentFrame(this)) {
-			return;
-		}
-
-		// reset execution index and enabled stepping
-		_instructions.reset();
-		_stack = new jjvm.runtime.Stack();
-		_currentInstruction = _instructions.peek();
-		this._dispatchNotification("onBeforeInstructionExecution");
-	};
-
-	var stepOverCallback = _.bind(this._stepOver, this);
-	var stepIntoCallback = _.bind(this._stepInto, this);
-	var dropToFrameCallback = _.bind(this._dropToFrame, this);
-	var resumeExecutionCallback = _.bind(this._resumeExecution, this);
-
-	this.execute = function(thread) {
-		_thread = thread;
-		_thread.setCurrentFrame(this);
-		_thread.register("onStepOver", stepOverCallback);
-		_thread.register("onStepInto", stepIntoCallback);
-		_thread.register("onDropToFrame", dropToFrameCallback);
-		_thread.register("onResumeExecution", resumeExecutionCallback);
-
-		if(methodDef.getImplementation()) {
-			// special case - where we have overriden method behaviour to stub 
-			// functionality like writing to System.out
-			var target = classDef;
-
-			if(!methodDef.isStatic()) {
-				target = _variables.load(0);
+	_worker.onmessage = function(event) {
+		var actions = {
+			"postNotification": function(type, args) {
+				jjvm.core.NotificationCentre.dispatch(this, type, args);
+			},
+			"consoleError": function(message) {
+				jjvm.ui.JJVM.console.error(message);
+			},
+			"consoleWarn": function(message) {
+				jjvm.ui.JJVM.console.warn(message);
+			},
+			"consoleInfo": function(message) {
+				jjvm.ui.JJVM.console.info(message);
+			},
+			"consoleDebug": function(message) {
+				jjvm.ui.JJVM.console.debug(message);
+			},
+			"getThreads": function(threads) {
+				jjvm.core.NotificationCentre.dispatch(this, "onGotThreads", [threads]);
 			}
-
-			args.unshift(target);
-			args.unshift(methodDef);
-			args.unshift(classDef);
-			args.unshift(this);
-			_output = methodDef.getImplementation().apply(target, args);
-
-			this.dispatch("onFrameComplete");
-		} else {
-			if(_thread.isExecutionSuspended()) {
-				_currentInstruction = _instructions.peek();
-				this._dispatchNotification("onBeforeInstructionExecution");
-			} else {
-				this._executeNextInstruction();
-			}
-		}
-	};
-
-	this.executeChild = function(classDef, methodDef, args) {
-		if(methodDef.getImplementation()) {
-			// special case - where we have overriden method behaviour to stub 
-			// functionality like writing to System.out
-			var target = classDef;
-
-			if(!methodDef.isStatic()) {
-				target = args.shift();
-			}
-
-			args.unshift(target);
-			args.unshift(methodDef);
-			args.unshift(classDef);
-			args.unshift(this);
-			var childOutput = methodDef.getImplementation().apply(target, args);
-
-			// override produced output so push it onto the stack
-			if(childOutput !== undefined) {
-				this.getStack().push(childOutput);
-			}
-
-			this.dispatch("onChildFrameCompleted", [childOutput]);
-		} else {
-			_child = new jjvm.runtime.Frame(classDef, methodDef, args, this);
-			_child.setIsSystemFrame(_isSystemFrame);
-
-			_child.registerOneTimeListener("onFrameComplete", _.bind(function(frame, output) {
-				// child frame produced output so push it onto the stack
-				if(output !== undefined) {
-					this.getStack().push(output);
-				}
-
-				_child = null;
-				_thread.setCurrentFrame(this);
-
-				this.dispatch("onChildFrameCompleted", [output]);
-			}, this));
-			_child.registerOneTimeListener("onExceptionThrown", _.bind(function(frame, thrown) {
-				if(!this.getMethodDef().getExceptionTable()) {
-					if(!parent) {
-						// nowhere to bubble to...
-						throw "Uncaught exception! " + thrown;
-					}
-
-					// exception bubbles up
-					this.dispatch("onExceptionThrown", [thrown]);
-
-					return;
-				}
-
-				var exceptionTable = this.getMethodDef().getExceptionTable();
-				var jumpTo = exceptionTable.resolve(_currentInstruction.getLocation(), thrown);
-
-				if(jumpTo === null) {
-					if(!parent) {
-						// nowhere to bubble to...
-						throw "Uncaught exception! " + thrown;
-					}
-
-					// uncaught exception
-					this.dispatch("onExceptionThrown", [thrown]);
-
-					return;
-				} else {
-					// find the instruction we are to jump to
-					for(var i = 0; i < _instructions.getIterable().length; i++) {
-						if(_instructions.getIterable()[i].getLocation() == jumpTo) {
-							_instructions.jump(i);
-						}
-					}
-				}
-
-				_child = null;
-				_thread.setCurrentFrame(this);
-			}, this));
-
-			_child.execute(_thread, _executionHalted);
-		}
-
-		return _child;
-	};
-
-	this.toString = function() {
-		return "Frame#" + _version + " " + classDef.getName() + "." + methodDef.getName() + (_currentInstruction ? ":" + _currentInstruction.getLocation() : "");
-	};
-
-	this._shouldStopOnBreakpoint = function() {
-		if(_isSystemFrame) {
-			// sometimes we don't want breakpoints - class initializers,
-			// internal string ref creation and so on
-			return false;
-		}
-
-		if(!_currentInstruction.hasBreakpoint()) {
-			return false;
-		}
-
-		// this makes the resume button work if we're currently on an 
-		// instruction with a breakpoint
-		if(_currentInstruction.getLocation() == _skipBreakpointAtLocation) {
-			_skipBreakpointAtLocation = -1;
-
-			return false;
-		}
-
-		if(_thread.isExecutionSuspended()) {
-			return false;
-		}
-
-		return true;
-	};
-
-	this._executeNextInstruction = function() {
-		// get instruction to execute
-		_currentInstruction = _instructions.next();
-
-		this._dispatchNotification("onBeforeInstructionExecution");
-
-		if(this._shouldStopOnBreakpoint()) {
-			_thread.setExecutionSuspended(true, this);
-			this._dispatchNotification("onBreakpointEncountered");
-			_instructions.rewind();
-
-			return;
-		}
-
-		try {
-			var constantPool = classDef.getConstantPool();
-
-			// if we're not executing an interface, use the constantpool from 
-			// the method definition's containing class
-			if(!methodDef.getClassDef().isInterface()) {
-				constantPool = methodDef.getClassDef().getConstantPool();
-			}
-
-			_output = _currentInstruction.execute(this, constantPool);
-
-			if(_output !== undefined) {
-				// have executed a return statement..
-
-				if(_output == jjvm.runtime.Void) {
-					_output = undefined;
-				}
-
-				// make sure we don't execute any more instructions..
-				_instructions.consume();
-			}
-		} catch(error) {
-			if(error instanceof jjvm.runtime.Goto) {
-				// jump to another instruction
-				for(var i = 0; i < methodDef.getInstructions().length; i++) {
-					if(methodDef.getInstructions()[i].getLocation() == error.getLocation()) {
-						_instructions.jump(i);
-					}
-				}
-			} else if(error instanceof jjvm.runtime.Thrown) {
-				// handle java exception ref
-				_output = error.getThrowable();
-
-				this._tearDownThreadListeners();
-
-				this.dispatch("onExceptionThrown", [error.getThrowable()]);
-
-				return;
-			} else {
-				// don't know what to do
-				console.error(error);
-				throw error;
-			}
-		}
-
-		this._dispatchNotification("onInstructionExecution");
-		this._dispatchNotification("onAfterInstructionExecution");
-
-		if(!_instructions.hasNext()) {
-			// all done
-			this._tearDownThreadListeners();
-			this.dispatch("onFrameComplete", [_output]);
-
-			return;
-		}
-
-		//if(!_thread.isSuspendedInFrame(this)) {
-		if(!_thread.isExecutionSuspended()) {
-			this._executeNextInstruction();
-			// execute next instruction in one second
-			//setTimeout(_.bind(this._executeNextInstruction, this), 1000);
-		}
-	};
-
-	this.setIsSystemFrame = function(systemFrame) {
-		_isSystemFrame = systemFrame;
-	};
-
-	this.isSystemFrame = function() {
-		return _isSystemFrame;
-	};
-
-	this.toString = function() {
-		return "Frame#" + classDef.getName() + "#" + methodDef.getName();
-	};
-
-	this._tearDownThreadListeners = function() {
-		_thread.deRegister("onStepOver", stepOverCallback);
-		_thread.deRegister("onStepInto", stepIntoCallback);
-		_thread.deRegister("onDropToFrame", dropToFrameCallback);
-		_thread.deRegister("onResumeExecution", resumeExecutionCallback);
-	};
-
-	this._dispatchNotification = function(eventType) {
-		var stack = [];
-
-		_.each(this.getStack().getStack(), function(index, item) {
-			stack.push(item.toString());
-		});
-
-		var localVariables = [];
-
-		_.each(this.getLocalVariables().getLocalVariables(), function(index, item) {
-			localVariables.push(item.toString());
-		});
-
-		this.dispatch(eventType, [this.getData()]);
-	};
-
-	this.getData = function() {
-		var stack = [];
-
-		_.each(this.getStack().getStack(), function(item) {
-			stack.push(item ? item.toString() : item);
-		});
-
-		var localVariables = [];
-
-		_.each(this.getLocalVariables().getLocalVariables(), function(item) {
-			localVariables.push(item ? item.toString() : item);
-		});
-
-		var nextInstruction = {
-			className: classDef.getName(), 
-			methodSignature: methodDef.getSignature(), 
-			instruction: _instructions.peek()
 		};
 
-		if(!nextInstruction.instruction && parent) {
-			nextInstruction = {
-				className: parent.getClassDef().getName(), 
-				methodSignature: parent.getMethodDef().getSignature(), 
-				instruction: parent.getNextInstruction()
-			};
-		}
+		var args = JSON.parse(event.data.args);
 
-		if(nextInstruction.instruction) {
-			nextInstruction.instruction = nextInstruction.instruction.getData();
-		}
-
-		return {
-			className: classDef.getName(), 
-			methodSignature: methodDef.getSignature(), 
-			currentInstruction: _currentInstruction ? _currentInstruction.getData() : null, 
-			nextInstruction: nextInstruction, 
-			isSystemFrame: _isSystemFrame, 
-			isCurrentFrame: _thread ? _thread.isCurrentFrame(this) : false,
-			isExecutionSuspended: _thread ? _thread.isExecutionSuspended() : false,
-			stack: stack, 
-			localVariables: localVariables
-		};
-	};
-};
-
-jjvm.runtime.Frame.index = 0;
-jjvm.runtime.Goto = function(offset) {
-	this.getLocation = function() {
-		return offset;
-	};
-};
-
-jjvm.runtime.LocalVariables = function(args) {
-	var _args = [].concat(args);
-
-	this.store = function(index, value) {
-		_args[index] = value;
-	};
-
-	this.load = function(index) {
-		return _args[index];
-	};
-
-	this.getLocalVariables = function(index) {
-		return _args;
-	};
-};
-
-jjvm.runtime.ObjectReference = function(classDef) {
-	var _fields = {};
-	var _values = {};
-	var _index = jjvm.runtime.ObjectReference.index++;
-
-	this.getClass = function() {
-		return classDef;
-	};
-
-	this.invoke = function(methodName, args) {
-
-	};
-
-	this.getField = function(name) {
-		this._hasField(name);
-
-		if(_fields[name] === undefined) {
-			// we have the field but it's not been used yet so initialise it.
-
-			var fieldDef = this.getClass().getField(name);
-
-			if(fieldDef.getType() == "boolean" || fieldDef.getType() == "byte" || fieldDef.getType() == "short" || fieldDef.getType() == "int" || fieldDef.getType() == "long" || fieldDef.getType() == "char") {
-				_fields[name] = 0;
-			} else if(fieldDef.getType() == "float" || fieldDef.getType() == "double") {
-				_fields[name] = 0.0;
-			} else if(fieldDef.getType() == "boolean") {
-				_fields[name] = false;
-			} else {
-				_fields[name] = null;				
-			}
-		}
-
-		return _fields[name];
-	};
-
-	this.setField = function(name, value) {
-		this._hasField(name);
-
-		_fields[name] = value;
-	};
-
-	this._hasField = function(name) {
-		if(!this.getClass().hasField(name)) {
-			throw "field " + name + " does not exist on class " + this.getClass().getName();
+		if(actions[event.data.action]) {
+			actions[event.data.action].apply(actions[event.data.action], args);
+		} else {
+			console.error("Unknown action from worker " + event.data.action);
 		}
 	};
 
-	this.isInstanceOf = function(classDef) {
-		return this.getClass().isChildOf(classDef);
+	// takes a File or Blob object
+	this.compile = function(file) {
+		var reader = new FileReader();
+
+		// init the reader event handlers
+		reader.onload = _.bind(this._onFileLoaded, this, file);
+
+		// begin the read operation
+		reader.readAsArrayBuffer(file);
 	};
 
-	this.getIndex = function() {
-		return _index;
+	this._onFileLoaded = function(file, event) {
+		_worker.postMessage({
+			action: "compile",
+			args: [new Uint8Array(event.target.result)]
+		});
 	};
 
-	this.toString = function() {
-		return "ObjectReference #" + this.getIndex() + " " + classDef.getName();
+	this.run = function(args) {
+		_worker.postMessage({
+			action: "run",
+			args: [args]
+		});
+	};
+
+	this.setBreakpoint = function(className, methodSignature, instructionIndex, setBreakpoint) {
+		_worker.postMessage({
+			action: "setBreakpoint",
+			args: [className, methodSignature, instructionIndex, setBreakpoint]
+		});
+	};
+
+	this.resumeExecution = function() {
+		_worker.postMessage({
+			action: "resumeExecution",
+			args: []
+		});	
+	};
+
+	this.suspendExecution = function() {
+		_worker.postMessage({
+			action: "suspendExecution",
+			args: []
+		});	
+	};
+
+	this.stepOver = function(threadName) {
+		_worker.postMessage({
+			action: "stepOver",
+			args: [threadName]
+		});	
+	};
+
+	this.stepInto = function(threadName) {
+		_worker.postMessage({
+			action: "stepInto",
+			args: [threadName]
+		});	
+	};
+
+	this.dropToFrame = function(threadName) {
+		_worker.postMessage({
+			action: "dropToFrame",
+			args: [threadName]
+		});	
+	};
+
+	this.getThreads = function() {
+		_worker.postMessage({
+			action: "getThreads",
+			args: []
+		});	
 	};
 };
 
-jjvm.runtime.ObjectReference.index = 0;
+jjvm.ui.ThreadWatcher = function(list) {
+	var _selectedThread;
 
-jjvm.runtime.Stack = function() {
-	var _stack = [];
-
-	this.push = function(value) {
-		_stack.push(value);
+	this.getSelectedThread = function() {
+		return _selectedThread;
 	};
 
-	this.pop = function() {
-		return _stack.pop();
+	this.setSelectedThread = function(thread) {
+		_selectedThread = thread;
 	};
 
-	this.getStack = function() {
-		return _stack;
-	};
-};
+	this._update = function(sender, threads) {
+		$(list).empty();
 
-jjvm.runtime.Thread = function(frame, parent) {
-	_.extend(this, jjvm.core.Watchable);
-
-	jjvm.runtime.ThreadPool.threads.push(this);
-	
-	var _initialFrame = frame;
-	var _currentFrame = frame;
-	var _index = jjvm.runtime.Thread.index++;
-	var _status = jjvm.runtime.Thread.STATUS.NEW;
-	var _executionSuspended;
-	var _suspendedInFrame;
-
-	this.run = function() {
-		frame.register("onFrameComplete", _.bind(function() {
-			this.setStatus(jjvm.runtime.Thread.STATUS.TERMINATED);
-
-			if(parent === undefined && frame.getMethodDef().getName() == "main") {
-				this.dispatch("onExecutionComplete");
+		_.each(threads, _.bind(function(thread) {
+			if(!_selectedThread) {
+				_selectedThread = thread;
 			}
 
-			jjvm.runtime.ThreadPool.reap();
+			this._addThread(thread);
 		}, this));
-
-		this.setStatus(jjvm.runtime.Thread.STATUS.RUNNABLE);
-		frame.execute(this);
 	};
 
-	this.isExecutionSuspended = function() {
-		return _executionSuspended ? true : false;
-	};
+	this._addThread = function(thread) {
+		var threadName;
 
-	this.setExecutionSuspended = function(executionSuspended, frame) {
-		_executionSuspended  = executionSuspended;
-		_suspendedInFrame = frame;
-	};
+		if(_selectedThread == thread) {
+			threadName = jjvm.core.DOMUtil.create("span", 
+				jjvm.core.DOMUtil.create("i", thread.name, {className: "icon-arrow-right icon-white"})
+			);
+		} else {
+			threadName = jjvm.core.DOMUtil.create("a", thread.name);
 
-	this.isSuspendedInFrame = function(frame) {
-		return _suspendedInFrame == frame;
-	};
+			threadName.onclick = _.bind(function(event) {
+				event.preventDefault();
 
-	this.isCurrentFrame = function(frame) {
-		return _currentFrame == frame;
-	};
-
-	this.getCurrentFrame = function() {
-		return _currentFrame;
-	};
-
-	this.setCurrentFrame = function(frame) {
-		_currentFrame = frame;
-
-		this.dispatch("onCurrentFrameChanged", [this.getData(), frame.getData()]);
-	};
-
-	this.getInitialFrame = function(frame) {
-		return _initialFrame;
-	};
-
-	this.setStatus = function(status) {
-		_status = status;
-
-		this.dispatch("onThreadStatusChanged", [this.getData(), frame.getData()]);
-	};
-
-	this.getStatus = function() {
-		return _status;
-	};
-
-	this.toString = function() {
-		return "Thread#" + _index + " (" + _status + ")";
-	};
-
-	this.getData = function() {
-		var frames = [];
-		var frame = _initialFrame;
-
-		while(frame) {
-			var frameData = frame.getData();
-
-			if(_currentFrame == frame) {
-				frameData.currentFrame = true;
-			}
-
-			frames.push(frameData);
-
-			frame = frame.getChild();
+				_selectedThread = thread;
+				//this._update();
+			}, this);
 		}
 
-		return {
-			name: this.toString(), 
-			status: this.getStatus(),
-			frames: frames
-		};
-	};
-};
+		var li = jjvm.core.DOMUtil.create("li", threadName);
 
-jjvm.runtime.Thread.index = 0;
-jjvm.runtime.Thread.STATUS = {
-	NEW: "NEW",
-	RUNNABLE: "RUNNABLE",
-	BLOCKED: "BLOCKED",
-	WAITING: "WAITING",
-	TIMED_WAITING: "TIMED_WAITING",
-	TERMINATED: "TERMINATED"
-};
-
-jjvm.runtime.ThreadPool = {
-	threads: [],
-	
-	reap: function() {
-		for(var i = 0; i < jjvm.runtime.ThreadPool.threads.length; i++) {
-			if(jjvm.runtime.ThreadPool.threads[i].getStatus() == jjvm.runtime.Thread.STATUS.TERMINATED) {
-				jjvm.runtime.ThreadPool.threads.splice(i, 1);
-			}
+		if(thread.status == "RUNNABLE") {
+			threadName.className += " text-success";
+		} else if(thread.status == "TERMINATED") {
+			threadName.className += " muted";
+		} else if(thread.status == "NEW") {
+			threadName.className += " text-info";
+		} else if(thread.status == "BLOCKED") {
+			threadName.className += " text-error";
+		} else if(thread.status == "WAITING") {
+			threadName.className += " text-warn";
+		} else if(thread.status == "TIMED_WAITING") {
+			threadName.className += " text-warn";
 		}
 
-		jjvm.core.NotificationCentre.dispatch(this, "onThreadGC", [jjvm.runtime.ThreadPool.getData()]);
-	},
+		var frameList = jjvm.core.DOMUtil.create("ul");
 
-	getData: function() {
-		var threads  = [];
-
-		_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
-			threads.push(thread.getData());
+		_.each(thread.frames, function(frame) {
+			frameList.appendChild(jjvm.core.DOMUtil.create("li", frame.className + "#" + frame.methodSignature));
 		});
 
-		return threads;
-	}
-};
-
-jjvm.runtime.Thrown = function(throwable) {
-	this.getThrowable = function() {
-		return throwable;
+		li.appendChild(frameList);
+		$(list).append(li);
 	};
-};
 
-jjvm.runtime.Void = {
-	
+	jjvm.core.NotificationCentre.register("onGotThreads", _.bind(this._update, this));
+	jjvm.core.NotificationCentre.register("onBreakpointEncountered", function() {
+		jjvm.ui.JJVM.jvm.getThreads();
+	});
+	jjvm.core.NotificationCentre.register("onExecutionStarted", function() {
+		jjvm.ui.JJVM.jvm.getThreads();
+	});
+	jjvm.core.NotificationCentre.register("onExecutionComplete", function() {
+		jjvm.ui.JJVM.jvm.getThreads();
+	});
+	jjvm.core.NotificationCentre.register("onThreadGC", function() {
+		jjvm.ui.JJVM.jvm.getThreads();
+	});
 };
 
 jjvm.compiler.AttributesParser = function(iterator, constantPool) {
@@ -6622,214 +4630,3 @@ jjvm.compiler.StackMapTableParser = function() {
 		return "StackMapTableParser";
 	};
 };
-
-jjvm.core.NotificationCentre = {
-	_listeners: {},
-
-	register: function(eventType, listener) {
-		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
-			jjvm.core.NotificationCentre._listeners[eventType] = [];
-		}
-
-		jjvm.core.NotificationCentre._listeners[eventType].push(listener);
-	},
-
-	deRegister: function(eventType, listener) {
-		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
-			return;
-		}
-
-		for(var i = 0; i < jjvm.core.NotificationCentre._listeners[eventType].length; i++) {
-			if(jjvm.core.NotificationCentre._listeners[eventType][i] == listener) {
-				jjvm.core.NotificationCentre._listeners[eventType].splice(i, 1);
-				i--;
-			}
-		}
-	},
-
-	dispatch: function(sender, eventType, args) {
-		if(self.postMessage) {
-			self.postMessage({
-				action: "postNotification", 
-				args: JSON.stringify([eventType, args])
-			});
-		}
-
-		if(jjvm.core.NotificationCentre._listeners[eventType] === undefined) {
-			return;
-		}
-
-		if(args === undefined) {
-			args = [];
-		}
-
-		if(!_.isArray(args)) {
-			throw "Please only pass arrays to jjvm.core.NotificationCentre#dispatch as args";
-		}
-
-		var observerArgs = [sender];
-		observerArgs = observerArgs.concat(args);
-
-		// copy the array in case the listener deregisters itself as part of the callback
-		var observers = jjvm.core.NotificationCentre._listeners[eventType].concat([]);
-
-		for(var i = 0; i < observers.length; i++) {
-			observers[i].apply(observers[i], observerArgs);
-		}
-	}
-};
-
-console = {
-	debug: function(string) {
-		self.postMessage({
-			action: "consoleDebug",
-			args: JSON.stringify([string])
-		});
-	},
-
-	info: function(string) {
-		self.postMessage({
-			action: "consoleInfo",
-			args: JSON.stringify([string])
-		});
-	},
-
-	warn: function(string) {
-		self.postMessage({
-			action: "consoleWarn",
-			args: JSON.stringify([string])
-		});
-	},
-
-	error: function(string) {
-		if(string.stack) {
-			_.each(string.stack.split("\n"), function(line) {
-				self.postMessage({
-					action: "consoleError",
-					args: JSON.stringify([line])
-				});
-			});
-		} else if(_.isString(string)) {
-			self.postMessage({
-				action: "consoleError",
-				args: JSON.stringify([string])
-			});
-		}
-	}
-};
-
-self.addEventListener("message", function(event) {
-	var actions = {
-		"compile": function(bytes, isSystemClass) {
-			var compiler = new jjvm.compiler.Compiler();
-			compiler.compileBytes(bytes);
-		},
-		"run": function(args) {
-			// find something to execute
-			var mainClass;
-			var mainMethod;
-
-			_.each(jjvm.core.ClassLoader.getClassDefinitions(), function(classDef) {
-				_.each(classDef.getMethods(), function(methodDef) {
-					if(methodDef.getName() == "main" && methodDef.isStatic() && methodDef.getReturns() == "void") {
-						mainClass = classDef;
-						mainMethod = methodDef;
-					}
-				});
-			});
-
-			if(!mainMethod) {
-				// nothing to execute, abort!
-				console.warn("No main method present.");
-
-				return;
-			}
-
-			var stringArgs = [];
-
-			_.each(args, function(arg) {
-				arg = _.str.trim(arg);
-
-				stringArgs.push(jjvm.Util.createStringRef(arg));
-			});
-
-			try {
-				console.info("Executing...");
-				var thread = new jjvm.runtime.Thread(new jjvm.runtime.Frame(mainClass, mainMethod, args));
-				thread.register("onExecutionComplete", function() {
-					thread.deRegister("onExecutionComplete", this);
-
-					jjvm.runtime.ThreadPool.reap();
-				});
-				jjvm.core.NotificationCentre.dispatch(this, "onExecutionStarted");
-
-				thread.run();
-			} catch(error) {
-				console.error(error);
-				console.error(error.stack);
-			}
-		},
-		"setBreakpoint": function(className, methodSignature, instructionIndex, setBreakpoint) {
-			var classDef = jjvm.core.ClassLoader.loadClass(className);
-
-			_.each(classDef.getMethods(), function(method) {
-				if(method.getSignature() == methodSignature) {
-					_.each(method.getInstructions(), function(instruction) {
-						if(instruction.getLocation() == instructionIndex) {
-							instruction.setBreakpoint(setBreakpoint);
-
-							console.debug("Breakpoint " + (setBreakpoint ? "" : "un") + "set in " + className + "#" + methodSignature + " at location " + instructionIndex);
-							jjvm.core.NotificationCentre.dispatch(this, "onBreakpointSet", [className, methodSignature, instructionIndex, setBreakpoint]);
-						}
-					});
-				}
-			});
-		},
-		"resumeExecution": function() {
-			jjvm.core.NotificationCentre.dispatch(this, "onResumeExecution");
-		},
-		"suspendExecution": function() {
-			jjvm.core.NotificationCentre.dispatch(this, "onSuspendExecution");
-		},
-		"stepOver": function(threadName) {
-			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
-				if(thread.toString() == threadName) {
-					thread.dispatch("onStepOver");
-				}
-			});
-		},
-		"stepInto": function(threadName) {
-			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
-				if(thread.toString() == threadName) {
-					thread.dispatch("onStepInto");
-				}
-			});
-		},
-		"dropToFrame": function(threadName) {
-			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
-				if(thread.toString() == threadName) {
-					thread.dispatch("onDropToFrame");
-				}
-			});
-		},
-		"getThreads": function() {
-			self.postMessage({
-				action: "getThreads",
-				args: JSON.stringify([jjvm.runtime.ThreadPool.getData()])
-			});
-		}
-	};
-
-	if(actions[event.data.action]) {
-		actions[event.data.action].apply(actions[event.data.action], event.data.args);
-	} else {
-		console.error("Unknown action from main thread " + event.data.action);
-	}
-}, false);
-
-// set up System.out & System.err
-var system = jjvm.core.ClassLoader.loadClass("java.lang.System");
-var voidClass = jjvm.core.ClassLoader.loadClass("java.lang.Void");
-system.setStaticField("in", new jjvm.runtime.ObjectReference(voidClass));
-system.setStaticField("out", new jjvm.runtime.ObjectReference(voidClass));
-system.setStaticField("err", new jjvm.runtime.ObjectReference(voidClass));
