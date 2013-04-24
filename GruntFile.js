@@ -2,41 +2,39 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 
 		meta: {
-			src: {
+			common: {
 				lib: [
-					"src/main/webapp/js/jquery.js",
 					"src/main/webapp/js/underscore.js",
 					"src/main/webapp/js/underscore.string.js",
-					"src/main/webapp/js/bootsrap.js"
 				],
-				core: [
-					"src/main/javascript/namespace.js",
-					"src/main/javascript/util.js",
-					"src/main/javascript/native.js",
-
-					"src/main/javascript/core/*.js",
-					"src/main/javascript/main/*.js"
-				],
-				ui: [
-					"src/main/javascript/ui/*.js"
+				source: [
+					"src/main/javascript/common/namespace.js",
+					"src/main/javascript/common/core/*.js",
 				]
 			},
 
-			compiler: {
+			ui: {
 				lib: [
-					"src/main/webapp/js/underscore.js",
-					"src/main/webapp/js/underscore.string.js"
+					"src/main/webapp/js/jquery.js",
+					"src/main/webapp/js/bootsrap.js"
 				],
-				core: [
-					"src/main/javascript/namespace.js",
-					"src/main/javascript/util.js",
-					"src/main/javascript/native.js",
+				source: [
+					"src/main/javascript/ui/core/*.js",
+					"src/main/javascript/ui/ui/*.js"
+				]
+			},
 
-					"src/main/javascript/core/*.js",
-					"src/main/javascript/types/*.js",
-					"src/main/javascript/runtime/*.js",
-					"src/main/javascript/compiler/*.js",
-					"src/main/javascript/worker/*.js"
+			worker: {
+				lib: [
+					
+				],
+				source: [
+					"src/main/javascript/worker/native.js",
+					"src/main/javascript/worker/util.js",
+					"src/main/javascript/worker/compiler/*.js",
+					"src/main/javascript/worker/runtime/*.js",
+					"src/main/javascript/worker/types/*.js",
+					"src/main/javascript/worker/worker/!(Worker).js"
 				]
 			}
 		},
@@ -62,18 +60,18 @@ module.exports = function(grunt) {
 		concat: {
 			main: {
 				src: [
-					"<%= meta.src.core %>",
-					"<%= meta.src.ui %>",
-					"src/main/javascript/compiler/!(CompilerWorker).js"
+					"<%= meta.common.source %>",
+					"<%= meta.ui.source %>"
 				],
 				dest: "target/webapp/js/jvm.js"
 			},
 			compilerWorker: {
 				src: [
-					"<%= meta.compiler.lib %>",
-					"<%= meta.compiler.core %>",
-
-					"src/main/javascript/compiler/CompilerWorker.js"
+					"<%= meta.common.lib %>",
+					"<%= meta.worker.lib %>",
+					"<%= meta.common.source %>",
+					"<%= meta.worker.source %>",
+					"src/main/javascript/worker/worker/Worker.js"
 				],
 				dest: "target/webapp/js/jvm_compiler_worker.js"
 			}
@@ -91,22 +89,34 @@ module.exports = function(grunt) {
 		jasmine : {
 			test: {
 				src : [
-						"<%= meta.src.core %>",
-						"<%= meta.src.ui %>"
+						"<%= meta.common.source %>",
+						"<%= meta.worker.source %>",
+						"<%= meta.ui.source %>"
 				],
 				options: {
-					helpers: "<%= meta.src.lib %>",
+					helpers: [
+						"<%= meta.common.lib %>",
+						"<%= meta.ui.lib %>",
+						"<%= meta.worker.lib %>",
+						"src/test/resources/lib/sinon-1.6.0.js"
+					],
 					errorReporting: true,
 					specs : "src/test/javascript/**/*.spec.js"
 				}
 			},
 			coverage: {
 				src : [
-						"<%= meta.src.core %>",
-						"<%= meta.src.ui %>"
+						"<%= meta.common.source %>",
+						"<%= meta.worker.source %>",
+						"<%= meta.ui.source %>"
 				],
 				options: {
-					helpers: "<%= meta.src.lib %>",
+					helpers: [
+						"<%= meta.common.lib %>",
+						"<%= meta.ui.lib %>",
+						"<%= meta.worker.lib %>",
+						"src/test/resources/lib/sinon-1.6.0.js"
+					],
 					errorReporting: true,
 					specs : "<%= jasmine.test.options.specs %>",
 					template: require("grunt-template-jasmine-istanbul"),

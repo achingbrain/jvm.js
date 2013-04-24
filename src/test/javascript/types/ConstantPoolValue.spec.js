@@ -1,14 +1,25 @@
-describe("jjvm.types.ConstantPoolValue test", function () {
+describe("jjvm.types.ConstantPoolPrimitiveValue test", function () {
 	
 	it("should have value", function () {
-		var value = new jjvm.types.ConstantPoolValue("foo", "bar");
+		var value = new jjvm.types.ConstantPoolPrimitiveValue();
+		value.setType("Utf8");
+		value.setValue("bar");
 
 		expect(value.getValue()).toEqual("bar");
 	});
 
 	it("should have type", function () {
-		var value = new jjvm.types.ConstantPoolValue("foo", "bar");
+		var value = new jjvm.types.ConstantPoolPrimitiveValue();
+		value.setType("Utf8");
+		value.setValue("bar");
 
-		expect(value.getType()).toEqual("foo");
+		expect(value.getType()).toEqual("Utf8");
+	});
+
+	it("should have type and value via data", function () {
+		var value = new jjvm.types.ConstantPoolPrimitiveValue({type: "C", value: "bar"});
+
+		expect(value.getType()).toEqual("char");
+		expect(value.getValue()).toEqual("bar");
 	});
 });

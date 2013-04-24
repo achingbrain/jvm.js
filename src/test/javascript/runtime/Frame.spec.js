@@ -44,7 +44,7 @@ describe("jjvm.runtime.Frame test", function () {
 
 	it("should execute", function () {
 		var classDef = jjvm.core.ClassLoader.loadClass("SimpleExample");
-		var methodDef = classDef.getMethod("addition");
+		var methodDef = classDef.getMethod("addition", ["int", "int"]);
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		var frame = new jjvm.runtime.Frame(classDef, methodDef, [objectRef, 1, 1]);
@@ -60,7 +60,7 @@ describe("jjvm.runtime.Frame test", function () {
 
 	it("should execute with breakpoint", function () {
 		var classDef = jjvm.core.ClassLoader.loadClass("SimpleExample");
-		var methodDef = classDef.getMethod("addition");
+		var methodDef = classDef.getMethod("addition", ["int", "int"]);
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		// set a breakpoint in the second instruction
@@ -79,7 +79,7 @@ describe("jjvm.runtime.Frame test", function () {
 
 	it("should execute with breakpoint and continue", function () {
 		var classDef = jjvm.core.ClassLoader.loadClass("SimpleExample");
-		var methodDef = classDef.getMethod("addition");
+		var methodDef = classDef.getMethod("addition", ["int", "int"]);
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		// set a breakpoint in the second instruction
@@ -107,7 +107,7 @@ describe("jjvm.runtime.Frame test", function () {
 
 	it("should drop to frame", function () {
 		var classDef = jjvm.core.ClassLoader.loadClass("SimpleExample");
-		var methodDef = classDef.getMethod("addition");
+		var methodDef = classDef.getMethod("addition", ["int", "int"]);
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		// set a breakpoint in the second instruction
@@ -152,7 +152,7 @@ describe("jjvm.runtime.Frame test", function () {
 
 	it("should step over", function () {
 		var classDef = jjvm.core.ClassLoader.loadClass("SimpleExample");
-		var methodDef = classDef.getMethod("addition");
+		var methodDef = classDef.getMethod("addition", ["int", "int"]);
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		// set a breakpoint in the second instruction
