@@ -24,10 +24,6 @@ jjvm.core.ClassLoader = {
 	},
 
 	loadClass: function(className) {
-		if(!className) {
-			var sdfoij = "asdf9j";
-		}
-
 		className = className.replace(/\//g, ".");
 
 		var output;

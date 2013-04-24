@@ -148,7 +148,8 @@ self.addEventListener("message", function(event) {
 
 // set up System.out & System.err
 var system = jjvm.core.ClassLoader.loadClass("java.lang.System");
-var voidClass = jjvm.core.ClassLoader.loadClass("java.lang.Void");
-system.setStaticField("in", new jjvm.runtime.ObjectReference(voidClass));
-system.setStaticField("out", new jjvm.runtime.ObjectReference(voidClass));
-system.setStaticField("err", new jjvm.runtime.ObjectReference(voidClass));
+var inputStreamClass = jjvm.core.ClassLoader.loadClass("java.io.InputStream");
+var printStreamClass = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
+system.setStaticField("in", new jjvm.runtime.ObjectReference(inputStreamClass));
+system.setStaticField("out", new jjvm.runtime.ObjectReference(printStreamClass));
+system.setStaticField("err", new jjvm.runtime.ObjectReference(printStreamClass));

@@ -45,7 +45,7 @@ jjvm.types.ConstantPoolFieldValue = function(data) {
 
 	this.getFieldDef = function() {
 		var classDef = this.getClassDef();
-
+		
 		return classDef.getField(this.getFieldName());
 	};
 

@@ -76,9 +76,10 @@ describe("ByteCode test", function () {
 
 		expect(frame.getStack().pop()).toEqual(length);
 	});
-/*
+
 	it("should process array_store", function () {
-		var byteCode = new jjvm.types.ByteCode("aastore", "array_store");
+		byteCode.setMnemonic("aastore");
+		byteCode.setOperation("array_store");
 		var value = 3;
 		var index = 7;
 		var array = [];
@@ -93,7 +94,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process array_create with object", function () {
-		var byteCode = new jjvm.types.ByteCode("anewarray", "array_create", [4], 0);
+		byteCode.setMnemonic("anewarray");
+		byteCode.setOperation("array_create");
+		byteCode.setArgs([4]);
 		var length = 5;
 
 		frame.getStack().push(length);
@@ -108,7 +111,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process array_create with primitive", function () {
-		var byteCode = new jjvm.types.ByteCode("newarray", "array_create", [4], 0);
+		byteCode.setMnemonic("anewarray");
+		byteCode.setOperation("array_create");
+		byteCode.setArgs([4]);
 		var length = 5;
 
 		frame.getStack().push(length);
@@ -123,7 +128,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process store", function () {
-		var byteCode = new jjvm.types.ByteCode("istore_3", "store", [3]);
+		byteCode.setMnemonic("istore_3");
+		byteCode.setOperation("store");
+		byteCode.setArgs([3]);
 		var value = 3;
 
 		frame.getStack().push(value);
@@ -134,7 +141,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process pop", function () {
-		var byteCode = new jjvm.types.ByteCode("pop", "pop");
+		byteCode.setMnemonic("pop");
+		byteCode.setOperation("pop");
 		
 		frame.getStack().push("hello");
 		
@@ -144,7 +152,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process pop2", function () {
-		var byteCode = new jjvm.types.ByteCode("pop2", "pop2");
+		byteCode.setMnemonic("pop2");
+		byteCode.setOperation("pop2");
 		
 		frame.getStack().push("hello");
 		frame.getStack().push("hello");
@@ -155,7 +164,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process dup", function () {
-		var byteCode = new jjvm.types.ByteCode("dup", "dup");
+		byteCode.setMnemonic("dup");
+		byteCode.setOperation("dup");
 
 		frame.getStack().push("bar");
 		frame.getStack().push("foo");
@@ -168,7 +178,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process dup2", function () {
-		var byteCode = new jjvm.types.ByteCode("dup2", "dup2");
+		byteCode.setMnemonic("dup2");
+		byteCode.setOperation("dup2");
 
 		frame.getStack().push("baz");
 		frame.getStack().push("bar");
@@ -184,7 +195,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process dup2_x1", function () {
-		var byteCode = new jjvm.types.ByteCode("dup2_x1", "dup2_x1");
+		byteCode.setMnemonic("dup2_x1");
+		byteCode.setOperation("dup2_x1");
 
 		frame.getStack().push("baz");
 		frame.getStack().push("bar");
@@ -200,7 +212,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process dup2_x2", function () {
-		var byteCode = new jjvm.types.ByteCode("dup2_x2", "dup2_x2");
+		byteCode.setMnemonic("dup2_x2");
+		byteCode.setOperation("dup2_x2");
 
 		frame.getStack().push("qux");
 		frame.getStack().push("baz");
@@ -218,7 +231,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process dup_x1", function () {
-		var byteCode = new jjvm.types.ByteCode("dup_x1", "dup_x1");
+		byteCode.setMnemonic("dup_x1");
+		byteCode.setOperation("dup_x1");
 
 		frame.getStack().push("bar");
 		frame.getStack().push("foo");
@@ -231,7 +245,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process dup_x2", function () {
-		var byteCode = new jjvm.types.ByteCode("dup_x2", "dup_x2");
+		byteCode.setMnemonic("dup_x2");
+		byteCode.setOperation("dup_x2");
 
 		frame.getStack().push("baz");
 		frame.getStack().push("bar");
@@ -246,7 +261,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process swap", function () {
-		var byteCode = new jjvm.types.ByteCode("swap", "swap");
+		byteCode.setMnemonic("swap");
+		byteCode.setOperation("swap");
 		var var1 = 7;
 		var var2 = 3;
 
@@ -261,7 +277,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process add", function () {
-		var byteCode = new jjvm.types.ByteCode("iadd", "add");
+		byteCode.setMnemonic("iadd");
+		byteCode.setOperation("add");
 		var var1 = 3;
 		var var2 = 7;
 
@@ -274,7 +291,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process sub", function () {
-		var byteCode = new jjvm.types.ByteCode("isub", "sub");
+		byteCode.setMnemonic("isub");
+		byteCode.setOperation("sub");
 		var var1 = 3;
 		var var2 = 7;
 
@@ -287,7 +305,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process mul", function () {
-		var byteCode = new jjvm.types.ByteCode("imul", "mul");
+		byteCode.setMnemonic("imul");
+		byteCode.setOperation("mul");
 		var var1 = 3;
 		var var2 = 7;
 
@@ -300,7 +319,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process div", function () {
-		var byteCode = new jjvm.types.ByteCode("idiv", "div");
+		byteCode.setMnemonic("idiv");
+		byteCode.setOperation("div");
 		var var1 = 3;
 		var var2 = 7;
 
@@ -313,7 +333,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process rem", function () {
-		var byteCode = new jjvm.types.ByteCode("irem", "rem");
+		byteCode.setMnemonic("irem");
+		byteCode.setOperation("rem");
 		var var1 = 7;
 		var var2 = 3;
 
@@ -326,7 +347,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process neg", function () {
-		var byteCode = new jjvm.types.ByteCode("neg", "neg");
+		byteCode.setMnemonic("neg");
+		byteCode.setOperation("neg");
 		var value = 3;
 
 		frame.getStack().push(value);
@@ -337,7 +359,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process shift left", function () {
-		var byteCode = new jjvm.types.ByteCode("ishl", "shift_left");
+		byteCode.setMnemonic("ishl");
+		byteCode.setOperation("shift_left");
 		var value1 = 1;
 		var value2 = 2;
 
@@ -350,20 +373,22 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process arithmetic shift right", function () {
-		var byteCode = new jjvm.types.ByteCode("ishl", "arithmetic_shift_right");
+		byteCode.setMnemonic("ishr");
+		byteCode.setOperation("arithmetic_shift_right");
 		var value1 = 1;
 		var value2 = 2;
 
-		frame.getStack().push(value1);
 		frame.getStack().push(value2);
+		frame.getStack().push(value1);
 
 		byteCode.execute(frame);
 
-		expect(frame.getStack().pop()).toEqual(value1 >> value2);
+		expect(frame.getStack().pop()).toEqual(value2 >> value1);
 	});
 
 	it("should process logical shift right", function () {
-		var byteCode = new jjvm.types.ByteCode("ishl", "logical_shift_right");
+		byteCode.setMnemonic("iushr");
+		byteCode.setOperation("logical_shift_right");
 		var value1 = 1;
 		var value2 = 2;
 
@@ -376,7 +401,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process and", function () {
-		var byteCode = new jjvm.types.ByteCode("iand", "and");
+		byteCode.setMnemonic("iand");
+		byteCode.setOperation("and");
 
 		frame.getStack().push(1);
 		frame.getStack().push(2);
@@ -387,7 +413,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process or", function () {
-		var byteCode = new jjvm.types.ByteCode("ior", "or");
+		byteCode.setMnemonic("ior");
+		byteCode.setOperation("or");
 
 		frame.getStack().push(1);
 		frame.getStack().push(2);
@@ -398,7 +425,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process xor", function () {
-		var byteCode = new jjvm.types.ByteCode("ixor", "xor");
+		byteCode.setMnemonic("ixor");
+		byteCode.setOperation("xor");
 		var var1 = 7;
 		var var2 = 3;
 
@@ -411,17 +439,20 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process iinc", function () {
-		var byteCode = new jjvm.types.ByteCode("iinc", "increment", [3, 1]);
+		byteCode.setMnemonic("iinc");
+		byteCode.setOperation("increment");
+		byteCode.setArgs([3, 1]);
 
 		frame.getLocalVariables().store(3, 5);
 
 		byteCode.execute(frame);
 
-		expect(frame.getStack().pop()).toEqual(6);
+		expect(frame.getLocalVariables().load(3)).toEqual(6);
 	});
 
 	it("should compare", function () {
-		var byteCode = new jjvm.types.ByteCode("dcmpg", "compare");
+		byteCode.setMnemonic("dcmpg");
+		byteCode.setOperation("compare");
 
 		frame.getStack().push(1);
 		frame.getStack().push(1);
@@ -432,7 +463,8 @@ describe("ByteCode test", function () {
 	});
 
 	it("should compare unequals", function () {
-		var byteCode = new jjvm.types.ByteCode("dcmpg", "compare");
+		byteCode.setMnemonic("dcmpg");
+		byteCode.setOperation("compare");
 
 		frame.getStack().push(1);
 		frame.getStack().push(2);
@@ -443,7 +475,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_equal with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("ifeq", "if_equal", [51]);
+		byteCode.setMnemonic("ifeq");
+		byteCode.setOperation("if_equal");
+		byteCode.setArgs([51]);
 		var value1 = 5;
 		var value2 = 5;
 
@@ -462,7 +496,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_equal with not equal", function () {
-		var byteCode = new jjvm.types.ByteCode("ifeq", "if_equal", [51]);
+		byteCode.setMnemonic("ifeq");
+		byteCode.setOperation("if_equal");
+		byteCode.setArgs([51]);
 		var value1 = 10;
 		var value2 = 5;
 		
@@ -474,7 +510,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_not_equal with not equal", function () {
-		var byteCode = new jjvm.types.ByteCode("ifne", "if_not_equal", [51]);
+		byteCode.setMnemonic("ifne");
+		byteCode.setOperation("if_not_equal");
+		byteCode.setArgs([51]);
 		var value1 = 10;
 		var value2 = 5;
 		
@@ -493,7 +531,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_not_equal with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("ifne", "if_not_equal", [51]);
+		byteCode.setMnemonic("ifne");
+		byteCode.setOperation("if_not_equal");
+		byteCode.setArgs([51]);
 		var value1 = 5;
 		var value2 = 5;
 		
@@ -505,7 +545,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_less_than with less than", function () {
-		var byteCode = new jjvm.types.ByteCode("iflt", "if_less_than", [51]);
+		byteCode.setMnemonic("iflt");
+		byteCode.setOperation("if_less_than");
+		byteCode.setArgs([51]);
 		var value1 = 5;
 		var value2 = 10;
 		
@@ -524,7 +566,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_less_than with greater than", function () {
-		var byteCode = new jjvm.types.ByteCode("iflt", "if_less_than", [51]);
+		byteCode.setMnemonic("iflt");
+		byteCode.setOperation("if_less_than");
+		byteCode.setArgs([51]);
 		var value1 = 10;
 		var value2 = 5;
 		
@@ -536,7 +580,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_greater_than_or_equal with greater than", function () {
-		var byteCode = new jjvm.types.ByteCode("ifge", "if_greater_than_or_equal", [51]);
+		byteCode.setMnemonic("ifge");
+		byteCode.setOperation("if_greater_than_or_equal");
+		byteCode.setArgs([51]);
 		var value1 = 10;
 		var value2 = 5;
 		
@@ -555,7 +601,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_greater_than_or_equal with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("ifge", "if_greater_than_or_equal", [51]);
+		byteCode.setMnemonic("ifge");
+		byteCode.setOperation("if_greater_than_or_equal");
+		byteCode.setArgs([51]);
 		var value1 = 5;
 		var value2 = 5;
 		
@@ -574,7 +622,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_greater_than_or_equal with less than", function () {
-		var byteCode = new jjvm.types.ByteCode("ifge", "if_greater_than_or_equal", [51]);
+		byteCode.setMnemonic("ifge");
+		byteCode.setOperation("if_greater_than_or_equal");
+		byteCode.setArgs([51]);
 		var value1 = 5;
 		var value2 = 10;
 		
@@ -586,7 +636,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_greater_than with greater than", function () {
-		var byteCode = new jjvm.types.ByteCode("ifgt", "if_greater_than", [51]);
+		byteCode.setMnemonic("ifgt");
+		byteCode.setOperation("if_greater_than");
+		byteCode.setArgs([51]);
 		var value1 = 10;
 		var value2 = 5;
 		
@@ -605,7 +657,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_greater_than with less than", function () {
-		var byteCode = new jjvm.types.ByteCode("ifgt", "if_greater_than", [51]);
+		byteCode.setMnemonic("ifgt");
+		byteCode.setOperation("if_greater_than");
+		byteCode.setArgs([51]);
 		var value1 = 5;
 		var value2 = 10;
 		
@@ -617,7 +671,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_less_than_or_equal with less than", function () {
-		var byteCode = new jjvm.types.ByteCode("ifle", "if_less_than_or_equal", [51]);
+		byteCode.setMnemonic("ifle");
+		byteCode.setOperation("if_less_than_or_equal");
+		byteCode.setArgs([51]);
 		var value1 = 5;
 		var value2 = 10;
 		
@@ -636,7 +692,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_less_than_or_equal with equal", function () {
-		var byteCode = new jjvm.types.ByteCode("ifle", "if_less_than_or_equal", [51]);
+		byteCode.setMnemonic("ifle");
+		byteCode.setOperation("if_less_than_or_equal");
+		byteCode.setArgs([51]);
 		var value1 = 5;
 		var value2 = 5;
 		
@@ -655,7 +713,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process if_less_than_or_equal with greater than", function () {
-		var byteCode = new jjvm.types.ByteCode("ifle", "if_less_than_or_equal", [51]);
+		byteCode.setMnemonic("ifle");
+		byteCode.setOperation("if_less_than_or_equal");
+		byteCode.setArgs([51]);
 		var value1 = 10;
 		var value2 = 5;
 		
@@ -668,7 +728,10 @@ describe("ByteCode test", function () {
 
 	it("should process goto", function () {
 		var location = 18;
-		var byteCode = new jjvm.types.ByteCode("goto", "goto", [location]);
+
+		byteCode.setMnemonic("goto");
+		byteCode.setOperation("goto");
+		byteCode.setArgs([location]);
 
 		try {
 			byteCode.execute(frame);
@@ -683,7 +746,9 @@ describe("ByteCode test", function () {
 
 	it("should process jsr", function () {
 		var location = 18;
-		var byteCode = new jjvm.types.ByteCode("jsr", "jsr", [location]);
+		byteCode.setMnemonic("jsr");
+		byteCode.setOperation("jsr");
+		byteCode.setArgs([location]);
 
 		try {
 			byteCode.execute(frame);
@@ -699,7 +764,9 @@ describe("ByteCode test", function () {
 	it("should process ret", function () {
 		var variableLocation = 2;
 		var location = 18;
-		var byteCode = new jjvm.types.ByteCode("ret", "ret", [variableLocation]);
+		byteCode.setMnemonic("ret");
+		byteCode.setOperation("ret");
+		byteCode.setArgs([variableLocation]);
 		
 		frame.getLocalVariables().store(variableLocation, location);
 
@@ -715,7 +782,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process return", function () {
-		var byteCode = new jjvm.types.ByteCode("ireturn", "return");
+		byteCode.setMnemonic("ireturn");
+		byteCode.setOperation("return_value");
+
 		var value = 3;
 
 		frame.getStack().push(value);
@@ -725,47 +794,60 @@ describe("ByteCode test", function () {
 		expect(output).toEqual(value);
 	});
 
+	it("should process return void", function () {
+		byteCode.setMnemonic("return");
+		byteCode.setOperation("return_void");
+
+		var output = byteCode.execute(frame);
+
+		expect(output).toEqual(jjvm.runtime.Void);
+	});
+
 	it("should process get_static", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/io/PrintStream", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "out", constantPool));
-		constantPool.store(3, new jjvm.types.ConstantPoolNameAndTypeValue(2, 1, constantPool));
-		constantPool.store(4, new jjvm.types.ConstantPoolClassValue(1, constantPool));
-		constantPool.store(5, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/System", constantPool));
-		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(5, constantPool));
-		constantPool.store(7, new jjvm.types.ConstantPoolFieldValue(6, 3, constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/io/PrintStream"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "out"}));
+		constantPool.store(3, new jjvm.types.ConstantPoolNameAndTypeValue({nameIndex: 2, nameTypeIndex: 1}));
+		constantPool.store(4, new jjvm.types.ConstantPoolClassValue({classIndex: 1}));
+		constantPool.store(5, new jjvm.types.ConstantPoolValue({type: "Asciz", value: "java/lang/System"}));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue({classIndex: 5, value: "java/lang/System"}));
+		constantPool.store(7, new jjvm.types.ConstantPoolFieldValue({classIndex: 6, nameAndTypeIndex: 3, className: "java.lang.System", fieldName: "out", fieldType: "java.io.PrintStream"}));
 
-		var byteCode = new jjvm.types.ByteCode("getstatic", "get_static", [7], 0, constantPool);
+		//var byteCode = new jjvm.types.ByteCode("getstatic", "get_static", [7], 0, constantPool);
+		byteCode.setMnemonic("getstatic");
+		byteCode.setOperation("get_static");
+		byteCode.setArgs([7]);
 		
 		byteCode.execute(frame, constantPool);
 
 		var fieldDef = frame.getStack().pop();
 		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
 
-		expect(fieldDef.getClass()).toEqual(classDef);
+		expect(fieldDef.getClass().getName()).toEqual(classDef.getName());
 	});
 
 	it("should process put_static", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "SimpleExample$Blah", constantPool));
-		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "blah", constantPool));
-		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "I", constantPool));
-		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
-		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(1, constantPool));
-		constantPool.store(7, new jjvm.types.ConstantPoolClassValue(2, constantPool));
-		constantPool.store(8, new jjvm.types.ConstantPoolFieldValue(7, 5, constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Object"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "SimpleExample$Blah"}));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "blah"}));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "I"}));
+		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue({nameIndex: 3, nameTypeIndex: 4}));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/lang/Object"}));
+		constantPool.store(7, new jjvm.types.ConstantPoolClassValue({classIndex: 2, value: "SimpleExample$Blah"}));
+		constantPool.store(8, new jjvm.types.ConstantPoolFieldValue({classIndex: 7, nameAndTypeIndex: 5, className: "SimpleExample$Blah", fieldName: "blah", fieldType: "I"}));
 
 		var initialFieldValue = 7;
 		var expectedFieldValue = 5;
 
-		var classDef = new jjvm.types.ClassDefinition(
-			constantPool.load(2),
-			constantPool.load(1)
-		);
+		var classDef = new jjvm.types.ClassDefinition();
+		classDef.setName("SimpleExample$Blah");
+		classDef.setParent("java.lang.Object");
 		classDef.setConstantPool(constantPool);
 
-		var fieldDef = new jjvm.types.FieldDefinition("blah", "int", classDef);
+		var fieldDef = new jjvm.types.FieldDefinition();
+		fieldDef.setName("blah");
+		fieldDef.setType("int");
 		fieldDef.setIsStatic(true);
 
 		classDef.addField(fieldDef);
@@ -775,7 +857,9 @@ describe("ByteCode test", function () {
 
 		frame.getStack().push(expectedFieldValue);
 
-		var byteCode = new jjvm.types.ByteCode("putstatic", "put_static", [8], 0, constantPool);
+		byteCode.setMnemonic("putstatic");
+		byteCode.setOperation("put_static");
+		byteCode.setArgs([8]);
 		byteCode.execute(frame, constantPool);
 
 		expect(classDef.getStaticField("blah")).toEqual(expectedFieldValue);
@@ -783,23 +867,26 @@ describe("ByteCode test", function () {
 
 	it("should process getfield", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "SimpleExample$Blah", constantPool));
-		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "blah", constantPool));
-		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "I", constantPool));
-		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
-		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(1, constantPool));
-		constantPool.store(7, new jjvm.types.ConstantPoolClassValue(2, constantPool));
-		constantPool.store(8, new jjvm.types.ConstantPoolFieldValue(7, 5, constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Object"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "SimpleExample$Blah"}));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "blah"}));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "I"}));
+		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue({nameIndex: 3, nameTypeIndex: 4}));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/lang/Object"}));
+		constantPool.store(7, new jjvm.types.ConstantPoolClassValue({classIndex: 2, value: "SimpleExample$Blah"}));
+		constantPool.store(8, new jjvm.types.ConstantPoolFieldValue({classIndex: 7, nameAndTypeIndex: 5, className: "SimpleExample$Blah", fieldName: "blah", fieldType: "I"}));
 
 		var expectedFieldValue = 5;
 
-		var classDef = new jjvm.types.ClassDefinition(
-			constantPool.load(2),
-			constantPool.load(1)
-		);
+		var classDef = new jjvm.types.ClassDefinition();
+		classDef.setName("SimpleExample$Blah");
+		classDef.setParent("java.lang.Object");
 		classDef.setConstantPool(constantPool);
-		classDef.addField(new jjvm.types.FieldDefinition("blah", "int", classDef));
+
+		var fieldDef = new jjvm.types.FieldDefinition();
+		fieldDef.setName("blah");
+		fieldDef.setType("int");
+		classDef.addField(fieldDef);
 
 		jjvm.core.ClassLoader.addClassDefinition(classDef);
 
@@ -808,7 +895,10 @@ describe("ByteCode test", function () {
 
 		frame.getStack().push(objectRef);
 
-		var byteCode = new jjvm.types.ByteCode("getfield", "get_field", [8], 0, constantPool);
+		byteCode.setMnemonic("getfield");
+		byteCode.setOperation("get_field");
+		byteCode.setArgs([8]);
+
 		byteCode.execute(frame, constantPool);
 
 		expect(frame.getStack().pop()).toEqual(expectedFieldValue);
@@ -816,24 +906,27 @@ describe("ByteCode test", function () {
 
 	it("should process putfield", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "SimpleExample$Blah", constantPool));
-		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "blah", constantPool));
-		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "I", constantPool));
-		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
-		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(1, constantPool));
-		constantPool.store(7, new jjvm.types.ConstantPoolClassValue(2, constantPool));
-		constantPool.store(8, new jjvm.types.ConstantPoolFieldValue(7, 5, constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Object"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "SimpleExample$Blah"}));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "blah"}));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "I"}));
+		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue({nameIndex: 3, nameTypeIndex: 4}));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/lang/Object"}));
+		constantPool.store(7, new jjvm.types.ConstantPoolClassValue({classIndex: 2, value: "SimpleExample$Blah"}));
+		constantPool.store(8, new jjvm.types.ConstantPoolFieldValue({classIndex: 7, nameAndTypeIndex: 5, className: "SimpleExample$Blah", fieldName: "blah", fieldType: "I"}));
 
-		var initialFieldValue = 7;
+		var initialFieldValue = 3;
 		var expectedFieldValue = 5;
 
-		var classDef = new jjvm.types.ClassDefinition(
-			constantPool.load(2),
-			constantPool.load(1)
-		);
+		var classDef = new jjvm.types.ClassDefinition();
+		classDef.setName("SimpleExample$Blah");
+		classDef.setParent("java.lang.Object");
 		classDef.setConstantPool(constantPool);
-		classDef.addField(new jjvm.types.FieldDefinition("blah", "int", classDef));
+
+		var fieldDef = new jjvm.types.FieldDefinition();
+		fieldDef.setName("blah");
+		fieldDef.setType("int");
+		classDef.addField(fieldDef);
 
 		jjvm.core.ClassLoader.addClassDefinition(classDef);
 
@@ -843,7 +936,10 @@ describe("ByteCode test", function () {
 		frame.getStack().push(objectRef);
 		frame.getStack().push(expectedFieldValue);
 
-		var byteCode = new jjvm.types.ByteCode("putfield", "put_field", [8], 0, constantPool);
+		byteCode.setMnemonic("putfield");
+		byteCode.setOperation("put_field");
+		byteCode.setArgs([8]);
+
 		byteCode.execute(frame, constantPool);
 
 		expect(objectRef.getField("blah")).toEqual(expectedFieldValue);
@@ -851,10 +947,12 @@ describe("ByteCode test", function () {
 
 	it("should process new", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Object"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/lang/Object"}));
 
-		var byteCode = new jjvm.types.ByteCode("new", "new", [2], 0, constantPool);
+		byteCode.setMnemonic("new");
+		byteCode.setOperation("new");
+		byteCode.setArgs([2]);
 
 		byteCode.execute(frame, constantPool);
 
@@ -867,10 +965,13 @@ describe("ByteCode test", function () {
 
 	it("should process checkcast", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Object"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/lang/Object"}));
 
-		var byteCode = new jjvm.types.ByteCode("checkcast", "check_cast", [2], 0);
+		byteCode.setMnemonic("checkcast");
+		byteCode.setOperation("check_cast");
+		byteCode.setArgs([2]);
+
 		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
@@ -883,10 +984,13 @@ describe("ByteCode test", function () {
 
 	it("should process checkcast and throw", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Integer", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Integer"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/lang/Integer"}));
 
-		var byteCode = new jjvm.types.ByteCode("checkcast", "check_cast", [2], 0);
+		byteCode.setMnemonic("checkcast");
+		byteCode.setOperation("check_cast");
+		byteCode.setArgs([2]);
+
 		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
@@ -896,19 +1000,24 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process throw", function () {
-		var byteCode = new jjvm.types.ByteCode("athrow", "throw");
+		byteCode.setMnemonic("athrow");
+		byteCode.setOperation("throw");
 
 		frame.getStack().push("panic!");
 
 		expect(byteCode.execute, frame).toThrow();
 	});
 
+
 	it("should process instanceof with instance of", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/io/PrintStream", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/io/PrintStream"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/io/PrintStream"}));
 
-		var byteCode = new jjvm.types.ByteCode("instanceof", "instance_of", [2], 0, constantPool);
+		byteCode.setMnemonic("instanceof");
+		byteCode.setOperation("instance_of");
+		byteCode.setArgs([2]);
+
 		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
@@ -919,12 +1028,16 @@ describe("ByteCode test", function () {
 		expect(frame.getStack().pop()).toBeTruthy();
 	});
 
+
 	it("should process instanceof with not instance of", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/System", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolClassValue(1, constantPool));
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/System"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/lang/System"}));
 
-		var byteCode = new jjvm.types.ByteCode("instanceof", "instance_of", [2], 0, constantPool);
+		byteCode.setMnemonic("instanceof");
+		byteCode.setOperation("instance_of");
+		byteCode.setArgs([2]);
+
 		var classDef = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
@@ -936,7 +1049,10 @@ describe("ByteCode test", function () {
 	});
 
 	it("should create multi-dimensional array", function () {
-		var byteCode = new jjvm.types.ByteCode("multianewarray", "multi_dimensional_array_create", [3, 4], 0);
+		byteCode.setMnemonic("multianewarray");
+		byteCode.setOperation("multi_dimensional_array_create");
+		byteCode.setArgs([3, 4]);
+
 		var value1 = 4;
 		var value2 = 2;
 		var value3 = 3;
@@ -958,7 +1074,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process monitorenter", function () {
-		var byteCode = new jjvm.types.ByteCode("monitorenter", "monitor_enter");
+		byteCode.setMnemonic("monitorenter");
+		byteCode.setOperation("monitor_enter");
+
 		var lockObject = {};
 		frame.getStack().push(lockObject);
 
@@ -968,7 +1086,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process monitorexit", function () {
-		var byteCode = new jjvm.types.ByteCode("monitorexit", "monitor_exit");
+		byteCode.setMnemonic("monitorexit");
+		byteCode.setOperation("monitor_exit");
+
 		var lockObject = {};
 		frame.getStack().push(lockObject);
 
@@ -978,7 +1098,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process ifnonnull with non null", function () {
-		var byteCode = new jjvm.types.ByteCode("ifnonnull", "if_non_null", [51]);
+		byteCode.setMnemonic("ifnonnull");
+		byteCode.setOperation("if_non_null");
+		byteCode.setArgs([51]);
 		
 		frame.getStack().push("foo");
 
@@ -994,7 +1116,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process ifnonnull with null", function () {
-		var byteCode = new jjvm.types.ByteCode("ifnonnull", "if_non_null", [51]);
+		byteCode.setMnemonic("ifnonnull");
+		byteCode.setOperation("if_non_null");
+		byteCode.setArgs([51]);
 		
 		frame.getStack().push(null);
 
@@ -1003,7 +1127,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process ifnull with null", function () {
-		var byteCode = new jjvm.types.ByteCode("ifnull", "if_null", [51]);
+		byteCode.setMnemonic("ifnull");
+		byteCode.setOperation("if_null");
+		byteCode.setArgs([51]);
 
 		frame.getStack().push(null);
 
@@ -1019,7 +1145,9 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process ifnull with non null", function () {
-		var byteCode = new jjvm.types.ByteCode("ifnull", "if_null", [51]);
+		byteCode.setMnemonic("ifnull");
+		byteCode.setOperation("if_null");
+		byteCode.setArgs([51]);
 
 		frame.getStack().push("foo");
 
@@ -1029,21 +1157,23 @@ describe("ByteCode test", function () {
 
 	it("should process invokespecial", function () {
 		var constantPool = new jjvm.types.ConstantPool();
-		constantPool.store(1, new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool));
-		constantPool.store(2, new jjvm.types.ConstantPoolValue("Asciz", "<init>", constantPool));
-		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "()V", constantPool));
-		constantPool.store(4, new jjvm.types.ConstantPoolClassValue(1, constantPool));
-		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue(2, 3, constantPool));
-		constantPool.store(6, new jjvm.types.ConstantPoolMethodValue(4, 5, constantPool));
-		
-		var byteCode = new jjvm.types.ByteCode("invokespecial", "invoke_special", [6], 0, constantPool);
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Object"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "<init>"}));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "()V"}));
+		constantPool.store(4, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/lang/Object"}));
+		constantPool.store(5, new jjvm.types.ConstantPoolNameAndTypeValue({nameIndex: 2, typeIndex: 3}));
+		constantPool.store(6, new jjvm.types.ConstantPoolMethodValue({classIndex: 4, nameAndTypeIndex: 5, className: "java.lang.Object", methodName: "<init>", methodType: ""}));
+
+		byteCode.setMnemonic("invokespecial");
+		byteCode.setOperation("invoke_special");
+		byteCode.setArgs([6]);
 
 		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		frame.getStack().push(objectRef);
 
-		spyOn(frame, 'executeChild');
+		spyOn(frame, "executeChild");
 
 		byteCode.execute(frame, constantPool);
 
@@ -1051,41 +1181,42 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process invokestatic", function () {
-		var constantPool = new jjvm.types.ConstantPool();
+		var testClass = new jjvm.types.ClassDefinition();
+		testClass.setName("org.jjvm.InvokeStaticTest");
+		testClass.setParent("java.lang.Object");
 
-		var objectClassName = new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool);
-		var testClassName = new jjvm.types.ConstantPoolValue("Asciz", "org/jjvm/InvokeStaticTest", constantPool);
-
-		var testClass = new jjvm.types.ClassDefinition(
-			testClassName, 
-			objectClassName
-		);
-
-		var testClassStaticMethod = new jjvm.types.MethodDefinition("staticTestMethod", [], null, testClass);
+		var testClassStaticMethod = new jjvm.types.MethodDefinition();
+		testClassStaticMethod.setName("staticTestMethod");
+		testClassStaticMethod.setArgs([]);
+		testClassStaticMethod.setClassDef(testClass);
 		testClassStaticMethod.setImplementation(function() {
 			
 		});
 		testClassStaticMethod.setIsStatic(true);
 		testClass.addMethod(testClassStaticMethod);
+
 		jjvm.core.ClassLoader.addClassDefinition(testClass);
 
-		constantPool.store(1, objectClassName);
-		constantPool.store(2, testClassName);
-		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "staticTestMethod", constantPool));
-		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "()V", constantPool));
-		constantPool.store(5, new jjvm.types.ConstantPoolClassValue(1, constantPool));
-		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(2, constantPool));
-		constantPool.store(7, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
-		constantPool.store(8, new jjvm.types.ConstantPoolMethodValue(6, 7, constantPool));
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Object"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "org/jjvm/InvokeStaticTest"}));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "staticTestMethod"}));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "()V"}));
+		constantPool.store(5, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java.lang.Object"}));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue({classIndex: 2, value: "org.jjvm.InvokeStaticTest"}));
+		constantPool.store(7, new jjvm.types.ConstantPoolNameAndTypeValue({nameIndex: 3, nameTypeIndex: 4}));
+		constantPool.store(8, new jjvm.types.ConstantPoolMethodValue({classIndex: 6, nameAndTypeIndex: 7, className: "org.jjvm.InvokeStaticTest", methodName: "staticTestMethod", methodType: ""}));
 		
-		var byteCode = new jjvm.types.ByteCode("invokestatic", "invoke_static", [8], 0, constantPool);
+		byteCode.setMnemonic("invokestatic");
+		byteCode.setOperation("invoke_static");
+		byteCode.setArgs([8]);
 
 		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		frame.getStack().push(objectRef);
 
-		spyOn(frame, 'executeChild');
+		spyOn(frame, "executeChild");
 
 		byteCode.execute(frame, constantPool);
 
@@ -1093,40 +1224,40 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process invokevirtual", function () {
-		var constantPool = new jjvm.types.ConstantPool();
+		var testClass = new jjvm.types.ClassDefinition();
+		testClass.setName("org.jjvm.InvokeStaticTest");
+		testClass.setParent("java.lang.Object");
 
-		var objectClassName = new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool);
-		var testClassName = new jjvm.types.ConstantPoolValue("Asciz", "org/jjvm/InvokeStaticTest", constantPool);
-
-		var testClass = new jjvm.types.ClassDefinition(
-			testClassName, 
-			objectClassName
-		);
-
-		var testClassStaticMethod = new jjvm.types.MethodDefinition("testMethod", [], null, testClass);
+		var testClassStaticMethod = new jjvm.types.MethodDefinition();
+		testClassStaticMethod.setName("testMethod");
+		testClassStaticMethod.setArgs([]);
+		testClassStaticMethod.setClassDef(testClass);
 		testClassStaticMethod.setImplementation(function() {
 			
 		});
 		testClass.addMethod(testClassStaticMethod);
 		jjvm.core.ClassLoader.addClassDefinition(testClass);
 
-		constantPool.store(1, objectClassName);
-		constantPool.store(2, testClassName);
-		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "testMethod", constantPool));
-		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "()V", constantPool));
-		constantPool.store(5, new jjvm.types.ConstantPoolClassValue(1, constantPool));
-		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(2, constantPool));
-		constantPool.store(7, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
-		constantPool.store(8, new jjvm.types.ConstantPoolMethodValue(6, 7, constantPool));
-		
-		var byteCode = new jjvm.types.ByteCode("invokevirtual", "invoke_virtual", [8], 0, constantPool);
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Object"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "org/jjvm/InvokeStaticTest"}));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "testMethod"}));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "()V"}));
+		constantPool.store(5, new jjvm.types.ConstantPoolClassValue({classIndex: 1, name: "java/lang/Object"}));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue({classIndex: 2, name: "org/jjvm/InvokeStaticTest"}));
+		constantPool.store(7, new jjvm.types.ConstantPoolNameAndTypeValue({nameIndex: 3, nameTypeIndex: 4}));
+		constantPool.store(8, new jjvm.types.ConstantPoolMethodValue({classIndex: 6, nameAndTypeIndex: 7, className: "org.jjvm.InvokeStaticTest", methodName: "testMethod", methodType: ""}));
+
+		byteCode.setMnemonic("invokevirtual");
+		byteCode.setOperation("invoke_virtual");
+		byteCode.setArgs([8]);
 
 		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
 		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
 		frame.getStack().push(objectRef);
 
-		spyOn(frame, 'executeChild');
+		spyOn(frame, "executeChild");
 
 		byteCode.execute(frame, constantPool);
 
@@ -1134,43 +1265,43 @@ describe("ByteCode test", function () {
 	});
 
 	it("should process invokeinterface", function () {
-		var constantPool = new jjvm.types.ConstantPool();
+		var testClass = new jjvm.types.ClassDefinition();
+		testClass.setName("org.jjvm.InvokeInterfaceTest");
+		testClass.setParent("java.lang.Object");
 
-		var objectClassName = new jjvm.types.ConstantPoolValue("Asciz", "java/lang/Object", constantPool);
-		var testClassName = new jjvm.types.ConstantPoolValue("Asciz", "org/jjvm/InvokeStaticTest", constantPool);
-
-		var testClass = new jjvm.types.ClassDefinition(
-			testClassName, 
-			objectClassName
-		);
-
-		var testClassStaticMethod = new jjvm.types.MethodDefinition("testMethod", [], null, testClass);
-		testClassStaticMethod.setImplementation(function() {
+		var testMethod = new jjvm.types.MethodDefinition();
+		testMethod.setName("testMethod");
+		testMethod.setArgs([]);
+		testMethod.setClassDef(testClass);
+		testMethod.setImplementation(function() {
 			
 		});
-		testClass.addMethod(testClassStaticMethod);
+		testClass.addMethod(testMethod);
+
 		jjvm.core.ClassLoader.addClassDefinition(testClass);
 
-		constantPool.store(1, objectClassName);
-		constantPool.store(2, testClassName);
-		constantPool.store(3, new jjvm.types.ConstantPoolValue("Asciz", "testMethod", constantPool));
-		constantPool.store(4, new jjvm.types.ConstantPoolValue("Asciz", "()V", constantPool));
-		constantPool.store(5, new jjvm.types.ConstantPoolClassValue(1, constantPool));
-		constantPool.store(6, new jjvm.types.ConstantPoolClassValue(2, constantPool));
-		constantPool.store(7, new jjvm.types.ConstantPoolNameAndTypeValue(3, 4, constantPool));
-		constantPool.store(8, new jjvm.types.ConstantPoolMethodValue(6, 7, constantPool));
+		var constantPool = new jjvm.types.ConstantPool();
+		constantPool.store(1, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "java/lang/Object"}));
+		constantPool.store(2, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "org/jjvm/InvokeInterfaceTest"}));
+		constantPool.store(3, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "testMethod"}));
+		constantPool.store(4, new jjvm.types.ConstantPoolValue({type: "Utf8", value: "()V"}));
+		constantPool.store(5, new jjvm.types.ConstantPoolClassValue({classIndex: 1, value: "java/lang/Object"}));
+		constantPool.store(6, new jjvm.types.ConstantPoolClassValue({classIndex: 2, value: "org/jjvm/InvokeInterfaceTest"}));
+		constantPool.store(7, new jjvm.types.ConstantPoolNameAndTypeValue({nameIndex: 3, nameTypeIndex: 4}));
+		constantPool.store(8, new jjvm.types.ConstantPoolMethodValue({classIndex: 6, nameAndTypeIndex: 7, className: "org.jjvm.InvokeInterfaceTest", methodName: "testMethod", methodType: ""}));
 		
-		var byteCode = new jjvm.types.ByteCode("invokeinterface", "invoke_interface", [8], 0, constantPool);
+		byteCode.setMnemonic("invokeinterface");
+		byteCode.setOperation("invoke_interface");
+		byteCode.setArgs([8]);
 
-		var classDef = jjvm.core.ClassLoader.loadClass("java.lang.Object");
-		var objectRef = new jjvm.runtime.ObjectReference(classDef);
+		var objectRef = new jjvm.runtime.ObjectReference(testClass);
 
 		frame.getStack().push(objectRef);
 
-		spyOn(frame, 'executeChild');
+		spyOn(frame, "executeChild");
 
 		byteCode.execute(frame, constantPool);
 
 		expect(frame.executeChild).toHaveBeenCalled();
-	});*/
+	});
 });

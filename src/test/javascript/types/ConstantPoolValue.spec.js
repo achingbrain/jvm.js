@@ -17,9 +17,9 @@ describe("jjvm.types.ConstantPoolPrimitiveValue test", function () {
 	});
 
 	it("should have type and value via data", function () {
-		var value = new jjvm.types.ConstantPoolPrimitiveValue({type: "C", value: "bar"});
+		var value = new jjvm.types.ConstantPoolPrimitiveValue({type: "Utf8", value: "bar"});
 
-		expect(value.getType()).toEqual("char");
+		expect(value.getType()).toEqual("Utf8");
 		expect(value.getValue()).toEqual("bar");
 	});
 });

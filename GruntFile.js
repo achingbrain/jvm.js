@@ -34,7 +34,7 @@ module.exports = function(grunt) {
 					"src/main/javascript/worker/compiler/*.js",
 					"src/main/javascript/worker/runtime/*.js",
 					"src/main/javascript/worker/types/*.js",
-					"src/main/javascript/worker/worker/!(Worker).js"
+					"src/main/javascript/worker/worker/*.js"
 				]
 			}
 		},
@@ -70,8 +70,7 @@ module.exports = function(grunt) {
 					"<%= meta.common.lib %>",
 					"<%= meta.worker.lib %>",
 					"<%= meta.common.source %>",
-					"<%= meta.worker.source %>",
-					"src/main/javascript/worker/worker/Worker.js"
+					"<%= meta.worker.source %>"
 				],
 				dest: "target/webapp/js/jvm_compiler_worker.js"
 			}
@@ -98,7 +97,8 @@ module.exports = function(grunt) {
 						"<%= meta.common.lib %>",
 						"<%= meta.ui.lib %>",
 						"<%= meta.worker.lib %>",
-						"src/test/resources/lib/sinon-1.6.0.js"
+						"src/test/resources/lib/sinon-1.6.0.js",
+						"src/test/resources/lib/server.js"
 					],
 					errorReporting: true,
 					specs : "src/test/javascript/**/*.spec.js"
@@ -115,7 +115,8 @@ module.exports = function(grunt) {
 						"<%= meta.common.lib %>",
 						"<%= meta.ui.lib %>",
 						"<%= meta.worker.lib %>",
-						"src/test/resources/lib/sinon-1.6.0.js"
+						"src/test/resources/lib/sinon-1.6.0.js",
+						"src/test/resources/lib/server.js"
 					],
 					errorReporting: true,
 					specs : "<%= jasmine.test.options.specs %>",

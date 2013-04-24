@@ -2,7 +2,8 @@ jjvm.types.ConstantPoolPrimitiveValue = function(data) {
 	_.extend(this, new jjvm.types.ConstantPoolValue(data));
 
 	if(data) {
-		this.setType(jjvm.types.Primitives.jvmTypesToPrimitive[data.type]);
+		//this.setType(jjvm.types.Primitives.jvmTypesToPrimitive[data.type]);
+		//this.setType(jjvm.types.ConstantPoolPrimitiveValue.types[data.type]);
 	}
 
 	this.toString = function() {
