@@ -18,951 +18,6 @@ jjvm = {
 	},
 	nativeMethods: {}
 };
-
-jjvm.Util = {
-	createStringRef: function(string) {
-		var chars = string.split("");
-
-		return jjvm.Util.createObjectRef("java.lang.String", ["char[]"], [chars]);
-	},
-
-	createObjectRef: function(className, constructorSignature, constructorArgs) {
-		var classDef = jjvm.core.ClassLoader.loadClass(className);
-		var objectRef = new jjvm.runtime.ObjectReference(classDef);
-
-		if(constructorArgs) {
-			constructorArgs.unshift(objectRef);
-		} else {
-			constructorArgs = [objectRef];
-		}
-
-		var frame = new jjvm.runtime.Frame(classDef, classDef.getMethod("<init>", constructorSignature), constructorArgs);
-		frame.setIsSystemFrame(true);
-		var thread = new jjvm.runtime.Thread(frame);
-		thread.run();
-		jjvm.runtime.ThreadPool.reap();
-
-		return objectRef;
-	},
-
-	parseArgs: function(string) {
-		var args = [];
-		var iterator = new jjvm.core.Iterator(string.split(""));
-
-		while(iterator.hasNext()) {
-			var character = iterator.peek();
-
-			if(character == "(") {
-				// discard (
-				iterator.next();
-				continue;
-			}
-
-			if(character == ")") {
-				break;
-			}
-
-			if(character == "L") {
-				args.push(jjvm.Util._readObjectArgument(iterator));
-			} else if(character == "[") {
-				args.push(jjvm.Util._readArrayArgument(iterator));
-			} else {
-				var primitive = jjvm.Util._readPrimitiveArgument(iterator);
-
-				if(primitive) {
-					args.push(primitive);
-				}
-			}
-		}
-
-		return args;
-	},
-
-	execute: function(target, methodName, args, argTypes) {
-		if(!argTypes) {
-			argTypes = [];
-		}
-
-		if(!args) {
-			args = [];
-		}
-
-		var methodDef;
-
-		if(target instanceof jjvm.types.ClassDefinition) {
-			// a static method
-			methodDef = target.getMethod(methodName, argTypes);
-		} else if(target instanceof jjvm.runtime.ObjectReference) {
-			args.unshift(target);
-			methodDef = target.getClass().getMethod(methodName, argTypes);
-		} else {
-			throw "Please pass only ClassDefinition or ObjectReference types to jjvm.Util#execute";
-		}
-
-		var frame = new jjvm.runtime.Frame(
-			target.getClass(), 
-			methodDef,
-			args
-		);
-		frame.setIsSystemFrame(true);
-		var thread = new jjvm.runtime.Thread(frame);
-		frame.execute(thread);
-
-		return frame.getOutput();
-	},
-
-	_readPrimitiveArgument: function(iterator) {
-		var character = iterator.next();
-
-		return jjvm.types.Primitives.jvmTypesToPrimitive[character];
-	},
-
-	_readObjectArgument: function(iterator) {
-		// discard L
-		iterator.next();
-		var className = "";
-
-		while(true) {
-			var classNameCharacter = iterator.next();
-
-			if(classNameCharacter == ";") {
-				className = className.replace(/\//g, ".");
-
-				return className;
-			} else {
-				className += classNameCharacter;
-			}
-		}
-	},
-
-	_readArrayArgument: function(iterator) {
-		// discard [
-		iterator.next();
-
-		var character = iterator.peek();
-
-		if(character == "L") {
-			return jjvm.Util._readObjectArgument(iterator) + "[]";
-		} else {
-			return jjvm.Util._readPrimitiveArgument(iterator) + "[]";
-		}
-	}
-};
-
-// Methods specified here will override any specified in bytecode.
-//
-// If you compile bytecode with native methods, you should specify
-// an implementation of the method here, otherwise a compile time
-// warning will be generated and your code will likely fail at
-// run time.
-//
-// When exectuted, the this keyword will have a value of the passed
-// objectRef, unless the method is static, in which case it will
-// be the passed classDef
-jjvm.nativeMethods = {
-
-	"java.lang.Object": {
-		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
-			
-		},
-
-		"getClass()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			return classDef.getObjectRef();
-		},
-
-		"hashCode()I": function(frame, classDef, methodDef, objectRef) {
-			var output = "";
-
-			for(var i = 0; i < classDef.getName().length; i++) {
-				output += classDef.getName().charCodeAt(i);
-			}
-
-			return parseInt(output, 8);
-		},
-
-		"clone()Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			// yikes!
-			return objectRef;
-		},
-
-		"notify()V": function(frame, classDef, methodDef, objectRef) {
-
-		},
-
-		"notifyAll()V": function(frame, classDef, methodDef, objectRef) {
-
-		},
-
-		"wait(J)V": function(frame, classDef, methodDef, objectRef, interval) {
-
-		}
-	},
-
-	"java.lang.Class": {
-		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
-			
-		},
-
-		"forName0(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, className, classLoader) {
-			return jjvm.core.ClassLoader.loadClass(className).getObjectRef();
-		},
-
-		"isInstance(Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef, otherObjectRef) {
-			return otherObjectRef.getClass().isChildOf(classDef);
-		},
-
-		"isAssignableFrom(Ljava/lang/Class;)Z": function(frame, classDef, methodDef, objectRef, otherClassDefObjectRef) {
-			return classDef.isChildOf(otherClassDefObjectRef.getClass());
-		},
-
-		"isInterface()Z": function(frame, classDef, methodDef, objectRef) {
-			return classDef.isInterface();
-		},
-
-		"isArray()Z": function(frame, classDef, methodDef, objectRef) {
-			return false;
-		},
-
-		"isPrimitive()Z": function(frame, classDef, methodDef, objectRef) {
-			return jjvm.types.Primitives.classToPrimitive[classDef.getName()] !== undefined;
-		},
-
-		"getName0()Ljava/lang/String;": function(frame, classDef, methodDef, objectRef) {
-			var stringClassDef = jjvm.core.ClassLoader.loadClass("java.lang.String");
-			var stringObjectRef = new jjvm.runtime.ObjectReference(stringClassDef);
-
-			stringObjectRef.setField("hash32", 0);
-			stringObjectRef.setField("value", classDef.getName().split(""));
-
-			return stringObjectRef;
-
-			//return jjvm.Util.createStringRef(classDef.getName());
-		},
-
-		"getClassLoader0()Ljava/lang/ClassLoader;": function(frame, classDef, methodDef, objectRef) {
-			return classDef.getClassLoader().getObjectRef();
-		},
-
-		"getSuperclass()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			return classDef.getParent().getObjectRef();
-		},
-
-		"getInterfaces()[Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			var output = [];
-			var iterator = new jjvm.core.Iterator(classDef.getInterfaces());
-
-			while(iterator.hasNext()) {
-				output.push(iterator.next().getClassDef().getObjectRef());
-			}
-
-			return output;
-		},
-
-		"getComponentType()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getComponentType()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"getModifiers()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getModifiers()I invoked on " + classDef.getName() + "!");
-		},
-
-		"getSigners()[Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getSigners()[Ljava/lang/Object; invoked on " + classDef.getName() + "!");
-		},
-
-		"setSigners([Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef, signersArray) {
-			console.warn("setSigners([Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getEnclosingMethod0()[Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getEnclosingMethod0()[Ljava/lang/Object; invoked on " + classDef.getName() + "!");
-		},
-
-		"getDeclaringClass()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDeclaringClass()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"getProtectionDomain0()Ljava/security/ProtectionDomain;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getProtectionDomain0()Ljava/security/ProtectionDomain; invoked on " + classDef.getName() + "!");
-		},
-
-		"setProtectionDomain0(Ljava/security/ProtectionDomain;)V": function(frame, classDef, methodDef, objectRef, protectionDomainRef) {
-			console.warn("setProtectionDomain0(Ljava/security/ProtectionDomain;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getPrimitiveClass(Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, stringRef) {
-			var name = stringRef.getField("value").join("");
-			var className = jjvm.types.Primitives.primitiveToClass[name];
-			var primitiveClassDef = jjvm.core.ClassLoader.loadClass(className);
-
-			return primitiveClassDef.getObjectRef();
-		},
-
-		"getGenericSignature()Ljava/lang/String;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getGenericSignature()Ljava/lang/String; invoked on " + classDef.getName() + "!");
-		},
-
-		"getRawAnnotations()[B": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getRawAnnotations()[B invoked on " + classDef.getName() + "!");
-		},
-
-		"getConstantPool()Lsun/reflect/ConstantPool;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getConstantPool()Lsun/reflect/ConstantPool; invoked on " + classDef.getName() + "!");
-		},
-
-		"getDeclaredFields0(Z)[Ljava/lang/reflect/Field;": function(frame, classDef, methodDef, objectRef, bool) {
-			console.warn("getDeclaredFields0(Z)[Ljava/lang/reflect/Field; invoked on " + classDef.getName() + "!");
-		},
-
-		"getDeclaredMethods0(Z)[Ljava/lang/reflect/Method;": function(frame, classDef, methodDef, objectRef, bool) {
-			console.warn("getDeclaredMethods0(Z)[Ljava/lang/reflect/Method; invoked on " + classDef.getName() + "!");
-		},
-
-		"getDeclaredConstructors0(Z)[Ljava/lang/reflect/Constructor;": function(frame, classDef, methodDef, objectRef, bool) {
-			console.warn("getDeclaredConstructors0(Z)[Ljava/lang/reflect/Constructor; invoked on " + classDef.getName() + "!");
-		},
-
-		"getDeclaredClasses0()[Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDeclaredClasses0()[Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"desiredAssertionStatus0(Ljava/lang/Class;)Z": function(frame, classDef, methodDef, objectRef, forClassRef) {
-			return true;
-		},
-
-		"desiredAssertionStatus()Z": function(frame, classDef, methodDef, objectRef, stringRef) {
-			return true;
-		},
-
-		"getClassLoader()Ljava/lang/ClassLoader;": function(frame, classDef, methodDef, objectRef, forClassRef) {
-			return classDef.getClassLoader().getObjectRef();
-		}
-	},
-
-	"java.lang.String": {
-		"intern()Ljava/lang/String;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("intern()Ljava/lang/String; invoked on " + classDef.getName() + "!");
-		}
-	},
-
-	"java.io.PrintStream": {
-		"println(Ljava/lang/String;)V": function(frame, classDef, methodDef, objectRef, stringRef) {
-			var line = stringRef.getField("value").join("");
-			console.info(line);
-		}
-	},
-
-	"java.lang.System": {
-		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
-
-		},
-		"setIn0(Ljava/io/InputStream;)V": function(frame, classDef, methodDef, objectRef, inputStream) {
-			classDef.setStaticField("in", inputStream);
-		},
-		"setOut0(Ljava/io/PrintStream;)V": function(frame, classDef, methodDef, objectRef, printStream) {
-			classDef.setStaticField("out", printStream);
-		},
-		"setErr0(Ljava/io/PrintStream;)V": function(frame, classDef, methodDef, objectRef, printStream) {
-			classDef.setStaticField("err", printStream);
-		},
-		"currentTimeMillis()J": function(frame, classDef, methodDef, objectRef) {
-			return new Date().getTime();
-		},
-		"nanoTime()J": function(frame, classDef, methodDef, objectRef) {
-			return new Date().getTime() * 1000;
-		},
-		"arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V": function(frame, classDef, methodDef, objectRef, src, srcPos, dest, destPos, length) {
-			if(!dest) {
-				throw "NullPointerException";
-			}
-
-			if(!src) {
-				throw "NullPointerException";
-			}
-
-			if(!_.isArray(src) || !_.isArray(dest)) {
-				throw "ArrayStoreException";
-			}
-
-			if(srcPos < 0 || destPos < 0 || length < 0 || (srcPos + length > src.length) || (destPos + length > dest.length)) {
-				throw "IndexOutOfBoundsException";
-			}
-
-			for(var i = 0; i < length; i++) {
-				dest[destPos + i] = src[srcPos + i];
-			}
-		},
-		"identityHashCode(Ljava/lang/Object;)I": function(frame, classDef, methodDef, objectRef, otherObjectRef) {
-			return otherObjectRef.getIndex();
-		},
-		"initProperties(Ljava/util/Properties;)Ljava/util/Properties;": function(frame, classDef, methodDef, objectRef, properties) {
-			console.warn("initProperties(Ljava/util/Properties;)Ljava/util/Properties; invoked on " + classDef.getName() + "!");
-		},
-		"mapLibraryName(Ljava/lang/String;)Ljava/lang/String;": function(frame, classDef, methodDef, objectRef, libName) {
-			console.warn("mapLibraryName(Ljava/lang/String;)Ljava/lang/String; invoked on " + classDef.getName() + "!");
-		}
-	},
-
-	"java.lang.Throwable": {
-		"fillInStackTrace(I)Ljava/lang/Throwable;": function(frame, classDef, methodDef, objectRef, x) {
-			return objectRef;
-		},
-
-		"getStackTraceDepth()I": function(frame, classDef, methodDef, objectRef) {
-			return 0;
-		},
-
-		"getStackTraceElement(I)Ljava/lang/StackTraceElement;": function(frame, classDef, methodDef, objectRef, index) {
-			return null;
-		}
-	},
-
-	"java.lang.Float": {
-		"floatToRawIntBits(F)I": function(frame, classDef, methodDef, objectRef, f) {
-			return f;
-		},
-
-		"intBitsToFloat(I)F": function(frame, classDef, methodDef, objectRef, i) {
-			return i;
-		}
-	},
-
-	"java.lang.Double": {
-		"doubleToRawLongBits(D)J": function(frame, classDef, methodDef, objectRef, d) {
-			return d;
-		},
-
-		"longBitsToDouble(J)D": function(frame, classDef, methodDef, objectRef, j) {
-			return j;
-		}
-	},
-
-	"java.lang.ClassLoader": {
-		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
-
-		},
-
-		"defineClass0(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, name, bytes, offset, length, protectionDomain) {
-			console.warn("defineClass0(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"defineClass1(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, name, bytes, offset, length, protectionDomain, anotherString) {
-			console.warn("defineClass1(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"defineClass2(Ljava/lang/String;Ljava/nio/ByteBuffer;IILjava/security/ProtectionDomain;Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, name, byteBuffer, offset, length, protectionDomain, anotherString) {
-			console.warn("defineClass2(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"resolveClass0(Ljava/lang/Class;)V": function(frame, classDef, methodDef, objectRef, clazz) {
-			console.warn("resolveClass0(Ljava/lang/Class;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, className) {
-			console.warn("findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, className) {
-			console.warn("findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"getCaller(I)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, index) {
-			console.warn("getCaller(I)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"retrieveDirectives()Ljava/lang/AssertionStatusDirectives;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("retrieveDirectives()Ljava/lang/AssertionStatusDirectives; invoked on " + classDef.getName() + "!");
-		}
-	},
-
-	"java.security.AccessController": {
-		"doPrivileged(Ljava/security/PrivilegedAction;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef) {
-			return jjvm.Util.execute(actionRef, "run");
-		},
-
-		"doPrivileged(Ljava/security/PrivilegedAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef, contextRef) {
-			return jjvm.Util.execute(actionRef, "run");
-		},
-
-		"doPrivileged(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef) {
-			console.warn("doPrivileged(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
-		},
-
-		"doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef, contextRef) {
-			console.warn("doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
-		},
-
-		"getStackAccessControlContext()Ljava/security/AccessControlContext;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getStackAccessControlContext()Ljava/security/AccessControlContext; invoked on " + classDef.getName() + "!");
-		},
-
-		"getInheritedAccessControlContext()Ljava/security/AccessControlContext;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getStackAccessControlContext()Ljava/security/AccessControlContext; invoked on " + classDef.getName() + "!");
-		}
-	},
-
-	"sun.misc.Unsafe": {
-		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
-			
-		},
-	
-		"getInt(Ljava/lang/Object;J)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getInt(Ljava/lang/Object;J)I invoked on " + classDef.getName() + "!");
-		},
-
-		"putInt(Ljava/lang/Object;JI)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putInt(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getObject(Ljava/lang/Object;J)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getObject(Ljava/lang/Object;J)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
-		},
-
-		"putObject(Ljava/lang/Object;JLjava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putObject(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getBoolean(Ljava/lang/Object;J)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getBoolean(Ljava/lang/Object;J)Z invoked on " + classDef.getName() + "!");
-		},
-
-		"putBoolean(Ljava/lang/Object;JZ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putBoolean(Ljava/lang/Object;JZ)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getByte(Ljava/lang/Object;J)B": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getByte(Ljava/lang/Object;J)B invoked on " + classDef.getName() + "!");
-		},
-
-		"putByte(Ljava/lang/Object;JB)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putByte(Ljava/lang/Object;JB)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getShort(Ljava/lang/Object;J)S": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getShort(Ljava/lang/Object;J)S invoked on " + classDef.getName() + "!");
-		},
-
-		"putShort(Ljava/lang/Object;JS)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putShort(Ljava/lang/Object;JS)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getChar(Ljava/lang/Object;J)C": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getChar(Ljava/lang/Object;J)C invoked on " + classDef.getName() + "!");
-		},
-
-		"putChar(Ljava/lang/Object;JC)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putChar(Ljava/lang/Object;JC)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getLong(Ljava/lang/Object;J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getLong(Ljava/lang/Object;J)J invoked on " + classDef.getName() + "!");
-		},
-
-		"putLong(Ljava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putLong(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getFloat(Ljava/lang/Object;J)F": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getFloat(Ljava/lang/Object;J)F invoked on " + classDef.getName() + "!");
-		},
-
-		"putFloat(Ljava/lang/Object;JF)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putFloat(Ljava/lang/Object;JF)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getDouble(Ljava/lang/Object;J)D": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDouble(Ljava/lang/Object;J)D invoked on " + classDef.getName() + "!");
-		},
-
-		"putDouble(Ljava/lang/Object;JD)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putDouble(Ljava/lang/Object;JD)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getByte(J)B": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getByte(J)B invoked on " + classDef.getName() + "!");
-		},
-
-		"putByte(JB)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putByte(JB)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getShort(J)S": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getShort(J)S invoked on " + classDef.getName() + "!");
-		},
-
-		"putShort(JS)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putShort(JS)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getChar(J)C": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getChar(J)C invoked on " + classDef.getName() + "!");
-		},
-
-		"putChar(JC)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putChar(JC)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getInt(J)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getInt(J)I invoked on " + classDef.getName() + "!");
-		},
-
-		"putInt(JI)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putInt(JI)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getLong(J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getLong(J)J invoked on " + classDef.getName() + "!");
-		},
-
-		"putLong(JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putLong(JJ)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getFloat(J)F": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getFloat(J)F invoked on " + classDef.getName() + "!");
-		},
-
-		"putFloat(JF)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putFloat(JF)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getDouble(J)D": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDouble(J)D invoked on " + classDef.getName() + "!");
-		},
-
-		"putDouble(JD)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putDouble(JD)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getAddress(J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getAddress(J)J invoked on " + classDef.getName() + "!");
-		},
-
-		"putAddress(JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putAddress(JJ)V invoked on " + classDef.getName() + "!");
-		},
-
-		"allocateMemory(J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("allocateMemory(J)J invoked on " + classDef.getName() + "!");
-		},
-
-		"reallocateMemory(JJ)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("reallocateMemory(JJ)J invoked on " + classDef.getName() + "!");
-		},
-
-		"setMemory(Ljava/lang/Object;JJB)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("setMemory(Ljava/lang/Object;JJB)V invoked on " + classDef.getName() + "!");
-		},
-
-		"copyMemory(Ljava/lang/Object;JLjava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("copyMemory(Ljava/lang/Object;JLjava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
-		},
-
-		"freeMemory(J)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("freeMemory(J)V invoked on " + classDef.getName() + "!");
-		},
-
-		"staticFieldOffset(Ljava/lang/reflect/Field;)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("staticFieldOffset(Ljava/lang/reflect/Field;)J invoked on " + classDef.getName() + "!");
-		},
-
-		"objectFieldOffset(Ljava/lang/reflect/Field;)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("objectFieldOffset(Ljava/lang/reflect/Field;)J invoked on " + classDef.getName() + "!");
-		},
-
-		"staticFieldBase(Ljava/lang/reflect/Field;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("staticFieldBase(Ljava/lang/reflect/Field;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
-		},
-
-		"ensureClassInitialized(Ljava/lang/Class;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("ensureClassInitialized(Ljava/lang/Class;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"arrayBaseOffset(Ljava/lang/Class;)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("arrayBaseOffset(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
-		},
-
-		"arrayIndexScale(Ljava/lang/Class;)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("arrayIndexScale(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
-		},
-
-		"addressSize()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("addressSize()I invoked on " + classDef.getName() + "!");
-		},
-
-		"pageSize()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("pageSize()I invoked on " + classDef.getName() + "!");
-		},
-
-		"defineClass(Ljava/lang/String;[BIILjava/lang/ClassLoader;Ljava/security/ProtectionDomain;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("defineClass(Ljava/lang/String;[BIILjava/lang/ClassLoader;Ljava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"defineClass(Ljava/lang/String;[BII)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("defineClass(Ljava/lang/String;[BII)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"defineAnonymousClass(Ljava/lang/Class;[B[Ljava/lang/Object;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("defineAnonymousClass(Ljava/lang/Class;[B[Ljava/lang/Object;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"allocateInstance(Ljava/lang/Class;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("allocateInstance(Ljava/lang/Class;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
-		},
-
-		"monitorEnter(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("monitorEnter(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"monitorExit(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("monitorExit(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"tryMonitorEnter(Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("tryMonitorEnter(Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
-		},
-
-		"throwException(Ljava/lang/Throwable;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("hrowException(Ljava/lang/Throwable;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"compareAndSwapObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("compareAndSwapObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
-		},
-
-		"compareAndSwapInt(Ljava/lang/Object;JII)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("compareAndSwapInt(Ljava/lang/Object;JII)Z invoked on " + classDef.getName() + "!");
-		},
-
-		"compareAndSwapLong(Ljava/lang/Object;JJJ)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("compareAndSwapLong(Ljava/lang/Object;JJJ)Z invoked on " + classDef.getName() + "!");
-		},
-
-		"getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
-		},
-
-		"putObjectVolatile(Ljava/lang/Object;JLjava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putObjectVolatile(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getIntVolatile(Ljava/lang/Object;J)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getIntVolatile(Ljava/lang/Object;J)I invoked on " + classDef.getName() + "!");
-		},
-
-		"putIntVolatile(Ljava/lang/Object;JI)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putIntVolatile(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getBooleanVolatile(Ljava/lang/Object;J)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getBooleanVolatile(Ljava/lang/Object;J)Z invoked on " + classDef.getName() + "!");
-		},
-
-		"putBooleanVolatile(Ljava/lang/Object;JZ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putBooleanVolatile(Ljava/lang/Object;JZ)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getByteVolatile(Ljava/lang/Object;J)B": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getByteVolatile(Ljava/lang/Object;J)B invoked on " + classDef.getName() + "!");
-		},
-
-		"putByteVolatile(Ljava/lang/Object;JB)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putByteVolatile(Ljava/lang/Object;JB)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getShortVolatile(Ljava/lang/Object;J)S": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getShortVolatile(Ljava/lang/Object;J)S invoked on " + classDef.getName() + "!");
-		},
-
-		"putShortVolatile(Ljava/lang/Object;JS)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putShortVolatile(Ljava/lang/Object;JS)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getCharVolatile(Ljava/lang/Object;J)C": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getCharVolatile(Ljava/lang/Object;J)C invoked on " + classDef.getName() + "!");
-		},
-
-		"putCharVolatile(Ljava/lang/Object;JC)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putCharVolatile(Ljava/lang/Object;JC)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getLongVolatile(Ljava/lang/Object;J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getLongVolatile(Ljava/lang/Object;J)J invoked on " + classDef.getName() + "!");
-		},
-
-		"putLongVolatile(Ljava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putLongVolatile(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getFloatVolatile(Ljava/lang/Object;J)F": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getFloatVolatile(Ljava/lang/Object;J)F invoked on " + classDef.getName() + "!");
-		},
-
-		"putFloatVolatile(Ljava/lang/Object;JF)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("utFloatVolatile(Ljava/lang/Object;JF)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getDoubleVolatile(Ljava/lang/Object;J)D": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDoubleVolatile(Ljava/lang/Object;J)D invoked on " + classDef.getName() + "!");
-		},
-
-		"putDoubleVolatile(Ljava/lang/Object;JD)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putDoubleVolatile(Ljava/lang/Object;JD)V invoked on " + classDef.getName() + "!");
-		},
-
-		"putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"putOrderedInt(Ljava/lang/Object;JI)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putOrderedInt(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
-		},
-
-		"putOrderedLong(Ljava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putOrderedLong(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
-		},
-
-		"unpark(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("unpark(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"park(ZJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("park(ZJ)V invoked on " + classDef.getName() + "!");
-		},
-
-		"getLoadAverage([DI)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getLoadAverage([DI)I invoked on " + classDef.getName() + "!");
-		}
-	},
-
-	"sun.reflect.Reflection" : {
-		"getCallerClass(I)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, stackDepth) {
-			for(var i = 0; i < stackDepth; i++) {
-				frame = frame.getParent();
-			}
-
-			return frame.getClassDef().getObjectRef();
-		},
-
-		"getClassAccessFlags(Ljava/lang/Class;)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getClassAccessFlags(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
-		}
-	},
-
-	"sun.misc.VM": {
-		"initialize()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("initialize()V invoked on " + classDef.getName() + "!");
-		}
-	},
-
-	"java.lang.SecurityManager": {
-		"getClassContext()[Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getClassContext()[Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"currentClassLoader0()Ljava/lang/ClassLoader;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("currentClassLoader0()Ljava/lang/ClassLoader; invoked on " + classDef.getName() + "!");
-		},
-
-		"classDepth(Ljava/lang/String;)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("classDepth(Ljava/lang/String;)I invoked on " + classDef.getName() + "!");
-		},
-
-		"classLoaderDepth0()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("classLoaderDepth0()I invoked on " + classDef.getName() + "!");
-		},
-
-		"currentLoadedClass0()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("currentLoadedClass0()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
-		},
-
-		"checkPermission(Ljava/security/Permission;)V": function(frame, classDef, methodDef, objectRef) {
-			// do nothing
-		},
-
-		"checkPermission(Ljava/security/Permission;Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			// do nothing
-		}
-	},
-
-	"java.lang.Thread" : {
-		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
-			
-		},
-
-		"currentThread()Ljava/lang/Thread;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("currentThread()Ljava/lang/Thread; invoked on " + classDef.getName() + "!");
-		},
-
-		"yield()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("yield()V invoked on " + classDef.getName() + "!");
-		},
-
-		"sleep(J)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("sleep(J)V invoked on " + classDef.getName() + "!");
-		},
-
-		"start0()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("start0()V invoked on " + classDef.getName() + "!");
-		},
-
-		"isInterrupted(Z)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("isInterrupted(Z)Z invoked on " + classDef.getName() + "!");
-		},
-
-		"isAlive()Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("isAlive()Z invoked on " + classDef.getName() + "!");
-		},
-
-		"countStackFrames()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("countStackFrames()I invoked on " + classDef.getName() + "!");
-		},
-
-		"holdsLock(Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("holdsLock(Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
-		},
-
-		"dumpThreads([Ljava/lang/Thread;)[[Ljava/lang/StackTraceElement;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("dumpThreads([Ljava/lang/Thread;)[[Ljava/lang/StackTraceElement; invoked on " + classDef.getName() + "!");
-		},
-
-		"getThreads()[Ljava/lang/Thread;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getThreads()[Ljava/lang/Thread; invoked on " + classDef.getName() + "!");
-		},
-
-		"setPriority0(I)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("setPriority0(I)V invoked on " + classDef.getName() + "!");
-		},
-
-		"stop0(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("stop0(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
-		},
-
-		"suspend0()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("suspend0()V invoked on " + classDef.getName() + "!");
-		},
-
-		"resume0()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("resume0()V invoked on " + classDef.getName() + "!");
-		},
-
-		"interrupt0()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("interrupt0()V invoked on " + classDef.getName() + "!");
-		},
-
-		"setNativeName(Ljava/lang/String;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("setNativeName(Ljava/lang/String;)V invoked on " + classDef.getName() + "!");
-		}
-	}/*,
-
-	"java.lang.AbstractStringBuilder": {
-		"expandCapacity(I)V": function(frame, classDef, methodDef, objectRef, newCapacity) {
-			var value = objectRef.getField("value");
-			value.length = newCapacity;
-		}
-	}*/
-};
-
 jjvm.core.ByteIterator = function(iterable) {
 	_.extend(this, new jjvm.core.Iterator(iterable));
 
@@ -1111,7 +166,7 @@ jjvm.core.ClassCache = {
 			return null;
 		}
 
-		console.info("loading " + className);
+		jjvm.console.info("loading " + className);
 		var data = JSON.parse(localStorage["jjvm_" + className]);
 
 		var classDef = new jjvm.types.ClassDefinition(data);
@@ -1182,10 +237,6 @@ jjvm.core.ClassLoader = {
 	},
 
 	loadClass: function(className) {
-		if(!className) {
-			var sdfoij = "asdf9j";
-		}
-
 		className = className.replace(/\//g, ".");
 
 		var output;
@@ -1225,67 +276,53 @@ jjvm.core.ClassLoader = {
 			);
 			frame.setIsSystemFrame(true);
 			var thread = new jjvm.runtime.Thread(frame);
-			frame.execute(thread);
+			thread.run();
 		}
 
 		return jjvm.core.ClassLoader._objectRef;
 	}
 };
-jjvm.core.DOMUtil = {
-	create: function(type, content, attributes) {
-		// if we've been passed two arguments, see if the second is content or attributes
-		if(!attributes && _.isObject(content) && !_.isString(content) && !_.isArray(content) && !_.isElement(content)) {
-			attributes = content;
-			content = null;
-		}
+// Jshint complains if we don't use this.console, Chrome complains if we
+// don't use this["console"].  Chrome wins.
+var c = "con" + "sole";
 
-		if(type && content && attributes) {
-			return jjvm.core.DOMUtil._create(type, content, attributes);
-		} else if(type && content) {
-			return jjvm.core.DOMUtil._create(type, content, attributes);
-		} else if(type && attributes) {
-			return jjvm.core.DOMUtil._createEmpty(type, attributes);
-		} else {
-			return jjvm.core.DOMUtil._createEmpty(type);
-		}
-
-		//console.error("jjvm.core.DOMUtil.create passed wrong number of arguments.  Expected 1, 2 or 3, was " + arguments.length);
+// if there's a console, use it, otherwise pass it back to the main thread
+jjvm.console = this[c] ? this[c] : {
+	debug: function(string) {
+		self.postMessage({
+			action: "consoleDebug",
+			args: JSON.stringify([string])
+		});
 	},
 
-	_create: function(type, content, attributes) {
-		var output = jjvm.core.DOMUtil._createEmpty(type, attributes);
-
-		jjvm.core.DOMUtil.append(content, output);
-
-		return output;
+	info: function(string) {
+		self.postMessage({
+			action: "consoleInfo",
+			args: JSON.stringify([string])
+		});
 	},
 
-	_createEmpty: function(type, attributes) {
-		var output = document.createElement(type);
+	warn: function(string) {
+		self.postMessage({
+			action: "consoleWarn",
+			args: JSON.stringify([string])
+		});
+	},
 
-		if(attributes) {
-			for(var key in attributes) {
-				output[key] = attributes[key];
-			}
+	error: function(string) {
+		if(string.stack) {
+			_.each(string.stack.split("\n"), function(line) {
+				self.postMessage({
+					action: "consoleError",
+					args: JSON.stringify([line])
+				});
+			});
+		} else if(_.isString(string)) {
+			self.postMessage({
+				action: "consoleError",
+				args: JSON.stringify([string])
+			});
 		}
-
-		return output;
-	},
-
-	append: function(content, node) {
-		if(_.isString(content)) {
-			jjvm.core.DOMUtil._appendText(content, node);
-		} else if(_.isArray(content)) {
-			for(var i = 0; i < content.length; i++) {
-				jjvm.core.DOMUtil.append(content[i], node);
-			}
-		} else if(_.isElement(content)) {
-			node.appendChild(content);
-		}
-	},
-
-	_appendText: function(content, node) {
-		node.appendChild(document.createTextNode(content));
 	}
 };
 jjvm.core.Iterator = function(iterable) {
@@ -1399,7 +436,7 @@ jjvm.core.SystemClassLoader = {
 			return cached;
 		}*/
 
-		console.info("Downloading " + className);
+		jjvm.console.info("Downloading " + className);
 
 		// Have to use synchronous request here and as such can't use html5
 		// response types as they make the UI unresponsive even though
@@ -1435,7 +472,7 @@ jjvm.core.SystemClassLoader = {
 			);
 			frame.setIsSystemFrame(true);
 			var thread = new jjvm.runtime.Thread(frame);
-			frame.execute(thread);
+			thread.run();
 		}
 
 		return jjvm.core.SystemClassLoader._objectRef;
@@ -1525,2821 +562,947 @@ jjvm.core.Watchable = {
 		}
 
 		// inform global listeners
-		//console.info("dispatching " + eventType + " with args " + args);
+		//jjvm.console.info("dispatching " + eventType + " with args " + args);
 		jjvm.core.NotificationCentre.dispatch(this, eventType, args);
 	}
 };
-jjvm.types.ByteCode = function(data) {
-	var _data = data ? data : {};
-
-	var _breakpoint;
-	var _operation;
-
-	var invokeMethod = function(methodDef, frame) {
-		var args = [];
-
-		for(var i = 0; i < methodDef.getArgs().length; i++) {
-			args.unshift(frame.getStack().pop());
-		}
-
-		if(!methodDef.isStatic()) {
-			// place reference to current object at position 0 of local arguments
-			args.unshift(frame.getStack().pop());
-		}
-
-		if(args[0] instanceof jjvm.types.ClassDefinition) {
-			// swap ClassDefinition for it's object ref
-			var classDef = args.shift();
-			args.unshift(classDef.getObjectRef());
-		}
-
-		if(methodDef.isStatic()) {
-			console.debug("Invoking static method " + methodDef.getName() + " on " + methodDef.getClassDef().getName() + " with args " + args);
-		} else {
-			console.debug("Invoking instance method " + methodDef.getName() + " on " + args[0].getClass().getName() + " as " + methodDef.getClassDef().getName() + " with args " + args);
-		}
-
-		frame.executeChild(methodDef.getClassDef(), methodDef, args);
-	};
-
-	var operations = {
-		"nop": function() {
-			this.execute = function(frame, constantPool) {
-				
-			};
-		},
-		"push": function(value) {
-			this.execute = function(frame, constantPool) {
-				frame.getStack().push(value);
-			};
-		},
-		"push_constant": function(index) {
-			this.execute = function(frame, constantPool) {
-				// should return String, int or float
-				var value = constantPool.load(index);
-
-				if(!value) {
-					throw "Constant value was falsy!";
-				}
-
-				if(value instanceof jjvm.types.ConstantPoolClassValue) {
-					value = value.getClassDef();
-				} else if(value instanceof jjvm.types.ConstantPoolStringReferenceValue) {
-					value = value.getStringReference();
-				} else {
-					value = value.getValue();
-				}
-
-				frame.getStack().push(value);
-			};
-		},
-		"load": function(location) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getLocalVariables().load(location);
-				frame.getStack().push(value);
-			};
-		},
-		"array_load": function() {
-			this.execute = function(frame, constantPool) {
-				var index = frame.getStack().pop();
-				var array = frame.getStack().pop();
-
-				if(index >= array.length) {
-					throw "ArrayIndexOutOfBoundsExecption: " + index;
-				}
-
-				frame.getStack().push(array[index]);
-			};
-		},
-		"array_load_character": function() {
-			this.execute = function(frame, constantPool) {
-				var index = frame.getStack().pop();
-				var array = frame.getStack().pop();
-
-				if(index >= array.length) {
-					throw "ArrayIndexOutOfBoundsExecption: " + index;
-				}
-
-				frame.getStack().push(array[index].charCodeAt(0));
-			};
-		},
-		"store": function(location) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				frame.getLocalVariables().store(location, value);
-			};
-		},
-		"array_store": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-				var index = frame.getStack().pop();
-				var array = frame.getStack().pop();
-
-				array[index] = value;
-			};
-		},
-		"array_store_character": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-				var index = frame.getStack().pop();
-				var array = frame.getStack().pop();
-
-				// convert ascii code to string
-				array[index] = String.fromCharCode(value);
-			};
-		},
-		"pop": function() {
-			this.execute = function(frame, constantPool) {
-				frame.getStack().pop();
-			};
-		},
-		"pop2": function() {
-			this.execute = function(frame, constantPool) {
-				frame.getStack().pop();
-				frame.getStack().pop();
-			};
-		},
-		"dup": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				frame.getStack().push(value);
-				frame.getStack().push(value);
-			};
-		},
-		"dup2": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"dup2_x1": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-				var value3 = frame.getStack().pop();
-
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-				frame.getStack().push(value3);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"dup2_x2": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-				var value3 = frame.getStack().pop();
-				var value4 = frame.getStack().pop();
-
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-				frame.getStack().push(value4);
-				frame.getStack().push(value3);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"dup_x1": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value1);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"dup_x2": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-				var value3 = frame.getStack().pop();
-
-				frame.getStack().push(value1);
-				frame.getStack().push(value3);
-				frame.getStack().push(value2);
-				frame.getStack().push(value1);
-			};
-		},
-		"swap": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value1);
-				frame.getStack().push(value2);
-			};
-		},
-		"add": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value1 + value2);
-			};
-		},
-		"sub": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value2 - value1);
-			};	
-		},
-		"mul": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value1 * value2);
-			};	
-		},
-		"div": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value2 / value1);
-			};	
-		},
-		"rem": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				frame.getStack().push(value2 % value1);
-			};	
-		},
-		"neg": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(-1 * value1);
-			};	
-		},
-		"shift_left": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				// bitwise operators don't work for > 32bit integers in JavaScript
-				var result = value2 * Math.pow(2, value1);
-
-				frame.getStack().push(result);
-			};
-		},
-		"arithmetic_shift_right": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				// bitwise operators don't work for > 32bit integers in JavaScript
-				var result = value2 / Math.pow(2, value1);
-
-				frame.getStack().push(result);
-			};
-		},
-		"logical_shift_right": function() {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				// probably won't work for > 32bit integers in JavaScript
-				frame.getStack().push(value2 >>> value1);
-			};
-		},
-		"and": function() {
-			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(value1 & value2);
-			};
-		},
-		"or": function() {
-			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(value1 | value2);
-			};
-		},
-		"xor": function() {
-			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(value1 ^ value2);
-			};
-		},
-		"increment": function(location, amount) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getLocalVariables().load(location);
-
-				frame.getLocalVariables().store(location, value + amount);
-			};
-		},
-		"compare": function() {
-			this.execute = function(frame, constantPool) {
-				var value2 = frame.getStack().pop();
-				var value1 = frame.getStack().pop();
-
-				frame.getStack().push(value1 == value2);
-			};	
-		},
-		"convert": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				frame.getStack().push(value);
-			};	
-		},
-		"convert_to_boolean": function() {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				frame.getStack().push(value ? true : false);
-			};	
-		},
-		"if_equal": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 == value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmpeq #" + jumpTo;
-			};
-		},
-		"if_not_equal": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 != value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmpne #" + jumpTo;
-			};
-		},
-		"if_less_than": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 < value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmplt #" + jumpTo;
-			};
-		},
-		"if_greater_than_or_equal": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 >= value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmpge #" + jumpTo;
-			};
-		},
-		"if_greater_than": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 > value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmpgt #" + jumpTo;
-			};
-		},
-		"if_less_than_or_equal": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value1 = frame.getStack().pop();
-				var value2 = frame.getStack().pop();
-
-				if(value2 <= value1) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-			this.describe = function() {
-				return "if_cmple #" + jumpTo;
-			};
-		},
-		"if_equal_to_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value === 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_not_equal_to_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value !== 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_less_than_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value < 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_greater_than_or_equal_to_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value >= 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_greater_than_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value > 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_less_than_or_equal_to_zero": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value <= 0) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"goto": function(goingTo) {
-			this.execute = function(frame, constantPool) {
-				throw new jjvm.runtime.Goto(goingTo);
-			};
-		},
-		"jsr": function(goingTo) {
-			this.execute = function(frame, constantPool) {
-				throw new jjvm.runtime.Goto(goingTo);
-			};
-		},
-		"ret": function(location) {
-			this.execute = function(frame, constantPool) {
-				var goingTo = frame.getLocalVariables().load(location);
-
-				throw new jjvm.runtime.Goto(goingTo);
-			};
-		},
-		"tableswitch": function(low, high, table) {
-			this.execute = function(frame, constantPool) {
-				throw "tableswitch is not implemented";
-			};
-		},
-		"lookupswitch": function(table) {
-			this.execute = function(frame, constantPool) {
-				throw "lookupswitch is not implemented";
-			};
-		},
-		"return_value": function(string) {
-			this.execute = function(frame, constantPool) {
-				return frame.getStack().pop();
-			};
-		},
-		"return_void": function(string) {
-			this.execute = function(frame, constantPool) {
-				return jjvm.runtime.Void;
-			};
-		},
-		"get_static": function(index) {
-			this.execute = function(frame, constantPool) {
-				var fieldDef = constantPool.load(index).getFieldDef();
-				var classDef = constantPool.load(index).getClassDef();
-				var value = classDef.getStaticField(fieldDef.getName());
-
-				frame.getStack().push(value);
-			};
-		},
-		"put_static": function(index) {
-			this.execute = function(frame, constantPool) {
-				var fieldDef = constantPool.load(index).getFieldDef();
-				var classDef = constantPool.load(index).getClassDef();
-				var value = frame.getStack().pop();
-
-				classDef.setStaticField(fieldDef.getName(), value);
-			};
-		},
-		"get_field": function(index) {
-			this.execute = function(frame, constantPool) {
-				var fieldDef = constantPool.load(index).getFieldDef();
-				var objectRef = frame.getStack().pop();
-				var value = objectRef.getField(fieldDef.getName());
-
-				frame.getStack().push(value);
-			};
-		},
-		"put_field": function(index) {
-			this.execute = function(frame, constantPool) {
-				var fieldDef = constantPool.load(index).getFieldDef();
-
-				var value = frame.getStack().pop();
-				var objectRef = frame.getStack().pop();
-
-				objectRef.setField(fieldDef.getName(), value);
-			};
-		},
-		"invoke_virtual": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"invoke_special": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"invoke_static": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"invoke_interface": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				// special case - the interface contract demands that the object reference on the stack
-				// will implement a method with the same name and arguments as the interface method def
-				// so execute that instead
-
-				var objectRef = frame.getStack().pop();
-				var classDef = objectRef.getClass();
-				methodDef = classDef.getMethod(methodDef.getName());
-
-				// put the ref back on the stack
-				frame.getStack().push(objectRef);
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"invoke_dynamic": function(index) {
-			this.execute = function(frame, constantPool) {
-				var methodDef = constantPool.load(index).getMethodDef();
-
-				invokeMethod(methodDef, frame);
-			};
-		},
-		"new": function(index) {
-			this.execute = function(frame, constantPool) {
-				var classDef = constantPool.load(index).getClassDef();
-
-				frame.getStack().push(new jjvm.runtime.ObjectReference(classDef));
-			};
-			this.describe = function() {
-				return "new #" + index + " // " + constantPool.load(index);
-			};
-		},
-		"array_create": function(index) {
-			this.execute = function(frame, constantPool) {
-				var length = frame.getStack().pop();
-				var array = [];
-				array.length = length;
-
-				frame.getStack().push(array);
-			};
-		},
-		"array_length": function() {
-			this.execute = function(frame, constantPool) {
-				var array = frame.getStack().pop();
-
-				frame.getStack().push(array.length);
-			};
-		},
-		"throw": function(string) {
-			this.execute = function(frame, constantPool) {
-				var throwable = frame.getStack().pop();
-
-				throw new jjvm.runtime.Thrown(throwable);
-			};
-		},
-		"check_cast": function(index) {
-			this.execute = function(frame, constantPool) {
-				var classDef = constantPool.load(index).getClassDef();
-				var objectRef = frame.getStack().pop();
-
-				if(!objectRef.isInstanceOf(classDef)) {
-					throw "ClassCastException: Object of type " + objectRef.getClass().getName() + " cannot be cast to " + classDef.getName();
-				}
-
-				// put it back on the stack
-				frame.getStack().push(objectRef);
-			};	
-		},
-		"instance_of": function(index) {
-			this.execute = function(frame, constantPool) {
-				var classDef = constantPool.load(index).getClassDef();
-				var objectRef = frame.getStack().pop();
-
-				frame.getStack().push(objectRef.isInstanceOf(classDef));
-			};
-		},
-		"monitor_enter": function() {
-			this.execute = function(frame, constantPool) {
-				// don't support synchronisation so just pop the ref
-				frame.getStack().pop();
-			};
-		},
-		"monitor_exit": function() {
-			this.execute = function(frame, constantPool) {
-				// don't support synchronisation so just pop the ref
-				frame.getStack().pop();
-			};
-		},
-		"wide": function() {
-			this.execute = function(frame, constantPool) {
-				throw "Wide is not implemented. Your program will probably now crash.";
-			};
-		},		
-		"multi_dimensional_array_create": function(index, dimensions) {
-			this.execute = function(frame, constantPool) {
-				var array = [];
-				var lengths = [];
-
-				for(var i = (dimensions - 1); i > -1; i--) {
-					lengths[i] = frame.getStack().pop();
-				}
-
-				this._createArray(frame, array, lengths, 0);
-
-				frame.getStack().push(array);
-			};
-
-			this._createArray = function(frame, parent, lengths, index) {
-				if(index === (lengths.length - 1)) {
-					return;
-				}
-
-				var length = lengths[index];
-
-				for(var i = 0; i < length; i++) {
-					var innerArray = [];
-
-					if((index + 1) === (lengths.length - 1)) {
-						innerArray.length = lengths[index + 1];
-					}
-
-					parent.push(innerArray);
-
-					this._createArray(frame, innerArray, lengths, index + 1);
-				}
-			};
-		},
-		"if_null": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value === null) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		},
-		"if_non_null": function(jumpTo) {
-			this.execute = function(frame, constantPool) {
-				var value = frame.getStack().pop();
-
-				if(value !== null) {
-					throw new jjvm.runtime.Goto(jumpTo);
-				}
-			};
-		}
-	};
-
-	this._getOperation = function() {
-		if(!_operation) {
-
-			// lets us call .apply on a function constructor
-			var construct = _.bind(function(constructor) {
-				function F() {
-					return constructor.apply(this, _data.args);
-				}
-				F.prototype = constructor.prototype;
-
-				return new F();
-			}, this);
-
-			_operation = construct(operations[this.getOperation()]);
-
-			// allow for overriding description as sometimes we want to show specific 
-			// arguments and bytecode for instructions that have been grouped together
-			if(_data.description) {
-				_operation.describe = function() {
-					return _data.description;
-				};
-			}
-		}
-
-		return _operation;
-	};
-
-	this.execute = function(frame, constantPool) {
-		return this._getOperation().execute(frame, constantPool);
-	};
-
-	this.getLocation = function() {
-		return location;
-	};
-
-	this.toString = function() {
-		return this.getLocation() + ": " + this.getDescription();
-	};
-
-	this.hasBreakpoint = function() {
-		return _breakpoint ? true : false;
-	};
-
-	this.setBreakpoint = function(breakpoint) {
-		_breakpoint = breakpoint;
-	};
-
-	this.setMnemonic = function(mnemonic) {
-		this.getData().mnemonic = mnemonic;
-	};
-
-	this.getMnemonic = function() {
-		return this.getData().mnemonic;
-	};
-
-	this.setOperation = function(operation) {
-		this.getData().operation = operation;
-	};
-
-	this.getOperation = function() {
-		return this.getData().operation;
-	};
-
-	this.setArgs = function(args) {
-		this.getData().args = args;
-	};
-
-	this.getArgs = function() {
-		return this.getData().args;
-	};
-
-	this.setLocation = function(location) {
-		this.getData().location = location;
-	};
-
-	this.getLocation = function() {
-		return this.getData().location;
-	};
-
-	this.setDescription = function(description) {
-		this.getData().description = description;
-	};
-
-	this.getDescription = function() {
-		return this.getData().description;
-	};
-
-	this.canStepInto = function() {
-		return _.string.startsWith(this.getOperation(), "invoke");
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-};
-
-jjvm.types.ClassDefinition = function(data) {
-	var _data = data ? data : {
-		interfaces: [],
-		methods: {},
-		fields: {}
-	};
-
-	var _parent;
-	var _methods = [];
-	var _fields = [];
-	var _exceptionTable = null;
-	var _constantPool = new jjvm.types.ConstantPool(_data.constantPool);
-	var _enclosingMethod = null;
-	var _objectRef = null;
-	var _initialized = false;
-	var _classLoader = null;
-
-	// holds values of static fields
-	var _staticFields = {};
-
-	if(data) {
-		if(data.parent) {
-			_parent = jjvm.core.ClassLoader.loadClass(data.parent);
-		}
-
-		for(var m in data.methods) {
-			var method = new jjvm.types.MethodDefinition(data.methods[m]);
-			method.setClassDef(this);
-
-			if(jjvm.nativeMethods[data.name] && jjvm.nativeMethods[data.name][method.getSignature()]) {
-				// we've overriden the method implementation
-				method.setImplementation(jjvm.nativeMethods[data.name][method.getSignature()]);
+// Methods specified here will override any specified in bytecode.
+//
+// If you compile bytecode with native methods, you should specify
+// an implementation of the method here, otherwise a compile time
+// warning will be generated and your code will likely fail at
+// run time.
+//
+// When exectuted, the this keyword will have a value of the passed
+// objectRef, unless the method is static, in which case it will
+// be the passed classDef
+jjvm.nativeMethods = {
+
+	"java.lang.Object": {
+		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
+			
+		},
+
+		"getClass()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			return classDef.getObjectRef();
+		},
+
+		"hashCode()I": function(frame, classDef, methodDef, objectRef) {
+			var output = "";
+
+			for(var i = 0; i < classDef.getName().length; i++) {
+				output += classDef.getName().charCodeAt(i);
 			}
 
-			_methods.push(method);
-		}
+			return parseInt(output, 8);
+		},
 
-		for(var f in data.fields) {
-			_fields.push(new jjvm.types.FieldDefinition(data.fields[f]));
-		}
+		"clone()Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
+			// yikes!
+			return objectRef;
+		},
 
-		if(data.enclosingMethod) {
-			_enclosingMethod = new jjvm.types.EnclosingMethod(data.enclosingMethod);
+		"notify()V": function(frame, classDef, methodDef, objectRef) {
+
+		},
+
+		"notifyAll()V": function(frame, classDef, methodDef, objectRef) {
+
+		},
+
+		"wait(J)V": function(frame, classDef, methodDef, objectRef, interval) {
+
+		}
+	},
+
+	"java.lang.Class": {
+		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
+			
+		},
+
+		"forName0(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, className, classLoader) {
+			return jjvm.core.ClassLoader.loadClass(className).getObjectRef();
+		},
+
+		"isInstance(Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef, otherObjectRef) {
+			return otherObjectRef.getClass().isChildOf(classDef);
+		},
+
+		"isAssignableFrom(Ljava/lang/Class;)Z": function(frame, classDef, methodDef, objectRef, otherClassDefObjectRef) {
+			return classDef.isChildOf(otherClassDefObjectRef.getClass());
+		},
+
+		"isInterface()Z": function(frame, classDef, methodDef, objectRef) {
+			return classDef.isInterface();
+		},
+
+		"isArray()Z": function(frame, classDef, methodDef, objectRef) {
+			return false;
+		},
+
+		"isPrimitive()Z": function(frame, classDef, methodDef, objectRef) {
+			return jjvm.types.Primitives.classToPrimitive[classDef.getName()] !== undefined;
+		},
+
+		"getName0()Ljava/lang/String;": function(frame, classDef, methodDef, objectRef) {
+			var stringClassDef = jjvm.core.ClassLoader.loadClass("java.lang.String");
+			var stringObjectRef = new jjvm.runtime.ObjectReference(stringClassDef);
+
+			stringObjectRef.setField("hash32", 0);
+			stringObjectRef.setField("value", classDef.getName().split(""));
+
+			return stringObjectRef;
+
+			//return jjvm.Util.createStringRef(classDef.getName());
+		},
+
+		"getClassLoader0()Ljava/lang/ClassLoader;": function(frame, classDef, methodDef, objectRef) {
+			return classDef.getClassLoader().getObjectRef();
+		},
+
+		"getSuperclass()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			return classDef.getParent().getObjectRef();
+		},
+
+		"getInterfaces()[Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			var output = [];
+			var iterator = new jjvm.core.Iterator(classDef.getInterfaces());
+
+			while(iterator.hasNext()) {
+				output.push(iterator.next().getClassDef().getObjectRef());
+			}
+
+			return output;
+		},
+
+		"getComponentType()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getComponentType()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"getModifiers()I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getModifiers()I invoked on " + classDef.getName() + "!");
+		},
+
+		"getSigners()[Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getSigners()[Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+		},
+
+		"setSigners([Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef, signersArray) {
+			jjvm.console.warn("setSigners([Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getEnclosingMethod0()[Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getEnclosingMethod0()[Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+		},
+
+		"getDeclaringClass()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getDeclaringClass()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"getProtectionDomain0()Ljava/security/ProtectionDomain;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getProtectionDomain0()Ljava/security/ProtectionDomain; invoked on " + classDef.getName() + "!");
+		},
+
+		"setProtectionDomain0(Ljava/security/ProtectionDomain;)V": function(frame, classDef, methodDef, objectRef, protectionDomainRef) {
+			jjvm.console.warn("setProtectionDomain0(Ljava/security/ProtectionDomain;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getPrimitiveClass(Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, stringRef) {
+			var name = stringRef.getField("value").join("");
+			var className = jjvm.types.Primitives.primitiveToClass[name];
+			var primitiveClassDef = jjvm.core.ClassLoader.loadClass(className);
+
+			return primitiveClassDef.getObjectRef();
+		},
+
+		"getGenericSignature()Ljava/lang/String;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getGenericSignature()Ljava/lang/String; invoked on " + classDef.getName() + "!");
+		},
+
+		"getRawAnnotations()[B": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getRawAnnotations()[B invoked on " + classDef.getName() + "!");
+		},
+
+		"getConstantPool()Lsun/reflect/ConstantPool;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getConstantPool()Lsun/reflect/ConstantPool; invoked on " + classDef.getName() + "!");
+		},
+
+		"getDeclaredFields0(Z)[Ljava/lang/reflect/Field;": function(frame, classDef, methodDef, objectRef, bool) {
+			jjvm.console.warn("getDeclaredFields0(Z)[Ljava/lang/reflect/Field; invoked on " + classDef.getName() + "!");
+		},
+
+		"getDeclaredMethods0(Z)[Ljava/lang/reflect/Method;": function(frame, classDef, methodDef, objectRef, bool) {
+			jjvm.console.warn("getDeclaredMethods0(Z)[Ljava/lang/reflect/Method; invoked on " + classDef.getName() + "!");
+		},
+
+		"getDeclaredConstructors0(Z)[Ljava/lang/reflect/Constructor;": function(frame, classDef, methodDef, objectRef, bool) {
+			jjvm.console.warn("getDeclaredConstructors0(Z)[Ljava/lang/reflect/Constructor; invoked on " + classDef.getName() + "!");
+		},
+
+		"getDeclaredClasses0()[Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getDeclaredClasses0()[Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"desiredAssertionStatus0(Ljava/lang/Class;)Z": function(frame, classDef, methodDef, objectRef, forClassRef) {
+			return true;
+		},
+
+		"desiredAssertionStatus()Z": function(frame, classDef, methodDef, objectRef, stringRef) {
+			return true;
+		},
+
+		"getClassLoader()Ljava/lang/ClassLoader;": function(frame, classDef, methodDef, objectRef, forClassRef) {
+			return classDef.getClassLoader().getObjectRef();
+		}
+	},
+
+	"java.lang.String": {
+		"intern()Ljava/lang/String;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("intern()Ljava/lang/String; invoked on " + classDef.getName() + "!");
+		}
+	},
+
+	"java.io.PrintStream": {
+		"println(Ljava/lang/String;)V": function(frame, classDef, methodDef, objectRef, stringRef) {
+			var characters = stringRef.getField("value");
+			var line = characters.join("");
+			jjvm.console.info(line);
+		}
+	},
+
+	"java.lang.System": {
+		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
+
+		},
+		"setIn0(Ljava/io/InputStream;)V": function(frame, classDef, methodDef, objectRef, inputStream) {
+			classDef.setStaticField("in", inputStream);
+		},
+		"setOut0(Ljava/io/PrintStream;)V": function(frame, classDef, methodDef, objectRef, printStream) {
+			classDef.setStaticField("out", printStream);
+		},
+		"setErr0(Ljava/io/PrintStream;)V": function(frame, classDef, methodDef, objectRef, printStream) {
+			classDef.setStaticField("err", printStream);
+		},
+		"currentTimeMillis()J": function(frame, classDef, methodDef, objectRef) {
+			return new Date().getTime();
+		},
+		"nanoTime()J": function(frame, classDef, methodDef, objectRef) {
+			return new Date().getTime() * 1000;
+		},
+		"arraycopy(Ljava/lang/Object;ILjava/lang/Object;II)V": function(frame, classDef, methodDef, objectRef, src, srcPos, dest, destPos, length) {
+			if(!dest) {
+				throw "NullPointerException";
+			}
+
+			if(!src) {
+				throw "NullPointerException";
+			}
+
+			if(!_.isArray(src) || !_.isArray(dest)) {
+				throw "ArrayStoreException";
+			}
+
+			if(srcPos < 0 || destPos < 0 || length < 0 || (srcPos + length > src.length) || (destPos + length > dest.length)) {
+				throw "IndexOutOfBoundsException";
+			}
+
+			for(var i = 0; i < length; i++) {
+				dest[destPos + i] = src[srcPos + i];
+			}
+		},
+		"identityHashCode(Ljava/lang/Object;)I": function(frame, classDef, methodDef, objectRef, otherObjectRef) {
+			return otherObjectRef.getIndex();
+		},
+		"initProperties(Ljava/util/Properties;)Ljava/util/Properties;": function(frame, classDef, methodDef, objectRef, properties) {
+			jjvm.console.warn("initProperties(Ljava/util/Properties;)Ljava/util/Properties; invoked on " + classDef.getName() + "!");
+		},
+		"mapLibraryName(Ljava/lang/String;)Ljava/lang/String;": function(frame, classDef, methodDef, objectRef, libName) {
+			jjvm.console.warn("mapLibraryName(Ljava/lang/String;)Ljava/lang/String; invoked on " + classDef.getName() + "!");
+		}
+	},
+
+	"java.lang.Throwable": {
+		"fillInStackTrace(I)Ljava/lang/Throwable;": function(frame, classDef, methodDef, objectRef, x) {
+			return objectRef;
+		},
+
+		"getStackTraceDepth()I": function(frame, classDef, methodDef, objectRef) {
+			return 0;
+		},
+
+		"getStackTraceElement(I)Ljava/lang/StackTraceElement;": function(frame, classDef, methodDef, objectRef, index) {
+			return null;
+		}
+	},
+
+	"java.lang.Float": {
+		"floatToRawIntBits(F)I": function(frame, classDef, methodDef, objectRef, f) {
+			return f;
+		},
+
+		"intBitsToFloat(I)F": function(frame, classDef, methodDef, objectRef, i) {
+			return i;
+		}
+	},
+
+	"java.lang.Double": {
+		"doubleToRawLongBits(D)J": function(frame, classDef, methodDef, objectRef, d) {
+			return d;
+		},
+
+		"longBitsToDouble(J)D": function(frame, classDef, methodDef, objectRef, j) {
+			return j;
+		}
+	},
+
+	"java.lang.ClassLoader": {
+		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
+
+		},
+
+		"defineClass0(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, name, bytes, offset, length, protectionDomain) {
+			jjvm.console.warn("defineClass0(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"defineClass1(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, name, bytes, offset, length, protectionDomain, anotherString) {
+			jjvm.console.warn("defineClass1(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"defineClass2(Ljava/lang/String;Ljava/nio/ByteBuffer;IILjava/security/ProtectionDomain;Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, name, byteBuffer, offset, length, protectionDomain, anotherString) {
+			jjvm.console.warn("defineClass2(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"resolveClass0(Ljava/lang/Class;)V": function(frame, classDef, methodDef, objectRef, clazz) {
+			jjvm.console.warn("resolveClass0(Ljava/lang/Class;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, className) {
+			jjvm.console.warn("findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, className) {
+			jjvm.console.warn("findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"getCaller(I)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, index) {
+			jjvm.console.warn("getCaller(I)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"retrieveDirectives()Ljava/lang/AssertionStatusDirectives;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("retrieveDirectives()Ljava/lang/AssertionStatusDirectives; invoked on " + classDef.getName() + "!");
+		}
+	},
+
+	"java.security.AccessController": {
+		"doPrivileged(Ljava/security/PrivilegedAction;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef) {
+			return jjvm.Util.execute(actionRef, "run");
+		},
+
+		"doPrivileged(Ljava/security/PrivilegedAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef, contextRef) {
+			return jjvm.Util.execute(actionRef, "run");
+		},
+
+		"doPrivileged(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef) {
+			jjvm.console.warn("doPrivileged(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+		},
+
+		"doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef, contextRef) {
+			jjvm.console.warn("doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+		},
+
+		"getStackAccessControlContext()Ljava/security/AccessControlContext;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getStackAccessControlContext()Ljava/security/AccessControlContext; invoked on " + classDef.getName() + "!");
+		},
+
+		"getInheritedAccessControlContext()Ljava/security/AccessControlContext;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getStackAccessControlContext()Ljava/security/AccessControlContext; invoked on " + classDef.getName() + "!");
+		}
+	},
+
+	"sun.misc.Unsafe": {
+		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
+			
+		},
+	
+		"getInt(Ljava/lang/Object;J)I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getInt(Ljava/lang/Object;J)I invoked on " + classDef.getName() + "!");
+		},
+
+		"putInt(Ljava/lang/Object;JI)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putInt(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getObject(Ljava/lang/Object;J)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getObject(Ljava/lang/Object;J)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+		},
+
+		"putObject(Ljava/lang/Object;JLjava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putObject(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getBoolean(Ljava/lang/Object;J)Z": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getBoolean(Ljava/lang/Object;J)Z invoked on " + classDef.getName() + "!");
+		},
+
+		"putBoolean(Ljava/lang/Object;JZ)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putBoolean(Ljava/lang/Object;JZ)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getByte(Ljava/lang/Object;J)B": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getByte(Ljava/lang/Object;J)B invoked on " + classDef.getName() + "!");
+		},
+
+		"putByte(Ljava/lang/Object;JB)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putByte(Ljava/lang/Object;JB)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getShort(Ljava/lang/Object;J)S": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getShort(Ljava/lang/Object;J)S invoked on " + classDef.getName() + "!");
+		},
+
+		"putShort(Ljava/lang/Object;JS)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putShort(Ljava/lang/Object;JS)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getChar(Ljava/lang/Object;J)C": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getChar(Ljava/lang/Object;J)C invoked on " + classDef.getName() + "!");
+		},
+
+		"putChar(Ljava/lang/Object;JC)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putChar(Ljava/lang/Object;JC)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getLong(Ljava/lang/Object;J)J": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getLong(Ljava/lang/Object;J)J invoked on " + classDef.getName() + "!");
+		},
+
+		"putLong(Ljava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putLong(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getFloat(Ljava/lang/Object;J)F": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getFloat(Ljava/lang/Object;J)F invoked on " + classDef.getName() + "!");
+		},
+
+		"putFloat(Ljava/lang/Object;JF)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putFloat(Ljava/lang/Object;JF)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getDouble(Ljava/lang/Object;J)D": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getDouble(Ljava/lang/Object;J)D invoked on " + classDef.getName() + "!");
+		},
+
+		"putDouble(Ljava/lang/Object;JD)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putDouble(Ljava/lang/Object;JD)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getByte(J)B": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getByte(J)B invoked on " + classDef.getName() + "!");
+		},
+
+		"putByte(JB)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putByte(JB)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getShort(J)S": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getShort(J)S invoked on " + classDef.getName() + "!");
+		},
+
+		"putShort(JS)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putShort(JS)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getChar(J)C": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getChar(J)C invoked on " + classDef.getName() + "!");
+		},
+
+		"putChar(JC)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putChar(JC)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getInt(J)I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getInt(J)I invoked on " + classDef.getName() + "!");
+		},
+
+		"putInt(JI)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putInt(JI)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getLong(J)J": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getLong(J)J invoked on " + classDef.getName() + "!");
+		},
+
+		"putLong(JJ)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putLong(JJ)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getFloat(J)F": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getFloat(J)F invoked on " + classDef.getName() + "!");
+		},
+
+		"putFloat(JF)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putFloat(JF)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getDouble(J)D": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getDouble(J)D invoked on " + classDef.getName() + "!");
+		},
+
+		"putDouble(JD)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putDouble(JD)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getAddress(J)J": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getAddress(J)J invoked on " + classDef.getName() + "!");
+		},
+
+		"putAddress(JJ)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putAddress(JJ)V invoked on " + classDef.getName() + "!");
+		},
+
+		"allocateMemory(J)J": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("allocateMemory(J)J invoked on " + classDef.getName() + "!");
+		},
+
+		"reallocateMemory(JJ)J": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("reallocateMemory(JJ)J invoked on " + classDef.getName() + "!");
+		},
+
+		"setMemory(Ljava/lang/Object;JJB)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("setMemory(Ljava/lang/Object;JJB)V invoked on " + classDef.getName() + "!");
+		},
+
+		"copyMemory(Ljava/lang/Object;JLjava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("copyMemory(Ljava/lang/Object;JLjava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
+		},
+
+		"freeMemory(J)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("freeMemory(J)V invoked on " + classDef.getName() + "!");
+		},
+
+		"staticFieldOffset(Ljava/lang/reflect/Field;)J": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("staticFieldOffset(Ljava/lang/reflect/Field;)J invoked on " + classDef.getName() + "!");
+		},
+
+		"objectFieldOffset(Ljava/lang/reflect/Field;)J": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("objectFieldOffset(Ljava/lang/reflect/Field;)J invoked on " + classDef.getName() + "!");
+		},
+
+		"staticFieldBase(Ljava/lang/reflect/Field;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("staticFieldBase(Ljava/lang/reflect/Field;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+		},
+
+		"ensureClassInitialized(Ljava/lang/Class;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("ensureClassInitialized(Ljava/lang/Class;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"arrayBaseOffset(Ljava/lang/Class;)I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("arrayBaseOffset(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
+		},
+
+		"arrayIndexScale(Ljava/lang/Class;)I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("arrayIndexScale(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
+		},
+
+		"addressSize()I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("addressSize()I invoked on " + classDef.getName() + "!");
+		},
+
+		"pageSize()I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("pageSize()I invoked on " + classDef.getName() + "!");
+		},
+
+		"defineClass(Ljava/lang/String;[BIILjava/lang/ClassLoader;Ljava/security/ProtectionDomain;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("defineClass(Ljava/lang/String;[BIILjava/lang/ClassLoader;Ljava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"defineClass(Ljava/lang/String;[BII)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("defineClass(Ljava/lang/String;[BII)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"defineAnonymousClass(Ljava/lang/Class;[B[Ljava/lang/Object;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("defineAnonymousClass(Ljava/lang/Class;[B[Ljava/lang/Object;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"allocateInstance(Ljava/lang/Class;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("allocateInstance(Ljava/lang/Class;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+		},
+
+		"monitorEnter(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("monitorEnter(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"monitorExit(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("monitorExit(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"tryMonitorEnter(Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("tryMonitorEnter(Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
+		},
+
+		"throwException(Ljava/lang/Throwable;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("hrowException(Ljava/lang/Throwable;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"compareAndSwapObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("compareAndSwapObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
+		},
+
+		"compareAndSwapInt(Ljava/lang/Object;JII)Z": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("compareAndSwapInt(Ljava/lang/Object;JII)Z invoked on " + classDef.getName() + "!");
+		},
+
+		"compareAndSwapLong(Ljava/lang/Object;JJJ)Z": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("compareAndSwapLong(Ljava/lang/Object;JJJ)Z invoked on " + classDef.getName() + "!");
+		},
+
+		"getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+		},
+
+		"putObjectVolatile(Ljava/lang/Object;JLjava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putObjectVolatile(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getIntVolatile(Ljava/lang/Object;J)I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getIntVolatile(Ljava/lang/Object;J)I invoked on " + classDef.getName() + "!");
+		},
+
+		"putIntVolatile(Ljava/lang/Object;JI)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putIntVolatile(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getBooleanVolatile(Ljava/lang/Object;J)Z": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getBooleanVolatile(Ljava/lang/Object;J)Z invoked on " + classDef.getName() + "!");
+		},
+
+		"putBooleanVolatile(Ljava/lang/Object;JZ)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putBooleanVolatile(Ljava/lang/Object;JZ)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getByteVolatile(Ljava/lang/Object;J)B": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getByteVolatile(Ljava/lang/Object;J)B invoked on " + classDef.getName() + "!");
+		},
+
+		"putByteVolatile(Ljava/lang/Object;JB)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putByteVolatile(Ljava/lang/Object;JB)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getShortVolatile(Ljava/lang/Object;J)S": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getShortVolatile(Ljava/lang/Object;J)S invoked on " + classDef.getName() + "!");
+		},
+
+		"putShortVolatile(Ljava/lang/Object;JS)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putShortVolatile(Ljava/lang/Object;JS)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getCharVolatile(Ljava/lang/Object;J)C": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getCharVolatile(Ljava/lang/Object;J)C invoked on " + classDef.getName() + "!");
+		},
+
+		"putCharVolatile(Ljava/lang/Object;JC)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putCharVolatile(Ljava/lang/Object;JC)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getLongVolatile(Ljava/lang/Object;J)J": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getLongVolatile(Ljava/lang/Object;J)J invoked on " + classDef.getName() + "!");
+		},
+
+		"putLongVolatile(Ljava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putLongVolatile(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getFloatVolatile(Ljava/lang/Object;J)F": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getFloatVolatile(Ljava/lang/Object;J)F invoked on " + classDef.getName() + "!");
+		},
+
+		"putFloatVolatile(Ljava/lang/Object;JF)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("utFloatVolatile(Ljava/lang/Object;JF)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getDoubleVolatile(Ljava/lang/Object;J)D": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getDoubleVolatile(Ljava/lang/Object;J)D invoked on " + classDef.getName() + "!");
+		},
+
+		"putDoubleVolatile(Ljava/lang/Object;JD)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putDoubleVolatile(Ljava/lang/Object;JD)V invoked on " + classDef.getName() + "!");
+		},
+
+		"putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"putOrderedInt(Ljava/lang/Object;JI)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putOrderedInt(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
+		},
+
+		"putOrderedLong(Ljava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("putOrderedLong(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
+		},
+
+		"unpark(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("unpark(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"park(ZJ)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("park(ZJ)V invoked on " + classDef.getName() + "!");
+		},
+
+		"getLoadAverage([DI)I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getLoadAverage([DI)I invoked on " + classDef.getName() + "!");
+		}
+	},
+
+	"sun.reflect.Reflection" : {
+		"getCallerClass(I)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, stackDepth) {
+			for(var i = 0; i < stackDepth; i++) {
+				frame = frame.getParent();
+			}
+
+			return frame.getClassDef().getObjectRef();
+		},
+
+		"getClassAccessFlags(Ljava/lang/Class;)I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getClassAccessFlags(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
+		}
+	},
+
+	"sun.misc.VM": {
+		"initialize()V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("initialize()V invoked on " + classDef.getName() + "!");
+		}
+	},
+
+	"java.lang.SecurityManager": {
+		"getClassContext()[Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getClassContext()[Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"currentClassLoader0()Ljava/lang/ClassLoader;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("currentClassLoader0()Ljava/lang/ClassLoader; invoked on " + classDef.getName() + "!");
+		},
+
+		"classDepth(Ljava/lang/String;)I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("classDepth(Ljava/lang/String;)I invoked on " + classDef.getName() + "!");
+		},
+
+		"classLoaderDepth0()I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("classLoaderDepth0()I invoked on " + classDef.getName() + "!");
+		},
+
+		"currentLoadedClass0()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("currentLoadedClass0()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+		},
+
+		"checkPermission(Ljava/security/Permission;)V": function(frame, classDef, methodDef, objectRef) {
+			// do nothing
+		},
+
+		"checkPermission(Ljava/security/Permission;Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
+			// do nothing
+		}
+	},
+
+	"java.lang.Thread" : {
+		"registerNatives()V": function(frame, classDef, methodDef, objectRef) {
+			
+		},
+
+		"currentThread()Ljava/lang/Thread;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("currentThread()Ljava/lang/Thread; invoked on " + classDef.getName() + "!");
+		},
+
+		"yield()V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("yield()V invoked on " + classDef.getName() + "!");
+		},
+
+		"sleep(J)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("sleep(J)V invoked on " + classDef.getName() + "!");
+		},
+
+		"start0()V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("start0()V invoked on " + classDef.getName() + "!");
+		},
+
+		"isInterrupted(Z)Z": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("isInterrupted(Z)Z invoked on " + classDef.getName() + "!");
+		},
+
+		"isAlive()Z": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("isAlive()Z invoked on " + classDef.getName() + "!");
+		},
+
+		"countStackFrames()I": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("countStackFrames()I invoked on " + classDef.getName() + "!");
+		},
+
+		"holdsLock(Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("holdsLock(Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
+		},
+
+		"dumpThreads([Ljava/lang/Thread;)[[Ljava/lang/StackTraceElement;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("dumpThreads([Ljava/lang/Thread;)[[Ljava/lang/StackTraceElement; invoked on " + classDef.getName() + "!");
+		},
+
+		"getThreads()[Ljava/lang/Thread;": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("getThreads()[Ljava/lang/Thread; invoked on " + classDef.getName() + "!");
+		},
+
+		"setPriority0(I)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("setPriority0(I)V invoked on " + classDef.getName() + "!");
+		},
+
+		"stop0(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("stop0(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+		},
+
+		"suspend0()V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("suspend0()V invoked on " + classDef.getName() + "!");
+		},
+
+		"resume0()V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("resume0()V invoked on " + classDef.getName() + "!");
+		},
+
+		"interrupt0()V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("interrupt0()V invoked on " + classDef.getName() + "!");
+		},
+
+		"setNativeName(Ljava/lang/String;)V": function(frame, classDef, methodDef, objectRef) {
+			jjvm.console.warn("setNativeName(Ljava/lang/String;)V invoked on " + classDef.getName() + "!");
 		}
 	}
+};
 
-	this.getName = function() {
-		return _data.name;
-	};
 
-	this.setName = function(name) {
-		_data.name = _.string.trim(name);
-	};
+jjvm.Util = {
+	createStringRef: function(string) {
+		var chars = string.split("");
 
-	this.getParent = function() {
-		return _parent;
-	};
+		return jjvm.Util.createObjectRef("java.lang.String", ["char[]"], [chars]);
+	},
 
-	this.setParent = function(parent) {
-		delete _data.parent;
+	createObjectRef: function(className, constructorSignature, constructorArgs) {
+		var classDef = jjvm.core.ClassLoader.loadClass(className);
+		var objectRef = new jjvm.runtime.ObjectReference(classDef);
 
-		if(parent) {
-			_parent = jjvm.core.ClassLoader.loadClass(parent);
-			_data.parent = parent;
+		if(constructorArgs) {
+			constructorArgs.unshift(objectRef);
+		} else {
+			constructorArgs = [objectRef];
 		}
-	};
 
-	this.getVisibility = function() {
-		return _data.visibility;
-	};
+		var frame = new jjvm.runtime.Frame(classDef, classDef.getMethod("<init>", constructorSignature), constructorArgs);
+		frame.setIsSystemFrame(true);
+		var thread = new jjvm.runtime.Thread(frame);
+		thread.run();
+		jjvm.runtime.ThreadPool.reap();
 
-	this.setVisibility = function(visibility) {
-		_data.visibility = visibility;
-	};
+		return objectRef;
+	},
 
-	this.isAbstract = function() {
-		return _data.isAbstract ? true : false;
-	};
+	parseArgs: function(string) {
+		var args = [];
+		var iterator = new jjvm.core.Iterator(string.split(""));
 
-	this.setIsAbstract = function(isAbstract) {
-		_data.isAbstract = isAbstract ? true : false;
-	};
+		while(iterator.hasNext()) {
+			var character = iterator.peek();
 
-	this.isFinal = function() {
-		return _data.isFinal ? true : false;
-	};
+			if(character == "(") {
+				// discard (
+				iterator.next();
+				continue;
+			}
 
-	this.setIsFinal = function(isFinal) {
-		_data.isFinal = isFinal ? true : false;
-	};
+			if(character == ")") {
+				break;
+			}
 
-	this.isInterface = function() {
-		return _data.isInterface ? true : false;
-	};
+			if(character == "L") {
+				args.push(jjvm.Util._readObjectArgument(iterator));
+			} else if(character == "[") {
+				args.push(jjvm.Util._readArrayArgument(iterator));
+			} else {
+				var primitive = jjvm.Util._readPrimitiveArgument(iterator);
 
-	this.setIsInterface = function(isInterface) {
-		_data.isInterface = isInterface ? true : false;
-	};
-
-	this.isSuper = function() {
-		return _data.isSuper ? true : false;
-	};
-
-	this.setIsSuper = function(isSuper) {
-		_data.isSuper = isSuper ? true : false;
-	};
-
-	this.getInterfaces = function() {
-		return _data.interfaces;
-	};
-
-	this.addInterface = function(anInterface) {
-		_data.interfaces.push(anInterface);
-	};
-
-	this.getMethods = function() {
-		return _methods;
-	};
-
-	this.hasMethod = function(name) {
-		for(var i = 0; i < _methods.length; i++) {
-			if(_methods[i].getName() == name) {
-				return true;
+				if(primitive) {
+					args.push(primitive);
+				}
 			}
 		}
 
-		if(_parent) {
-			return _parent.hasMethod(name);
+		return args;
+	},
+
+	execute: function(target, methodName, args, argTypes) {
+		if(!argTypes) {
+			argTypes = [];
 		}
 
-		return false;
-	};
-
-	this.getMethod = function(name, args) {
 		if(!args) {
 			args = [];
 		}
 
-		for(var i = 0; i < _methods.length; i++) {
-			if(_methods[i].getName() == name && this._argsMatch(_methods[i].getArgs(), args)) {
-				return _methods[i];
-			}
-		}
-
-		if(_parent) {
-			return _parent.getMethod(name);
-		}
-
-		throw "Method " + name + " with args " + args + " does not exist on class " + this.getName();
-	};
-
-	this._argsMatch = function(arr1, arr2) {
-		if(arr1.length != arr2.length) {
-			return false;
-		}
-
-		for(var i = 0; i < arr1.length; i++) {
-			if(arr1[i] != arr2[i]) {
-				return false;
-			}
-		}
-
-		return true;
-	};
-
-	this.addMethod = function(methodDef) {
-		_methods.push(methodDef);
-
-		if(!_data.methods) {
-			_data.methods = {};
-		}
-
-		_data.methods[methodDef.getSignature()] = methodDef.getData();
-	};
-
-	this.getFields = function() {
-		return _fields;
-	};
-
-	this.getField = function(name) {
-		for(var i = 0; i < _fields.length; i++) {
-			if(_fields[i].getName() == name) {
-				return _fields[i];
-			}
-		}
-
-		if(_parent) {
-			return _parent.getField(name);
-		}
-	};
-
-	this.addField = function(fieldDef) {
-		_fields.push(fieldDef);
-
-		if(!_data.fields) {
-			_data.fields = {};
-		}
-
-		_data.fields[fieldDef.getName()] = fieldDef.getData();
-	};
-
-	this.hasField = function(name) {
-		for(var i = 0; i < _fields.length; i++) {
-			if(_fields[i].getName() == name && !_fields[i].isStatic()) {
-				return true;
-			}
-		}
-
-		if(_parent) {
-			return _parent.hasField(name);
-		}
-
-		return false;
-	};
-
-	this.invokeStaticMethod = function(name, args) {
-		
-	};
-
-	this.getStaticField = function(name) {
-		this.hasStaticField(name);
-
-		if(_staticFields[name] === undefined) {
-			// we have the field but it's not been used yet so initialise it.
-
-			var fieldDef = this.getField(name);
-
-			if(fieldDef.getType() == "boolean" || fieldDef.getType() == "byte" || fieldDef.getType() == "short" || fieldDef.getType() == "int" || fieldDef.getType() == "long" || fieldDef.getType() == "char") {
-				_staticFields[name] = 0;
-			} else if(fieldDef.getType() == "float" || fieldDef.getType() == "double") {
-				_staticFields[name] = 0.0;
-			} else {
-				_staticFields[name] = null;				
-			}
-		}
-
-		return _staticFields[name];
-	};
-
-	this.getStaticFields = function() {
-		return _staticFields;
-	};
-
-	this.setStaticField = function(name, value) {
-		this.hasStaticField(name);
-
-		_staticFields[name] = value;
-	};
-
-	this.hasStaticField = function(name) {
-		var foundField = false;
-
-		for(var i = 0; i < _fields.length; i++) {
-			if(_fields[i].getName() == name && _fields[i].isStatic()) {
-				foundField = true;
-			}
-		}
-
-		if(!foundField) {
-			throw "field " + name + " does not exist on class " + this.getName();
-		}
-	};
-
-	this.setExceptionTable = function(exceptionTable) {
-		_exceptionTable = exceptionTable;
-	};
-
-	this.getExceptionTable = function() {
-		return _exceptionTable;
-	};
-
-	this.setConstantPool = function(constantPool) {
-		_constantPool = constantPool;
-
-		_data.constantPool = constantPool.getData();
-	};
-
-	this.getConstantPool = function() {
-		return _constantPool;
-	};
-
-	this.setSourceFile = function(sourceFile) {
-		_data.sourceFile = sourceFile;
-	};
-
-	this.getSourceFile = function() {
-		return _data.sourceFile;
-	};
-
-	this.setMinorVersion = function(minorVersion) {
-		_data.minorVersion = minorVersion;
-	};
-
-	this.getMinorVersion = function() {
-		return _data.minorVersion;
-	};
-
-	this.setMajorVersion = function(majorVersion) {
-		_data.majorVersion = majorVersion;
-	};
-
-	this.getMajorVersion = function() {
-		return _data.majorVersion;
-	};
-
-	this.setDeprecated = function(deprecated) {
-		_data.deprecated = deprecated;
-	};
-
-	this.getDeprecated = function() {
-		return _data.deprecated;
-	};
-
-	this.setSynthetic = function(synthetic) {
-		_data.synthetic = synthetic;
-	};
-
-	this.getSynthetic = function() {
-		return _data.synthetic;
-	};
-
-	this.setEnclosingMethod = function(enclosingMethod) {
-		_enclosingMethod = enclosingMethod;
-
-		if(enclosingMethod) {
-			_data.enclosingMethod = enclosingMethod.getData();
-		}
-	};
-
-	this.getEnclosingMethod = function() {
-		return _enclosingMethod;
-	};
-
-	this.getObjectRef = function() {
-		if(!_objectRef) {
-			_objectRef = jjvm.Util.createObjectRef("java.lang.Class");
-		}
-
-		return _objectRef;
-	};
-
-	this.getVersion = function() {
-		var versions = {
-			0x2D: "Java 1.1",
-			0x2E: "Java 1.2",
-			0x2F: "Java 1.3",
-			0x30: "Java 1.4",
-			0x31: "Java 5",
-			0x32: "Java 6",
-			0x33: "Java 7",
-			0x34: "Java 8"
-		};
-
-		return versions[_data.majorVersion];
-	};
-
-	this.isChildOf = function(classDef) {
-		if(this.getName() == classDef.getName()) {
-			return true;
-		}
-
-		for(var i = 0; i < this.getInterfaces().length; i++) {
-			var interfaceDef = jjvm.core.ClassLoader.loadClass(this.getInterfaces()[i]);
-
-			if(interfaceDef.isChildOf(classDef)) {
-				return true;
-			}
-		}
-
-		if(this.getParent()) {
-			return this.getParent().isChildOf(classDef);
-		}
-
-		return false;
-	};
-
-	this.getInitialized = function() {
-		return this._initialized;
-	};
-
-	this.setInitialized = function(initialized) {
-		this._initialized = initialized;
-	};
-
-	this.getClassLoader = function() {
-		return this._classLoader;
-	};
-
-	this.setClassLoader = function(classLoader) {
-		this._classLoader = classLoader;
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-
-	this.toString = function() {
-		return "ClassDef#" + this.getName();
-	};
-
-	this.toJavaP = function() {
-		var output = this.getVisibility();
-		output += this.isAbstract() ? " abstract" : "";
-		output += this.isFinal() ? " final" : "";
-		output += this.isInterface() ? " interface" : " class";
-		output += " " + this.getName();
-		output += this.getParent() ? " extends " + this.getParent() : "";
-		output += "\r\n";
-		output += "\tSourceFile: \"" + this.getSourceFile() + "\"\r\n";
-		output += "\tMinor version: " + this.getMinorVersion() + "\r\n";
-		output += "\tMajor version: " + this.getMajorVersion() + "\r\n";
-		output += "\r\n";
-		output += _constantPool.toJavaP();
-		output += "\r\n";
-
-		if(_fields.length > 0) {
-			for(var f = 0; f < _fields.length; f++) {
-				output += _fields[f].toJavaP();
-			}
-
-			output += "\r\n";
-		}
-
-		for(var m = 0; m < _methods.length; m++) {
-			output += _methods[m].toJavaP();
-			output += "\r\n";
-		}
-
-		return output;
-	};
-};
-
-jjvm.types.ConstantPool = function(data) {
-	var _data = data ? data : {};
-	var pool = [];
-
-	if(_data.constants) {
-		for(var i = 0; i < _data.constants.length; i++) {
-			var value;
-
-			if(_data.constants[i].type == jjvm.types.ConstantPoolClassValue.type) {
-				value = new jjvm.types.ConstantPoolClassValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolFieldValue.type) {
-				value = new jjvm.types.ConstantPoolFieldValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolMethodValue.type) {
-				value = new jjvm.types.ConstantPoolMethodValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolNameAndTypeValue.type) {
-				value = new jjvm.types.ConstantPoolNameAndTypeValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.S || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.I || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.F || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.J || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.D) {
-				value = new jjvm.types.ConstantPoolPrimitiveValue(_data.constants[i]);
-			} else if(_data.constants[i].type == jjvm.types.ConstantPoolStringReferenceValue.type) {
-				value = new jjvm.types.ConstantPoolStringReferenceValue(_data.constants[i]);
-			} else {
-				throw "Unknown constant pool type " + _data.constants[i].type;
-			}
-
-			pool[value.getIndex()] = value;
-		}
-	} else {
-		_data.constants = [];
-	}
-
-	this.store = function(index, value) {
-		pool[index] = value;
-
-		for(var i = 0; i < _data.constants.length; i++) {
-			if(_data.constants[i].index == index) {
-				// we've defined this constant before, overwrite it
-				_data.constants[i] = value.getData();
-
-				return;
-			}
-		}
-
-		// this is a new constant, store it
-		_data.constants.push(value.getData());
-	};
-
-	this.load = function(index) {
-		return pool[index];
-	};
-
-	this.getPool = function() {
-		return pool;
-	};
-
-	this.toString = function() {
-		return "ConstantPool";
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-
-	this.toJavaP = function() {
-		var output = "\tConstant pool:\r\n";
-
-		for(var i = 0; i < pool.length; i++) {
-			if(!pool[i]) {
-				continue;
-			}
-
-			output += "\tconst #" + i + "\t= " + pool[i] + "\r\n";
-		}
-
-		return output;
-	};
-};
-
-jjvm.types.ConstantPoolClassValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolClassValue.type);
-
-	this.getClassDef = function() {
-		var className = this.getValue();
-		className = className.replace(/\//g, ".");
-
-		return jjvm.core.ClassLoader.loadClass(className);
-	};
-
-	this.setClassIndex = function(classIndex) {
-		this.getData().classIndex = classIndex;
-	};
-
-	this.getClassIndex = function() {
-		return this.getData().classIndex;
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t\t\t#" + this.getClassIndex() + ";\t\t// " + this.getValue();
-	};
-};
-
-jjvm.types.ConstantPoolClassValue.type = "class";
-jjvm.types.ConstantPoolFieldValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolFieldValue.type);
-
-	this.setClassIndex = function(classIndex) {
-		this.getData().classIndex = classIndex;
-	};
-
-	this.getClassIndex = function() {
-		return this.getData().classIndex;
-	};
-
-	this.setNameAndTypeIndex = function(nameAndTypeIndex) {
-		this.getData().nameAndTypeIndex = nameAndTypeIndex;
-	};
-
-	this.getNameAndTypeIndex = function() {
-		return this.getData().nameAndTypeIndex;
-	};
-
-	this.setClassName = function(className) {
-		this.getData().className = className;
-	};
-
-	this.getClassName = function() {
-		return this.getData().className;
-	};
-
-	this.setFieldName = function(fieldName) {
-		this.getData().fieldName = fieldName;
-	};
-
-	this.getFieldName = function() {
-		return this.getData().fieldName;
-	};
-
-	this.setFieldType = function(fieldType) {
-		this.getData().fieldType = fieldType;
-	};
-
-	this.getFieldType = function() {
-		return this.getData().fieldType;
-	};
-
-	this.getFieldDef = function() {
-		var classDef = this.getClassDef();
-
-		return classDef.getField(this.getFieldName());
-	};
-
-	this.getClassDef = function() {
-		return jjvm.core.ClassLoader.loadClass(this.getClassName());
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t\t\t#" + this.getClassIndex() + ".#" + this.getNameAndTypeIndex() + ";\t// " + this.getClassName() + "." + this.getFieldName() + ":" + this.getFieldType();
-	};
-};
-
-jjvm.types.ConstantPoolFieldValue.type = "Field";
-
-jjvm.types.ConstantPoolMethodValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolMethodValue.type);
-
-	this.setClassIndex = function(classIndex) {
-		this.getData().classIndex = classIndex;
-	};
-
-	this.getClassIndex = function() {
-		return this.getData().classIndex;
-	};
-
-	this.setNameAndTypeIndex = function(nameAndTypeIndex) {
-		this.getData().nameAndTypeIndex = nameAndTypeIndex;
-	};
-
-	this.getNameAndTypeIndex = function() {
-		return this.getData().nameAndTypeIndex;
-	};
-
-	this.setClassName = function(className) {
-		this.getData().className = className;
-	};
-
-	this.getClassName = function() {
-		return this.getData().className;
-	};
-
-	this.setMethodName = function(methodName) {
-		this.getData().methodName = methodName;
-	};
-
-	this.getMethodName = function() {
-		return this.getData().methodName;
-	};
-
-	this.setMethodType = function(methodType) {
-		this.getData().methodType = methodType;
-	};
-
-	this.getMethodType = function() {
-		return this.getData().methodType;
-	};
-
-	this.getMethodDef = function() {
-		var classDef = jjvm.core.ClassLoader.loadClass(this.getClassName());
-		var methodName = this.getMethodName();
-		var type = this.getMethodType();
-		var args = jjvm.Util.parseArgs(type);
-
-		return classDef.getMethod(methodName, args);
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t\t#" + this.getClassIndex() + ".#" + this.getNameAndTypeIndex() + ";\t\t// " + this.getClassName() + "." + this.getMethodName() + this.getMethodType();
-	};
-};
-
-jjvm.types.ConstantPoolMethodValue.type = "Method";
-
-jjvm.types.ConstantPoolNameAndTypeValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolNameAndTypeValue.type);
-
-	this.getValue = function() {
-		return this.getName() + ":" + this.getNameType();
-	};
-
-	this.setName = function(name) {
-		this.getData().name = name;
-	};
-
-	this.getName = function() {
-		return this.getData().name;
-	};
-
-	this.setNameIndex = function(nameIndex) {
-		this.getData().nameIndex = nameIndex;
-	};
-
-	this.getNameIndex = function() {
-		return this.getData().nameIndex;
-	};
-
-	this.setNameType = function(nameType) {
-		this.getData().nameType = nameType;
-	};
-
-	this.getNameType = function() {
-		return this.getData().nameType;
-	};
-
-	this.setNameTypeIndex = function(nameTypeIndex) {
-		this.getData().nameTypeIndex = nameTypeIndex;
-	};
-
-	this.getNameTypeIndex = function() {
-		return this.getData().nameTypeIndex;
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t#" + this.getNameIndex() + ":#" + this.getNameTypeIndex() + ";\t\t// " + this.getValue();
-	};
-};
-
-jjvm.types.ConstantPoolNameAndTypeValue.type = "NameAndType";
-
-jjvm.types.ConstantPoolPrimitiveValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	if(data) {
-		this.setType(jjvm.types.Primitives.jvmTypesToPrimitive[data.type]);
-	}
-
-	this.toString = function() {
-		return this.getType() + "\t\t\t// " + this.getValue() + ";";
-	};
-};
-
-jjvm.types.ConstantPoolPrimitiveValue.types = {
-	S: "Utf8",
-	I: "int",
-	F: "float",
-	J: "long",
-	D: "double"
-};
-
-jjvm.types.ConstantPoolStringReferenceValue = function(data) {
-	_.extend(this, new jjvm.types.ConstantPoolValue(data));
-
-	this.setType(jjvm.types.ConstantPoolStringReferenceValue.type);
-
-	// holds the string reference
-	var _objectRef = null;
-
-	this.setStringIndex = function(stringIndex) {
-		this.getData().stringIndex = stringIndex;
-	};
-
-	this.getStringIndex = function() {
-		return this.getData().stringIndex;
-	};
-
-	this.getStringReference = function() {
-		if(!_objectRef) {
-			_objectRef = jjvm.Util.createStringRef(this.getValue());
-		}
-
-		return _objectRef;
-	};
-
-	this.toString = function() {
-		return this.getType() + "\t\t#" + this.getStringIndex() + ";\t\t// " + this.getValue();
-	};
-};
-
-jjvm.types.ConstantPoolStringReferenceValue.type = "String";
-
-jjvm.types.ConstantPoolValue = function(data) {
-	var _data = data ? data : {};
-
-	this.setValue = function(value) {
-		_data.value = value;
-	};
-
-	this.getValue = function() {
-		return _data.value;
-	};
-
-	this.setType = function(type) {
-		_data.type = type;
-	};
-
-	this.getType = function() {
-		return _data.type;
-	};
-
-	this.setIndex = function(index) {
-		_data.index = index;
-	};
-
-	this.getIndex = function() {
-		return _data.index;
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-};
-
-jjvm.types.EnclosingMethod = function(data) {
-	var _data = data ? data : {};
-
-	this.setClassName = function(className) {
-		_data.className = className;
-	};
-
-	this.getClassName = function() {
-		return _data.className;
-	};
-
-	this.setMethodName = function() {
-		return _data.methodName;
-	};
-
-	this.getMethodName = function(methodName) {
-		_data.methodName = methodName;
-	};
-
-	this.getData = function() {
-		return _data;	
-	};
-
-	this.toJavaP = function() {
-		var output = "\t\tEnclosingMethod:\r\n";
-		output += "\t\t\t" + this.getClassName() + "." + this.getMethodName();
-
-		return output;
-	};
-
-	this.toString = function() {
-		return "EnclosingMethod";
-	};
-};
-
-jjvm.types.ExceptionTable = function(table) {
-
-	this.resolve = function(line, type) {
-		for(var i = 0; i < table.length; i++) {
-			if(table[i].from <= line && table[i].to >= line && type.getClass().isChildOf(table[i].type.getClassDef())) {
-				return table[i].target;
-			}
-		}
-
-		return null;
-	};
-
-	this.toJavaP = function() {
-		var output = "\t\tExceptionTable:\r\n";
-		output += "\t\t\tfrom\tto\ttarget\ttype\r\n";
-
-		for(var i = 0; i < table.length; i++) {
-			if(!table[i]) {
-				continue;
-			}
-
-			output += "\t\t\t" + table[i].from + "\t\t" + table[i].to + "\t\t" + table[i].target + "\t" + table[i].type.getClassDef().getName() + "\r\n";
-		}
-
-		return output;
-	};
-
-	this.getData = function() {
-		return table;
-	};
-
-	this.toString = function() {
-		return "ExceptionTable";
-	};
-};
-
-jjvm.types.FieldDefinition = function(data) {
-	// will be serialized to JSON so don't put any functions in here...
-	var _data = data ? data : {};
-
-	this.getVisibility = function() {
-		return _data.visibility ? _data.visibility : "package";
-	};
-
-	this.setVisibility = function(visibility) {
-		_data.visibility = _.string.trim(visibility);
-	};
-
-	this.isStatic = function() {
-		return _data.isStatic ? true : false;
-	};
-
-	this.setIsStatic = function(isStatic) {
-		_data.isStatic = isStatic ? true : false;
-	};
-
-	this.isFinal = function() {
-		return _data.isFinal ? true : false;
-	};
-
-	this.setIsFinal = function(isFinal) {
-		_data.isFinal = isFinal ? true : false;
-	};
-
-	this.isVolatile = function() {
-		return _data.isVolatile ? true : false;
-	};
-
-	this.setIsVolatile = function(isVolatile) {
-		_data.isVolatile = isVolatile ? true : false;
-	};
-
-	this.isTransient = function() {
-		return _data.isTransient ? true : false;
-	};
-
-	this.setIsTransient = function(isTransient) {
-		_data.isTransient = isTransient ? true : false;
-	};
-
-	this.setType = function(type) {
-		_data.type = _.str.trim(type);
-	};
-
-	this.getType = function() {
-		return _data.type;
-	};
-
-	this.setName = function(name) {
-		_data.name = _.str.trim(name);
-	};
-
-	this.getName = function() {
-		return _data.name;
-	};
-
-	this.setDeprecated = function(isDeprecated) {
-		_data.isDeprecated = isDeprecated ? true : false;
-	};
-
-	this.isDeprecated = function() {
-		return _data.isDeprecated ? true : false;
-	};
-
-	this.setSynthetic = function(isSynthetic) {
-		_data.isSynthetic = isSynthetic ? true : false;
-	};
-
-	this.isSynthetic = function() {
-		return _data.isSynthetic ? true : false;
-	};
-
-	this.setConstantValue = function(constantValue) {
-		_data.constantValue = constantValue;
-	};
-
-	this.getConstantValue = function() {
-		return _data.constantValue;
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-
-	this.toJavaP = function() {
-		var output = this.getVisibility();
-		output += this.isStatic() ? " static" : "";
-		output += this.isFinal() ? " final" : "";
-		output += this.isVolatile() ? " volatile" : "";
-		output += this.isTransient() ? " transient" : "";
-		output += " " + this.getType() + " " + this.getName() + ");\r\n";
-
-		return output;
-	};
-
-	this.toString = function() {
-		return "Field#" + this.getName();
-	};
-};
-
-jjvm.types.LineNumberTable = function(table) {
-
-	this.getTable = function() {
-		return table;
-	};
-
-	this.toJavaP = function() {
-		var output = "\t\tLineNumberTable:\r\n";
-
-		for(var i = 0; i < table.length; i++) {
-			if(!table[i]) {
-				continue;
-			}
-
-			output += "\t\t\tline " + table[i] + ":\t" + i + "\r\n";
-		}
-
-		return output;
-	};
-
-	this.getData = function() {
-		return table;
-	};
-
-	this.toString = function() {
-		return "LineNumberTable";
-	};
-};
-
-jjvm.types.LocalVariableTable = function(table) {
-
-	this.getTable = function() {
-		return table;
-	};
-
-	this.getData = function() {
-		return table;
-	};
-};
-
-jjvm.types.MethodDefinition = function(data) {
-	// will be serialized to JSON so don't put any functions in here...
-	var _data = data ? data : {
-		instructions: []
-	};
-
-	// holds a function
-	var _implementation = null;
-
-	// holds a list of bytecode instructions
-	var _instructions = [];
-	var _lineNumberTable = null;
-	var _localVariableTable = null;
-	var _stackMapTable = null;
-	var _exceptionTable = null;
-	var _classDef = null;
-	
-	if(data) {
-		if(data.lineNumberTable) {
-			_lineNumberTable = new jjvm.types.LineNumberTable(data.lineNumberTable);
-		}
-
-		if(data.localVariableTable) {
-			_localVariableTable = new jjvm.types.LocalVariableTable(data.localVariableTable);
-		}
-
-		if(data.stackMapTable) {
-			_stackMapTable = new jjvm.types.StackMapTable(data.stackMapTable);
-		}
-
-		if(data.exceptionTable) {
-			_exceptionTable = new jjvm.types.ExceptionTable(data.exceptionTable);
-		}
-
-		if(data.instructions) {
-			_.each(data.instructions, function(data) {
-				_instructions.push(new jjvm.types.ByteCode(data));
-			});
-		}
-	}
-
-	this.getVisibility = function() {
-		return _data.visibility ? _data.visibility : "package";
-	};
-
-	this.setVisibility = function(visibility) {
-		_data.visibility = visibility;
-	};
-
-	this.getSignature = function() {
-		return _data.signature;
-	};
-
-	this.setSignature = function(signature) {
-		_data.signature = signature;
-	};
-
-	this.isStatic = function() {
-		return _data.isStatic ? true : false;
-	};
-
-	this.setIsStatic = function(isStatic) {
-		_data.isStatic = isStatic ? true : false;
-	};
-
-	this.isFinal = function() {
-		return _data.isFinal ? true : false;
-	};
-
-	this.setIsFinal = function(isFinal) {
-		_data.isFinal = isFinal ? true : false;
-	};
-
-	this.isSynchronized = function() {
-		return _data.isSynchronized ? true : false;
-	};
-
-	this.setIsSynchronized = function(isSynchronized) {
-		_data.isSynchronized = isSynchronized ? true : false;
-	};
-
-	this.isNative = function() {
-		return _data.isNative ? true : false;
-	};
-
-	this.setIsNative = function(isNative) {
-		_data.isNative = isNative ? true : false;
-	};
-
-	this.isAbstract = function() {
-		return _data.isAbstract ? true : false;
-	};
-
-	this.setIsAbstract = function(isAbstract) {
-		_data.isAbstract = isAbstract ? true : false;
-	};
-
-	this.getIsStrict = function() {
-		return _data.isStrict ? true : false;
-	};
-
-	this.setIsStrict = function(isStrict) {
-		_data.isStrict = isStrict ? true : false;
-	};
-
-	this.setName = function(name) {
-		_data.name = _.string.trim(name);
-	};
-
-	this.getName = function() {
-		return _data.name;
-	};
-
-	this.setArgs = function(args) {
-		_data.args = args;
-	};
-
-	this.getArgs = function() {
-		return _data.args;
-	};
-
-	this.setReturns = function(returns) {
-		_data.returns = _.str.trim(returns);
-	};
-
-	this.getReturns = function() {
-		return _data.returns ? _data.returns : "void";
-	};
-
-	this.getInstructions = function() {
-		return _instructions;
-	};
-
-	this.setInstructions = function(instructions) {
-		_instructions = instructions;
-
-		_data.instructions = [];
-
-		_.each(instructions, function(instruction) {
-			_data.instructions.push(instruction.getData());
-		});
-	};
-
-	this.setDeprecated = function(deprecated) {
-		_data.isDeprecated = deprecated ? true : false;
-	};
-
-	this.isDeprecated = function() {
-		return _data.isDeprecated;
-	};
-
-	this.setSynthetic = function(synthetic) {
-		_data.synthetic = synthetic ? true : false;
-	};
-
-	this.isSynthetic = function() {
-		return _data.isSynthetic;
-	};
-
-	this.setThrows = function(list) {
-		_data.throws = list;
-	};
-
-	this.getThrows = function() {
-		return _data.throws;
-	};
-
-	this.setMaxStackSize = function(maxStackSize) {
-		_data.maxStackSize = maxStackSize;
-	};
-
-	this.getMaxStackSize = function() {
-		return _data.maxStackSize;
-	};
-
-	this.setMaxLocalVariables = function(maxLocalVariables) {
-		_data.maxLocalVariables = maxLocalVariables;
-	};
-
-	this.getMaxLocalVariables = function() {
-		return _data.maxLocalVariables;
-	};
-
-	this.getImplementation = function() {
-		return _implementation;
-	};
-
-	this.setImplementation = function(implementation) {
-		_implementation = implementation;
-	};
-
-	this.setExceptionTable = function(exceptionTable) {
-		_exceptionTable = exceptionTable;
-
-		if(exceptionTable) {
-			_data.exceptionTable = exceptionTable.getData();
-		}
-	};
-
-	this.getExceptionTable = function() {
-		return _exceptionTable;
-	};
-
-	this.setLineNumberTable = function(lineNumberTable) {
-		_lineNumberTable = lineNumberTable;
-
-		if(lineNumberTable) {
-			_data.lineNumberTable = lineNumberTable.getData();
-		}
-	};
-
-	this.getLineNumberTable = function() {
-		return _lineNumberTable;
-	};
-
-	this.setLocalVariableTable = function(localVariableTable) {
-		_localVariableTable = localVariableTable;
-
-		if(localVariableTable) {
-			_data.localVariableTable = localVariableTable.getData();
-		}		
-	};
-
-	this.getLocalVariableTable = function() {
-		return _localVariableTable;
-	};
-
-	this.setStackMapTable = function(stackMapTable) {
-		_stackMapTable = stackMapTable;
-
-		if(stackMapTable) {
-			_data.stackMapTable = stackMapTable.getData();
-		}
-	};
-
-	this.getStackMapTable = function() {
-		return _stackMapTable;
-	};
-
-	this.setClassDef = function(classDef) {
-		_classDef = classDef;
-	};
-
-	this.getClassDef = function() {
-		return _classDef;
-	};
-
-	this.getData = function() {
-		return _data;
-	};
-
-	this.toJavaP = function() {
-		var output = this.getVisibility();
-		output += this.isStatic() ? " static" : "";
-		output += this.isFinal() ? " final" : "";
-		output += this.isAbstract() ? " abstract" : "";
-		output += this.isSynchronized() ? " synchronized" : "";
-		output += " " + this.getReturns() + " " + this.getName() + "(" + this.getArgs().join(", ") + ");\r\n";
-		output += "\tCode:\r\n";
-		output += "\t\tStack=" + this.getMaxStackSize() + ", Locals="+ this.getMaxLocalVariables() + ", Args_size=" + this.getArgs().length + "\r\n";
-
-		if(this.getImplementation()) {
-			output += "\t\tNative code\r\n";
-		} else {
-			for(var i = 0; i < this.getInstructions().length; i++) {
-				output += "\t\t" + this.getInstructions()[i].getLocation() + ":\t" + this.getInstructions()[i] + "\r\n";
-			}
-		}
-
-		if(this.getLineNumberTable()) {
-			output += this.getLineNumberTable().toJavaP();
-		}
-
-		if(this.getExceptionTable()) {
-			output += this.getExceptionTable().toJavaP();
-		}
-
-		return output;
-	};
-
-	this.toString = function() {
-		return "Method#" + this.getName();
-	};
-};
-
-jjvm.types.MethodDefinition.CLASS_INITIALISER = "<clinit>";
-jjvm.types.MethodDefinition.OBJECT_INITIALISER = "<init>";
-jjvm.types.Primitives = {
-	jvmTypesToPrimitive: {
-		"Z": "boolean",
-		"B": "byte",
-		"C": "char",
-		"S": "short",
-		"I": "int",
-		"J": "long",
-		"F": "float",
-		"D": "double",
-		"V": "void"
-	},
-
-	classToPrimitive: {
-		"java.lang.Boolean": "boolean",
-		"java.lang.Byte": "byte",
-		"java.lang.Char": "char",
-		"java.lang.Short": "short",
-		"java.lang.Integer": "int",
-		"java.lang.Long": "long",
-		"java.lang.Float": "float",
-		"java.lang.Double": "double",
-		"java.lang.Void": "void"
-	},
-
-	primitiveToClass: {
-		"boolean": "java.lang.Boolean",
-		"byte": "java.lang.Byte",
-		"char": "java.lang.Char",
-		"short": "java.lang.Short",
-		"int": "java.lang.Integer",
-		"long": "java.lang.Long",
-		"float": "java.lang.Float",
-		"double": "java.lang.Double",
-		"void": "java.lang.Void"
-	}
-};
-
-jjvm.types.StackMapTable = function(className, methodName) {
-
-	this.toJavaP = function() {
-		var output = "\t\tEnclosingMethod:\r\n";
-		output += "\t\t\t" + className + methodName;
-
-		return output;
-	};
-
-	this.getData = function() {
-		return table;
-	};
-
-	this.toString = function() {
-		return "EnclosingMethod";
-	};
-};
-
-jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
-	_.extend(this, jjvm.core.Watchable);
-
-	var _stack = new jjvm.runtime.Stack();
-	var _variables = new jjvm.runtime.LocalVariables(args ? args : []);
-	var _child;
-	var _thread;
-	var _output;
-	var _currentInstruction;
-	var _version = jjvm.runtime.Frame.index++;
-	var _instructions = new jjvm.core.Iterator(methodDef.getInstructions());
-	var _skipBreakpointAtLocation;
-	var _executionHalted;
-	var _isSystemFrame;
-
-	this.getLocalVariables = function() {
-		return _variables;
-	};
-
-	this.getStack = function() {
-		return _stack;
-	};
-
-	this.getClassDef = function() {
-		return classDef;
-	};
-
-	this.getMethodDef = function() {
-		return methodDef;
-	};
-
-	this.getParent = function() {
-		return parent;
-	};
-
-	this.getChild = function() {
-		return _child;
-	};
-
-	this.getCurrentInstruction = function() {
-		return _currentInstruction;
-	};
-
-	this.getNextInstruction = function() {
-		return _instructions.peek();
-	};
-
-	this.getOutput = function() {
-		return _output;
-	};
-
-	this.getThread = function() {
-		return _thread;
-	};
-
-	this._resumeExecution = function(sender) {
-		if(!_thread.isCurrentFrame(this)) {
-			return;
-		}
-
-		_thread.setExecutionSuspended(false);
-		_skipBreakpointAtLocation = _currentInstruction.getLocation();
-
-		this._executeNextInstruction();
-	};
-
-	this._stepOver = function(sender) {
-		if(!_thread.isCurrentFrame(this)) {
-			return;
-		}
-
-		// start stepping
-		this._executeNextInstruction();
-	};
-
-	this._stepInto = function(sender) {
-		if(!_thread.isCurrentFrame(this)) {
-			return;
-		}
-
-		var nextInstruction = _instructions.peek();
-
-		if(!nextInstruction.canStepInto()) {
-			console.warn("Can only step into methods that create a new frame.");
-			return;
-		}
-
-		// start stepping
-		this._executeNextInstruction();
-	};
-
-	this._dropToFrame = function(sender) {
-		if(!_thread.isCurrentFrame(this)) {
-			return;
-		}
-
-		// reset execution index and enabled stepping
-		_instructions.reset();
-		_stack = new jjvm.runtime.Stack();
-		_currentInstruction = _instructions.peek();
-		this._dispatchNotification("onBeforeInstructionExecution");
-	};
-
-	var stepOverCallback = _.bind(this._stepOver, this);
-	var stepIntoCallback = _.bind(this._stepInto, this);
-	var dropToFrameCallback = _.bind(this._dropToFrame, this);
-	var resumeExecutionCallback = _.bind(this._resumeExecution, this);
-
-	this.execute = function(thread) {
-		_thread = thread;
-		_thread.setCurrentFrame(this);
-		_thread.register("onStepOver", stepOverCallback);
-		_thread.register("onStepInto", stepIntoCallback);
-		_thread.register("onDropToFrame", dropToFrameCallback);
-		_thread.register("onResumeExecution", resumeExecutionCallback);
-
-		if(methodDef.getImplementation()) {
-			// special case - where we have overriden method behaviour to stub 
-			// functionality like writing to System.out
-			var target = classDef;
-
-			if(!methodDef.isStatic()) {
-				target = _variables.load(0);
-			}
-
+		var methodDef;
+
+		if(target instanceof jjvm.types.ClassDefinition) {
+			// a static method
+			methodDef = target.getMethod(methodName, argTypes);
+		} else if(target instanceof jjvm.runtime.ObjectReference) {
 			args.unshift(target);
-			args.unshift(methodDef);
-			args.unshift(classDef);
-			args.unshift(this);
-			_output = methodDef.getImplementation().apply(target, args);
-
-			this.dispatch("onFrameComplete");
+			methodDef = target.getClass().getMethod(methodName, argTypes);
 		} else {
-			if(_thread.isExecutionSuspended()) {
-				_currentInstruction = _instructions.peek();
-				this._dispatchNotification("onBeforeInstructionExecution");
-			} else {
-				this._executeNextInstruction();
-			}
-		}
-	};
-
-	this.executeChild = function(classDef, methodDef, args) {
-		if(methodDef.getImplementation()) {
-			// special case - where we have overriden method behaviour to stub 
-			// functionality like writing to System.out
-			var target = classDef;
-
-			if(!methodDef.isStatic()) {
-				target = args.shift();
-			}
-
-			args.unshift(target);
-			args.unshift(methodDef);
-			args.unshift(classDef);
-			args.unshift(this);
-			var childOutput = methodDef.getImplementation().apply(target, args);
-
-			// override produced output so push it onto the stack
-			if(childOutput !== undefined) {
-				this.getStack().push(childOutput);
-			}
-
-			this.dispatch("onChildFrameCompleted", [childOutput]);
-		} else {
-			_child = new jjvm.runtime.Frame(classDef, methodDef, args, this);
-			_child.setIsSystemFrame(_isSystemFrame);
-
-			_child.registerOneTimeListener("onFrameComplete", _.bind(function(frame, output) {
-				// child frame produced output so push it onto the stack
-				if(output !== undefined) {
-					this.getStack().push(output);
-				}
-
-				_child = null;
-				_thread.setCurrentFrame(this);
-
-				this.dispatch("onChildFrameCompleted", [output]);
-			}, this));
-			_child.registerOneTimeListener("onExceptionThrown", _.bind(function(frame, thrown) {
-				if(!this.getMethodDef().getExceptionTable()) {
-					if(!parent) {
-						// nowhere to bubble to...
-						throw "Uncaught exception! " + thrown;
-					}
-
-					// exception bubbles up
-					this.dispatch("onExceptionThrown", [thrown]);
-
-					return;
-				}
-
-				var exceptionTable = this.getMethodDef().getExceptionTable();
-				var jumpTo = exceptionTable.resolve(_currentInstruction.getLocation(), thrown);
-
-				if(jumpTo === null) {
-					if(!parent) {
-						// nowhere to bubble to...
-						throw "Uncaught exception! " + thrown;
-					}
-
-					// uncaught exception
-					this.dispatch("onExceptionThrown", [thrown]);
-
-					return;
-				} else {
-					// find the instruction we are to jump to
-					for(var i = 0; i < _instructions.getIterable().length; i++) {
-						if(_instructions.getIterable()[i].getLocation() == jumpTo) {
-							_instructions.jump(i);
-						}
-					}
-				}
-
-				_child = null;
-				_thread.setCurrentFrame(this);
-			}, this));
-
-			_child.execute(_thread, _executionHalted);
+			throw "Please pass only ClassDefinition or ObjectReference types to jjvm.Util#execute";
 		}
 
-		return _child;
-	};
-
-	this.toString = function() {
-		return "Frame#" + _version + " " + classDef.getName() + "." + methodDef.getName() + (_currentInstruction ? ":" + _currentInstruction.getLocation() : "");
-	};
-
-	this._shouldStopOnBreakpoint = function() {
-		if(_isSystemFrame) {
-			// sometimes we don't want breakpoints - class initializers,
-			// internal string ref creation and so on
-			return false;
-		}
-
-		if(!_currentInstruction.hasBreakpoint()) {
-			return false;
-		}
-
-		// this makes the resume button work if we're currently on an 
-		// instruction with a breakpoint
-		if(_currentInstruction.getLocation() == _skipBreakpointAtLocation) {
-			_skipBreakpointAtLocation = -1;
-
-			return false;
-		}
-
-		if(_thread.isExecutionSuspended()) {
-			return false;
-		}
-
-		return true;
-	};
-
-	this._executeNextInstruction = function() {
-		// get instruction to execute
-		_currentInstruction = _instructions.next();
-
-		this._dispatchNotification("onBeforeInstructionExecution");
-
-		if(this._shouldStopOnBreakpoint()) {
-			_thread.setExecutionSuspended(true, this);
-			this._dispatchNotification("onBreakpointEncountered");
-			_instructions.rewind();
-
-			return;
-		}
-
-		try {
-			var constantPool = classDef.getConstantPool();
-
-			// if we're not executing an interface, use the constantpool from 
-			// the method definition's containing class
-			if(!methodDef.getClassDef().isInterface()) {
-				constantPool = methodDef.getClassDef().getConstantPool();
-			}
-
-			_output = _currentInstruction.execute(this, constantPool);
-
-			if(_output !== undefined) {
-				// have executed a return statement..
-
-				if(_output == jjvm.runtime.Void) {
-					_output = undefined;
-				}
-
-				// make sure we don't execute any more instructions..
-				_instructions.consume();
-			}
-		} catch(error) {
-			if(error instanceof jjvm.runtime.Goto) {
-				// jump to another instruction
-				for(var i = 0; i < methodDef.getInstructions().length; i++) {
-					if(methodDef.getInstructions()[i].getLocation() == error.getLocation()) {
-						_instructions.jump(i);
-					}
-				}
-			} else if(error instanceof jjvm.runtime.Thrown) {
-				// handle java exception ref
-				_output = error.getThrowable();
-
-				this._tearDownThreadListeners();
-
-				this.dispatch("onExceptionThrown", [error.getThrowable()]);
-
-				return;
-			} else {
-				// don't know what to do
-				console.error(error);
-				throw error;
-			}
-		}
-
-		this._dispatchNotification("onInstructionExecution");
-		this._dispatchNotification("onAfterInstructionExecution");
-
-		if(!_instructions.hasNext()) {
-			// all done
-			this._tearDownThreadListeners();
-			this.dispatch("onFrameComplete", [_output]);
-
-			return;
-		}
-
-		//if(!_thread.isSuspendedInFrame(this)) {
-		if(!_thread.isExecutionSuspended()) {
-			this._executeNextInstruction();
-			// execute next instruction in one second
-			//setTimeout(_.bind(this._executeNextInstruction, this), 1000);
-		}
-	};
-
-	this.setIsSystemFrame = function(systemFrame) {
-		_isSystemFrame = systemFrame;
-	};
-
-	this.isSystemFrame = function() {
-		return _isSystemFrame;
-	};
-
-	this.toString = function() {
-		return "Frame#" + classDef.getName() + "#" + methodDef.getName();
-	};
-
-	this._tearDownThreadListeners = function() {
-		_thread.deRegister("onStepOver", stepOverCallback);
-		_thread.deRegister("onStepInto", stepIntoCallback);
-		_thread.deRegister("onDropToFrame", dropToFrameCallback);
-		_thread.deRegister("onResumeExecution", resumeExecutionCallback);
-	};
-
-	this._dispatchNotification = function(eventType) {
-		var stack = [];
-
-		_.each(this.getStack().getStack(), function(index, item) {
-			stack.push(item.toString());
-		});
-
-		var localVariables = [];
-
-		_.each(this.getLocalVariables().getLocalVariables(), function(index, item) {
-			localVariables.push(item.toString());
-		});
-
-		this.dispatch(eventType, [this.getData()]);
-	};
-
-	this.getData = function() {
-		var stack = [];
-
-		_.each(this.getStack().getStack(), function(item) {
-			stack.push(item ? item.toString() : item);
-		});
-
-		var localVariables = [];
-
-		_.each(this.getLocalVariables().getLocalVariables(), function(item) {
-			localVariables.push(item ? item.toString() : item);
-		});
-
-		var nextInstruction = {
-			className: classDef.getName(), 
-			methodSignature: methodDef.getSignature(), 
-			instruction: _instructions.peek()
-		};
-
-		if(!nextInstruction.instruction && parent) {
-			nextInstruction = {
-				className: parent.getClassDef().getName(), 
-				methodSignature: parent.getMethodDef().getSignature(), 
-				instruction: parent.getNextInstruction()
-			};
-		}
-
-		if(nextInstruction.instruction) {
-			nextInstruction.instruction = nextInstruction.instruction.getData();
-		}
-
-		return {
-			className: classDef.getName(), 
-			methodSignature: methodDef.getSignature(), 
-			currentInstruction: _currentInstruction ? _currentInstruction.getData() : null, 
-			nextInstruction: nextInstruction, 
-			isSystemFrame: _isSystemFrame, 
-			isCurrentFrame: _thread ? _thread.isCurrentFrame(this) : false,
-			isExecutionSuspended: _thread ? _thread.isExecutionSuspended() : false,
-			stack: stack, 
-			localVariables: localVariables
-		};
-	};
-};
-
-jjvm.runtime.Frame.index = 0;
-jjvm.runtime.Goto = function(offset) {
-	this.getLocation = function() {
-		return offset;
-	};
-};
-
-jjvm.runtime.LocalVariables = function(args) {
-	var _args = [].concat(args);
-
-	this.store = function(index, value) {
-		_args[index] = value;
-	};
-
-	this.load = function(index) {
-		return _args[index];
-	};
-
-	this.getLocalVariables = function(index) {
-		return _args;
-	};
-};
-
-jjvm.runtime.ObjectReference = function(classDef) {
-	var _fields = {};
-	var _values = {};
-	var _index = jjvm.runtime.ObjectReference.index++;
-
-	this.getClass = function() {
-		return classDef;
-	};
-
-	this.invoke = function(methodName, args) {
-
-	};
-
-	this.getField = function(name) {
-		this._hasField(name);
-
-		if(_fields[name] === undefined) {
-			// we have the field but it's not been used yet so initialise it.
-
-			var fieldDef = this.getClass().getField(name);
-
-			if(fieldDef.getType() == "boolean" || fieldDef.getType() == "byte" || fieldDef.getType() == "short" || fieldDef.getType() == "int" || fieldDef.getType() == "long" || fieldDef.getType() == "char") {
-				_fields[name] = 0;
-			} else if(fieldDef.getType() == "float" || fieldDef.getType() == "double") {
-				_fields[name] = 0.0;
-			} else if(fieldDef.getType() == "boolean") {
-				_fields[name] = false;
-			} else {
-				_fields[name] = null;				
-			}
-		}
-
-		return _fields[name];
-	};
-
-	this.setField = function(name, value) {
-		this._hasField(name);
-
-		_fields[name] = value;
-	};
-
-	this._hasField = function(name) {
-		if(!this.getClass().hasField(name)) {
-			throw "field " + name + " does not exist on class " + this.getClass().getName();
-		}
-	};
-
-	this.isInstanceOf = function(classDef) {
-		return this.getClass().isChildOf(classDef);
-	};
-
-	this.getIndex = function() {
-		return _index;
-	};
-
-	this.toString = function() {
-		return "ObjectReference #" + this.getIndex() + " " + classDef.getName();
-	};
-};
-
-jjvm.runtime.ObjectReference.index = 0;
-
-jjvm.runtime.Stack = function() {
-	var _stack = [];
-
-	this.push = function(value) {
-		_stack.push(value);
-	};
-
-	this.pop = function() {
-		return _stack.pop();
-	};
-
-	this.getStack = function() {
-		return _stack;
-	};
-};
-
-jjvm.runtime.Thread = function(frame, parent) {
-	_.extend(this, jjvm.core.Watchable);
-
-	jjvm.runtime.ThreadPool.threads.push(this);
-	
-	var _initialFrame = frame;
-	var _currentFrame = frame;
-	var _index = jjvm.runtime.Thread.index++;
-	var _status = jjvm.runtime.Thread.STATUS.NEW;
-	var _executionSuspended;
-	var _suspendedInFrame;
-
-	this.run = function() {
-		frame.register("onFrameComplete", _.bind(function() {
-			this.setStatus(jjvm.runtime.Thread.STATUS.TERMINATED);
-
-			if(parent === undefined && frame.getMethodDef().getName() == "main") {
-				this.dispatch("onExecutionComplete");
-			}
-
-			jjvm.runtime.ThreadPool.reap();
-		}, this));
-
-		this.setStatus(jjvm.runtime.Thread.STATUS.RUNNABLE);
-		frame.execute(this);
-	};
-
-	this.isExecutionSuspended = function() {
-		return _executionSuspended ? true : false;
-	};
-
-	this.setExecutionSuspended = function(executionSuspended, frame) {
-		_executionSuspended  = executionSuspended;
-		_suspendedInFrame = frame;
-	};
-
-	this.isSuspendedInFrame = function(frame) {
-		return _suspendedInFrame == frame;
-	};
-
-	this.isCurrentFrame = function(frame) {
-		return _currentFrame == frame;
-	};
-
-	this.getCurrentFrame = function() {
-		return _currentFrame;
-	};
-
-	this.setCurrentFrame = function(frame) {
-		_currentFrame = frame;
-
-		this.dispatch("onCurrentFrameChanged", [this.getData(), frame.getData()]);
-	};
-
-	this.getInitialFrame = function(frame) {
-		return _initialFrame;
-	};
-
-	this.setStatus = function(status) {
-		_status = status;
-
-		this.dispatch("onThreadStatusChanged", [this.getData(), frame.getData()]);
-	};
-
-	this.getStatus = function() {
-		return _status;
-	};
-
-	this.toString = function() {
-		return "Thread#" + _index + " (" + _status + ")";
-	};
-
-	this.getData = function() {
-		var frames = [];
-		var frame = _initialFrame;
-
-		while(frame) {
-			var frameData = frame.getData();
-
-			if(_currentFrame == frame) {
-				frameData.currentFrame = true;
-			}
-
-			frames.push(frameData);
-
-			frame = frame.getChild();
-		}
-
-		return {
-			name: this.toString(), 
-			status: this.getStatus(),
-			frames: frames
-		};
-	};
-};
-
-jjvm.runtime.Thread.index = 0;
-jjvm.runtime.Thread.STATUS = {
-	NEW: "NEW",
-	RUNNABLE: "RUNNABLE",
-	BLOCKED: "BLOCKED",
-	WAITING: "WAITING",
-	TIMED_WAITING: "TIMED_WAITING",
-	TERMINATED: "TERMINATED"
-};
-
-jjvm.runtime.ThreadPool = {
-	threads: [],
-	
-	reap: function() {
-		for(var i = 0; i < jjvm.runtime.ThreadPool.threads.length; i++) {
-			if(jjvm.runtime.ThreadPool.threads[i].getStatus() == jjvm.runtime.Thread.STATUS.TERMINATED) {
-				jjvm.runtime.ThreadPool.threads.splice(i, 1);
-			}
-		}
-
-		jjvm.core.NotificationCentre.dispatch(this, "onThreadGC", [jjvm.runtime.ThreadPool.getData()]);
+		var frame = new jjvm.runtime.Frame(
+			target.getClass(), 
+			methodDef,
+			args
+		);
+		frame.setIsSystemFrame(true);
+		var thread = new jjvm.runtime.Thread(frame);
+		thread.run();
+
+		return frame.getOutput();
 	},
 
-	getData: function() {
-		var threads  = [];
+	_readPrimitiveArgument: function(iterator) {
+		var character = iterator.next();
 
-		_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
-			threads.push(thread.getData());
-		});
+		return jjvm.types.Primitives.jvmTypesToPrimitive[character];
+	},
 
-		return threads;
+	_readObjectArgument: function(iterator) {
+		// discard L
+		iterator.next();
+		var className = "";
+
+		while(true) {
+			var classNameCharacter = iterator.next();
+
+			if(classNameCharacter == ";") {
+				className = className.replace(/\//g, ".");
+
+				return className;
+			} else {
+				className += classNameCharacter;
+			}
+		}
+	},
+
+	_readArrayArgument: function(iterator) {
+		// discard [
+		iterator.next();
+
+		var character = iterator.peek();
+
+		if(character == "L") {
+			return jjvm.Util._readObjectArgument(iterator) + "[]";
+		} else {
+			return jjvm.Util._readPrimitiveArgument(iterator) + "[]";
+		}
 	}
-};
-
-jjvm.runtime.Thrown = function(throwable) {
-	this.getThrowable = function() {
-		return throwable;
-	};
-};
-
-jjvm.runtime.Void = {
-	
 };
 
 jjvm.compiler.AttributesParser = function(iterator, constantPool) {
@@ -4388,7 +1551,7 @@ jjvm.compiler.AttributesParser = function(iterator, constantPool) {
 jjvm.compiler.BlockParser = function() {
 
 	this.parseBlock = function(iterator, constantsPool, length, parser) {
-		//console.info("parsing block of length " + length + " with " + parser);
+		//jjvm.console.info("parsing block of length " + length + " with " + parser);
 		var block = iterator.getIterable().subarray(iterator.getLocation(), iterator.getLocation() + length);
 		var blockIterator = new jjvm.core.ByteIterator(block);
 
@@ -5440,34 +2603,27 @@ jjvm.compiler.ByteCodeParser = function() {
 			mnemonic: "tableswitch",
 			operation: "tableswitch",
 			args: function(iterator, constantPool, location) {
-				var default_offset;
-
-				// there are 0-3 bytes of padding before default_offset
-				for(var i = 0; i < 3; i++) {
-					default_offset = iterator.readU8();
-
-					// fewer than three bytes!
-					if(default_offset !== 0) {
-						break;
-					}
+				// default_offset always starts aligned with
+				// a four byte boundary
+				while(iterator.getLocation() % 4 !== 0) {
+					iterator.read8();
 				}
 
-				if(default_offset === 0 || default_offset === undefined) {
-					default_offset = iterator.readU32();
-				}
-
-				var low = iterator.readU32();
-				var high = iterator.readU32();
+				var default_offset = iterator.read32() + location;
+				var low = iterator.read32();
+				var high = iterator.read32();
 				var table = [];
+				var numTableEntries = (high - low) + 1;
 
-				for(var n = 0; n < (low - high) + 1; i++) {
-					table.push(iterator.readU32());
+				for(var n = 0; n < numTableEntries; n++) {
+					table.push(iterator.read32() + location);
 				}
 
 				return [
 					low,
 					high,
-					table
+					table,
+					default_offset
 				];
 			},
 			description: function(args, constantPool, location) {
@@ -5807,7 +2963,7 @@ jjvm.compiler.ByteCodeParser = function() {
 			var code = iterator.readU8();
 
 			if(!_bytecode_mapping[code]) {
-				console.warn("No bytecode mapping for " + code.toString(16) + " mapping to nop");
+				jjvm.console.warn("No bytecode mapping for " + code.toString(16) + " mapping to nop");
 
 				_bytecode_mapping[code] = {
 					mnemonic: "undefined " + code.toString(16),
@@ -5889,10 +3045,10 @@ jjvm.compiler.ClassDefinitionParser = function() {
 		this.parseMethods(iterator, classDef, constantPool);
 
 		attributesParser.onAttributeCount = function(attributeCount) {
-			//console.info("class " + name + " has " + attributeCount + " attribtues");
+			//jjvm.console.info("class " + name + " has " + attributeCount + " attribtues");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
-			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Class " + name + " has unrecognised attribute " + attributeName]);
+			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Class " + classDef.getName() + " has unrecognised attribute " + attributeName]);
 		};
 		attributesParser.onSourceFile = function(iterator, constantPool) {
 			var sourceFileName = constantPool.load(iterator.readU16()).getValue();
@@ -5980,7 +3136,7 @@ jjvm.compiler.Compiler = function() {
 			jjvm.core.NotificationCentre.dispatch(this, "onClassDefined", [classDef.getData(), isSystemClass]);
 			jjvm.core.NotificationCentre.dispatch(this, "onCompileSuccess", [this]);
 		} catch(error) {
-			console.error(error);
+			jjvm.console.error(error);
 
 			jjvm.core.NotificationCentre.dispatch(this, "onCompileError", [error]);
 		}
@@ -6318,7 +3474,7 @@ jjvm.compiler.FieldDefinitionParser = function() {
 		fieldDef.setIsTransient(accessFlags & 0x0080);
 
 		attributesParser.onAttributeCount = function(attributeCount) {
-			//console.info("field " + name + " has " + attributeCount + " attributes");
+			//jjvm.console.info("field " + name + " has " + attributeCount + " attributes");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
 			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Field " + name + " has unrecognised attribute " + attributeName]);
@@ -6381,7 +3537,7 @@ jjvm.compiler.InnerClassesParser = function() {
 			});
 		}
 
-		//console.dir(innerClasses);
+		//jjvm.console.dir(innerClasses);
 	};
 
 	this._loadEntry = function(iterator, constantsPool) {
@@ -6514,7 +3670,7 @@ jjvm.compiler.MethodDefinitionParser = function() {
 		}
 
 		attributesParser.onAttributeCount = function(attributeCount) {
-			//console.info("method " + name + " has " + attributeCount + " attributes");
+			//jjvm.console.info("method " + name + " has " + attributeCount + " attributes");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
 			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " has unrecognised attribute " + attributeName]);
@@ -6530,7 +3686,7 @@ jjvm.compiler.MethodDefinitionParser = function() {
 			methodDef.setExceptionTable(blockParser.parseBlock(iterator, constantPool, iterator.readU16() * 8, exceptionTableParser));
 
 			codeAttributesParser.onAttributeCount = function(attributeCount) {
-				//console.info("Code block has " + attributeCount + " attributes");
+				//jjvm.console.info("Code block has " + attributeCount + " attributes");
 			};
 			codeAttributesParser.onUnrecognisedAttribute = function(attributeName) {
 				jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " has unrecognised attribute " + attributeName + " on code block"]);
@@ -6626,6 +3782,2832 @@ jjvm.compiler.StackMapTableParser = function() {
 	};
 };
 
+jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
+	_.extend(this, jjvm.core.Watchable);
+
+	var _stack = new jjvm.runtime.Stack();
+	var _variables = new jjvm.runtime.LocalVariables(args ? args : []);
+	var _child;
+	var _thread;
+	var _output;
+	var _currentInstruction;
+	var _version = jjvm.runtime.Frame.index++;
+	var _instructions = new jjvm.core.Iterator(methodDef.getInstructions());
+	//var _skipBreakpointAtLocation;
+	var _isSystemFrame;
+	var _shouldStepInto;
+
+	this.getLocalVariables = function() {
+		return _variables;
+	};
+
+	this.getStack = function() {
+		return _stack;
+	};
+
+	this.getClassDef = function() {
+		return classDef;
+	};
+
+	this.getMethodDef = function() {
+		return methodDef;
+	};
+
+	this.getParent = function() {
+		return parent;
+	};
+
+	this.getChild = function() {
+		return _child;
+	};
+
+	this.getCurrentInstruction = function() {
+		return _currentInstruction;
+	};
+
+	this.getNextInstruction = function() {
+		return _instructions.peek();
+	};
+
+	this.getOutput = function() {
+		return _output;
+	};
+
+	this.getThread = function() {
+		return _thread;
+	};
+
+	this.reset = function() {
+		// reset execution index and enabled stepping
+		_instructions.reset();
+		_stack = new jjvm.runtime.Stack();
+		_currentInstruction = _instructions.peek();
+		this._dispatchNotification("onBeforeInstructionExecution");
+	};
+
+	this._execute = function(thread) {
+		_thread = thread;
+		_thread.setCurrentFrame(this);
+
+		if(methodDef.getImplementation()) {
+			// special case - where we have overriden method behaviour to stub 
+			// functionality like writing to System.out
+			var methodArgs = args.concat([]);
+			var target = classDef;
+
+			if(methodDef.isStatic()) {
+				methodArgs.unshift(target);
+			} else {
+				target = _variables.load(0);
+			}
+
+			methodArgs.unshift(methodDef);
+			methodArgs.unshift(classDef);
+			methodArgs.unshift(this);
+			_output = methodDef.getImplementation().apply(target, methodArgs);
+
+			this.dispatch("onFrameComplete", _output !== undefined ? [_output] : []);
+		} else {
+			this.executeNextInstruction();
+		}
+	};
+
+	this.executeChild = function(classDef, methodDef, args) {
+		_child = new jjvm.runtime.Frame(classDef, methodDef, args, this);
+		_child.setIsSystemFrame(_isSystemFrame);
+
+		var exceptionHandler = _.bind(function(frame, thrown) {
+			if(!this.getMethodDef().getExceptionTable()) {
+				if(!parent) {
+					// nowhere to bubble to...
+					throw "Uncaught exception! " + thrown;
+				}
+
+				// exception bubbles up
+				this.dispatch("onExceptionThrown", [thrown]);
+
+				return;
+			}
+
+			// attempt to resolve via exception table
+			var exceptionTable = this.getMethodDef().getExceptionTable();
+			var jumpTo = exceptionTable.resolve(_currentInstruction.getLocation(), thrown);
+
+			if(jumpTo === null) {
+				if(!parent) {
+					// nowhere to bubble to...
+					throw "Uncaught exception! " + thrown;
+				}
+
+				// uncaught exception
+				this.dispatch("onExceptionThrown", [thrown]);
+
+				return;
+			} else {
+				// find the instruction we are to jump to
+				for(var i = 0; i < _instructions.getIterable().length; i++) {
+					if(_instructions.getIterable()[i].getLocation() == jumpTo) {
+						_instructions.jump(i);
+					}
+				}
+			}
+
+			_child = null;
+			_thread.setCurrentFrame(this);
+		}, this);
+		_child.registerOneTimeListener("onExceptionThrown", exceptionHandler);
+
+		_child.registerOneTimeListener("onFrameComplete", _.bind(function(frame, output) {
+			// child frame produced output so push it onto the stack
+			if(output !== undefined) {
+				this.getStack().push(output);
+			}
+
+			_child.deRegister("onExceptionThrown", exceptionHandler);
+
+			_child = null;
+			_thread.setCurrentFrame(this);
+
+			this.dispatch("onChildFrameCompleted", output !== undefined ? [output] : []);
+		}, this));
+
+		// we will want to resume stepping afterwards
+		if(_thread.isExecutionSuspended()) {
+			if(_shouldStepInto) {
+				jjvm.console.debug("Stepping into child frame");
+				_thread.setExecutionSuspended(true);
+				_shouldStepInto = false;
+			} else {
+				jjvm.console.debug("Stepping over child frame");
+				_thread.setExecutionSuspended(false);
+
+				_child.registerOneTimeListener("onFrameComplete", function(frame, output) {
+					jjvm.console.debug("Resuming debug");
+					_thread.setExecutionSuspended(true);
+				});
+			}
+		}
+
+		_child._execute(_thread);
+	};
+
+	this.toString = function() {
+		return "Frame#" + _version + " " + classDef.getName() + "." + methodDef.getName() + (_currentInstruction ? ":" + _currentInstruction.getLocation() : "");
+	};
+
+	this._shouldStopOnBreakpoint = function() {
+		if(_isSystemFrame) {
+			// sometimes we don't want breakpoints - class initializers,
+			// internal string ref creation and so on
+			return false;
+		}
+
+		if(_currentInstruction.hasBreakpoint()) {
+
+			// encountered a breakpoint for the first time in this run
+			if(!_thread.isExecutionSuspended()) {
+				return true;
+			}
+
+			// only break if we're the currently suspended frame
+			return _thread.isSuspendedInFrame(this);
+		}
+
+		return false;
+	};
+
+	this.executeNextInstruction = function(skipBreakpoint) {
+		// get instruction to execute
+		_currentInstruction = _instructions.next();
+
+		this._dispatchNotification("onBeforeInstructionExecution");
+
+		if(!skipBreakpoint && this._shouldStopOnBreakpoint()) {
+			jjvm.console.debug("suspending execution!");
+			_thread.setExecutionSuspended(true);
+
+			this._dispatchNotification("onBreakpointEncountered");
+			_instructions.rewind();
+
+			return;
+		}
+
+		// actually execute the instruction
+		this._executeCurrentInstruction();
+
+		this._dispatchNotification("onInstructionExecution");
+		this._dispatchNotification("onAfterInstructionExecution");
+
+		_thread.instructionExecuted(this);
+
+		if(!_instructions.hasNext()) {
+			// all done, tell everyone
+			this.dispatch("onFrameComplete", _output !== undefined ? [_output] : []);
+		}
+	};
+
+	this._executeCurrentInstruction = function() {
+		try {
+			var constantPool = classDef.getConstantPool();
+
+			// if we're not executing an interface, use the constantpool from 
+			// the method definition's containing class
+			if(!methodDef.getClassDef().isInterface()) {
+				constantPool = methodDef.getClassDef().getConstantPool();
+			}
+
+			if(_thread.getInitialFrame().getMethodDef().getName() == "main") {
+				jjvm.console.debug("Executing " + _currentInstruction + " from " + methodDef.getName() + " from " + classDef.getName());
+			}
+
+			_output = _currentInstruction.execute(this, constantPool);
+
+			if(_output !== undefined) {
+				// have executed a return statement..
+
+				if(_output == jjvm.runtime.Void) {
+					_output = undefined;
+				}
+
+				// make sure we don't execute any more instructions..
+				_instructions.consume();
+			}
+		} catch(error) {
+			if(error instanceof jjvm.runtime.Goto) {
+				// jump to another instruction
+				for(var i = 0; i < methodDef.getInstructions().length; i++) {
+					if(methodDef.getInstructions()[i].getLocation() == error.getLocation()) {
+						_instructions.jump(i);
+					}
+				}
+			} else if(error instanceof jjvm.runtime.Thrown) {
+				// handle java exception ref
+				_output = error.getThrowable();
+
+				this._tearDownThreadListeners();
+
+				this.dispatch("onExceptionThrown", [error.getThrowable()]);
+
+				return;
+			} else {
+				// don't know what to do
+				jjvm.console.error(error);
+				throw error;
+			}
+		}
+	};
+
+	this.setIsSystemFrame = function(systemFrame) {
+		_isSystemFrame = systemFrame;
+	};
+
+	this.isSystemFrame = function() {
+		return _isSystemFrame;
+	};
+
+	this.toString = function() {
+		return "Frame#" + classDef.getName() + "#" + methodDef.getName() + (_currentInstruction ? ":" + _currentInstruction.getLocation() : "");
+	};
+
+	this.stepIntoNextInstruction = function() {
+		_shouldStepInto = true;
+	};
+
+	this._dispatchNotification = function(eventType) {
+		if(_isSystemFrame || !_thread.isSuspendedInFrame(this)) {
+			return;
+		}
+
+		this.dispatch(eventType, [this.getData()]);
+	};
+
+	this.getData = function() {
+		var stack = [];
+
+		_.each(this.getStack().getStack(), function(item) {
+			stack.push(item ? item.toString() : item);
+		});
+
+		var localVariables = [];
+
+		_.each(this.getLocalVariables().getLocalVariables(), function(item) {
+			localVariables.push(item ? item.toString() : item);
+		});
+
+		var nextInstruction = {
+			className: classDef.getName(), 
+			methodSignature: methodDef.getSignature(), 
+			instruction: _instructions.peek()
+		};
+
+		if(!nextInstruction.instruction && parent) {
+			nextInstruction = {
+				className: parent.getClassDef().getName(), 
+				methodSignature: parent.getMethodDef().getSignature(), 
+				instruction: parent.getNextInstruction()
+			};
+		}
+
+		if(nextInstruction.instruction) {
+			nextInstruction.instruction = nextInstruction.instruction.getData();
+		}
+
+		return {
+			className: classDef.getName(), 
+			methodSignature: methodDef.getSignature(), 
+			currentInstruction: _currentInstruction ? _currentInstruction.getData() : null, 
+			nextInstruction: nextInstruction, 
+			isSystemFrame: _isSystemFrame, 
+			isCurrentFrame: _thread ? _thread.isCurrentFrame(this) : false,
+			isExecutionSuspended: _thread ? _thread.isExecutionSuspended() : false,
+			stack: stack, 
+			localVariables: localVariables
+		};
+	};
+};
+
+jjvm.runtime.Frame.index = 0;
+jjvm.runtime.Goto = function(offset) {
+	this.getLocation = function() {
+		return offset;
+	};
+};
+
+jjvm.runtime.LocalVariables = function(args) {
+	var _args = [].concat(args);
+
+	this.store = function(index, value) {
+		_args[index] = value;
+	};
+
+	this.load = function(index) {
+		return _args[index];
+	};
+
+	this.getLocalVariables = function(index) {
+		return _args;
+	};
+};
+
+jjvm.runtime.ObjectReference = function(classDef) {
+	var _fields = {};
+	var _index = jjvm.runtime.ObjectReference.index++;
+
+	this.getClass = function() {
+		return classDef;
+	};
+
+	this.invoke = function(methodName, args) {
+
+	};
+
+	this.getField = function(name) {
+		this._hasField(name);
+
+		if(_fields[name] === undefined) {
+			// we have the field but it's not been used yet so initialise it.
+
+			var fieldDef = this.getClass().getField(name);
+
+			if(fieldDef.getType() == "boolean" || fieldDef.getType() == "byte" || fieldDef.getType() == "short" || fieldDef.getType() == "int" || fieldDef.getType() == "long" || fieldDef.getType() == "char") {
+				_fields[name] = 0;
+			} else if(fieldDef.getType() == "float" || fieldDef.getType() == "double") {
+				_fields[name] = 0.0;
+			} else if(fieldDef.getType() == "boolean") {
+				_fields[name] = false;
+			} else {
+				_fields[name] = null;				
+			}
+		}
+
+		return _fields[name];
+	};
+
+	this.getFields = function() {
+		return _fields;
+	};
+
+	this.setField = function(name, value) {
+		this._hasField(name);
+
+		_fields[name] = value;
+	};
+
+	this._hasField = function(name) {
+		if(!this.getClass().hasField(name)) {
+			throw "field " + name + " does not exist on class " + this.getClass().getName();
+		}
+	};
+
+	this.isInstanceOf = function(classDef) {
+		return this.getClass().isChildOf(classDef);
+	};
+
+	this.getIndex = function() {
+		return _index;
+	};
+
+	this.toString = function() {
+		return "ObjectReference #" + this.getIndex() + " " + classDef.getName();
+	};
+};
+
+jjvm.runtime.ObjectReference.index = 0;
+
+jjvm.runtime.Stack = function() {
+	var _stack = [];
+
+	this.push = function(value) {
+		_stack.push(value);
+	};
+
+	this.pop = function() {
+		return _stack.pop();
+	};
+
+	this.getStack = function() {
+		return _stack;
+	};
+};
+
+jjvm.runtime.Thread = function(frame, parent) {
+	_.extend(this, jjvm.core.Watchable);
+
+	jjvm.runtime.ThreadPool.threads.push(this);
+
+	var _initialFrame = frame;
+	var _currentFrame = frame;
+	var _executionSuspended;
+	var _index = jjvm.runtime.Thread.index++;
+	var _status = jjvm.runtime.Thread.STATUS.NEW;
+
+	this.run = function() {
+		this.setStatus(jjvm.runtime.Thread.STATUS.RUNNABLE);
+		frame._execute(this);
+	};
+
+	this.isExecutionSuspended = function() {
+		return _executionSuspended ? true : false;
+	};
+
+	this.setExecutionSuspended = function(executionSuspended) {
+		_executionSuspended  = executionSuspended;
+	};
+
+	this.isSuspendedInFrame = function(frame) {
+		return _executionSuspended && _currentFrame == frame;
+	};
+
+	this.isCurrentFrame = function(frame) {
+		return _currentFrame == frame;
+	};
+
+	this.getCurrentFrame = function() {
+		return _currentFrame;
+	};
+
+	this.getInitialFrame = function() {
+		return _initialFrame;
+	};
+
+	this.setCurrentFrame = function(frame) {
+		_currentFrame = frame;
+
+		// make sure that we move execution context back to the parent frame once this one is done
+		_currentFrame.registerOneTimeListener("onFrameComplete", _.bind(function(sender) {
+			if(sender.getParent()) {
+				this.setCurrentFrame(sender.getParent());
+			} else {
+				this.setStatus(jjvm.runtime.Thread.STATUS.TERMINATED);
+
+				if(sender.getMethodDef().getName() == "main") {
+					this.dispatch("onExecutionComplete");
+				}
+
+				jjvm.runtime.ThreadPool.reap();
+			}
+		}, this));
+
+		this.dispatch("onCurrentFrameChanged", [this.getData(), _currentFrame.getData()]);
+	};
+
+	this.getInitialFrame = function() {
+		return _initialFrame;
+	};
+
+	this.setStatus = function(status) {
+		_status = status;
+
+		this.dispatch("onThreadStatusChanged", [this.getData(), frame.getData()]);
+	};
+
+	this.getStatus = function() {
+		return _status;
+	};
+
+	this.toString = function() {
+		return "Thread#" + _index + " (" + _status + ")";
+	};
+
+	this.resumeExecution = function(sender) {
+		this.setExecutionSuspended(false);
+		_currentFrame.executeNextInstruction(true);
+	};
+
+	this.suspendExecution = function(sender) {
+		
+	};
+
+	this.stepOver = function(sender) {
+		jjvm.console.debug("Telling frame " + _currentFrame + " to advance");
+		_currentFrame.executeNextInstruction(true);
+	};
+
+	this.stepInto = function(sender) {
+		if(!_currentFrame.getNextInstruction() || !_currentFrame.getNextInstruction().canStepInto()) {
+			jjvm.console.warn("Can only step into bytecode that creates a new frame.");
+			return;
+		}
+
+		_currentFrame.stepIntoNextInstruction();
+		_currentFrame.executeNextInstruction(true);
+	};
+
+	this.stepOut = function(sender) {
+		_executionSuspended = false;
+
+		// suspend execution again once the current frame has finished
+		_currentFrame.registerOneTimeListener("onFrameComplete", function(sender) {
+			_executionSuspended = true;
+		});
+
+		_currentFrame.executeNextInstruction(true);
+	};
+
+	this.dropToFrame = function(sender) {
+		_currentFrame.reset();
+	};
+
+	this.instructionExecuted = function(frame) {
+		if(!frame.getNextInstruction()) {
+			return;
+		}
+
+		if(frame != _currentFrame) {
+			return;
+		}
+
+		if(frame.isSystemFrame()) {
+			// system frame, continue execution
+			frame.executeNextInstruction();
+		} else if(!_executionSuspended) {
+			// we are not suspended, execute next instruction
+			frame.executeNextInstruction();
+		} else if(!this.isSuspendedInFrame(frame)) {
+			// we're suspended, but have stepped over this frame, execute next instruction
+			frame.executeNextInstruction();
+		}
+
+		//jjvm.console.info("Not executing instruction " + _executionSuspended);
+		// wait for instruction from user to continue
+	};
+
+	this.getData = function() {
+		var frames = [];
+		var frame = _initialFrame;
+
+		while(frame) {
+			var frameData = frame.getData();
+
+			if(_currentFrame == frame) {
+				frameData.currentFrame = true;
+			}
+
+			frames.push(frameData);
+
+			frame = frame.getChild();
+		}
+
+		return {
+			name: this.toString(), 
+			status: this.getStatus(),
+			frames: frames
+		};
+	};
+};
+
+jjvm.runtime.Thread.index = 0;
+jjvm.runtime.Thread.STATUS = {
+	NEW: "NEW",
+	RUNNABLE: "RUNNABLE",
+	BLOCKED: "BLOCKED",
+	WAITING: "WAITING",
+	TIMED_WAITING: "TIMED_WAITING",
+	TERMINATED: "TERMINATED"
+};
+
+jjvm.runtime.ThreadPool = {
+	threads: [],
+	
+	reap: function() {
+		for(var i = 0; i < jjvm.runtime.ThreadPool.threads.length; i++) {
+			if(jjvm.runtime.ThreadPool.threads[i].getStatus() == jjvm.runtime.Thread.STATUS.TERMINATED) {
+				jjvm.runtime.ThreadPool.threads.splice(i, 1);
+			}
+		}
+
+		jjvm.core.NotificationCentre.dispatch(this, "onThreadGC", [jjvm.runtime.ThreadPool.getData()]);
+	},
+
+	getData: function() {
+		var threads  = [];
+
+		_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
+			threads.push(thread.getData());
+		});
+
+		return threads;
+	}
+};
+
+jjvm.runtime.Thrown = function(throwable) {
+	this.getThrowable = function() {
+		return throwable;
+	};
+};
+
+jjvm.runtime.Void = {
+	
+};
+
+jjvm.types.ByteCode = function(data) {
+	var _data = data ? data : {};
+
+	var _breakpoint;
+	var _operation;
+
+	var invokeMethod = function(methodDef, frame) {
+		var args = [];
+
+		for(var i = 0; i < methodDef.getArgs().length; i++) {
+			args.unshift(frame.getStack().pop());
+		}
+
+		if(!methodDef.isStatic()) {
+			// place reference to current object at position 0 of local arguments
+			args.unshift(frame.getStack().pop());
+		}
+
+		if(args[0] instanceof jjvm.types.ClassDefinition) {
+			// swap ClassDefinition for it's object ref
+			var classDef = args.shift();
+			args.unshift(classDef.getObjectRef());
+		}
+
+		if(methodDef.isStatic()) {
+			jjvm.console.debug("Invoking static method " + methodDef.getName() + " on " + methodDef.getClassDef().getName() + " with args " + args);
+		} else {
+			jjvm.console.debug("Invoking instance method " + methodDef.getName() + " on " + args[0].getClass().getName() + " as " + methodDef.getClassDef().getName() + " with args " + args);
+		}
+
+		frame.executeChild(methodDef.getClassDef(), methodDef, args);
+	};
+
+	var operations = {
+		"nop": function() {
+			this.execute = function(frame, constantPool) {
+				
+			};
+		},
+		"push": function(value) {
+			this.execute = function(frame, constantPool) {
+				frame.getStack().push(value);
+			};
+		},
+		"push_constant": function(index) {
+			this.execute = function(frame, constantPool) {
+				// should return String, int or float
+				var value = constantPool.load(index);
+
+				if(!value) {
+					throw "Constant value was falsy!";
+				}
+
+				if(value instanceof jjvm.types.ConstantPoolClassValue) {
+					value = value.getClassDef();
+				} else if(value instanceof jjvm.types.ConstantPoolStringReferenceValue) {
+					value = value.getStringReference();
+				} else {
+					value = value.getValue();
+				}
+
+				frame.getStack().push(value);
+			};
+		},
+		"load": function(location) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getLocalVariables().load(location);
+				frame.getStack().push(value);
+			};
+		},
+		"array_load": function() {
+			this.execute = function(frame, constantPool) {
+				var index = frame.getStack().pop();
+				var array = frame.getStack().pop();
+
+				if(index >= array.length) {
+					throw "ArrayIndexOutOfBoundsExecption: " + index;
+				}
+
+				frame.getStack().push(array[index]);
+			};
+		},
+		"array_load_character": function() {
+			this.execute = function(frame, constantPool) {
+				var index = frame.getStack().pop();
+				var array = frame.getStack().pop();
+
+				if(index >= array.length) {
+					throw "ArrayIndexOutOfBoundsExecption: " + index;
+				}
+
+				frame.getStack().push(array[index].charCodeAt(0));
+			};
+		},
+		"store": function(location) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				frame.getLocalVariables().store(location, value);
+			};
+		},
+		"array_store": function() {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+				var index = frame.getStack().pop();
+				var array = frame.getStack().pop();
+
+				array[index] = value;
+			};
+		},
+		"array_store_character": function() {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+				var index = frame.getStack().pop();
+				var array = frame.getStack().pop();
+
+				// convert ascii code to string
+				array[index] = String.fromCharCode(value);
+			};
+		},
+		"pop": function() {
+			this.execute = function(frame, constantPool) {
+				frame.getStack().pop();
+			};
+		},
+		"pop2": function() {
+			this.execute = function(frame, constantPool) {
+				frame.getStack().pop();
+				frame.getStack().pop();
+			};
+		},
+		"dup": function() {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				frame.getStack().push(value);
+				frame.getStack().push(value);
+			};
+		},
+		"dup2": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				frame.getStack().push(value2);
+				frame.getStack().push(value1);
+				frame.getStack().push(value2);
+				frame.getStack().push(value1);
+			};
+		},
+		"dup2_x1": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+				var value3 = frame.getStack().pop();
+
+				frame.getStack().push(value2);
+				frame.getStack().push(value1);
+				frame.getStack().push(value3);
+				frame.getStack().push(value2);
+				frame.getStack().push(value1);
+			};
+		},
+		"dup2_x2": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+				var value3 = frame.getStack().pop();
+				var value4 = frame.getStack().pop();
+
+				frame.getStack().push(value2);
+				frame.getStack().push(value1);
+				frame.getStack().push(value4);
+				frame.getStack().push(value3);
+				frame.getStack().push(value2);
+				frame.getStack().push(value1);
+			};
+		},
+		"dup_x1": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				frame.getStack().push(value1);
+				frame.getStack().push(value2);
+				frame.getStack().push(value1);
+			};
+		},
+		"dup_x2": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+				var value3 = frame.getStack().pop();
+
+				frame.getStack().push(value1);
+				frame.getStack().push(value3);
+				frame.getStack().push(value2);
+				frame.getStack().push(value1);
+			};
+		},
+		"swap": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				frame.getStack().push(value1);
+				frame.getStack().push(value2);
+			};
+		},
+		"add": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				frame.getStack().push(value1 + value2);
+			};
+		},
+		"sub": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				frame.getStack().push(value2 - value1);
+			};	
+		},
+		"mul": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				frame.getStack().push(value1 * value2);
+			};	
+		},
+		"div": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				frame.getStack().push(value2 / value1);
+			};	
+		},
+		"rem": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				frame.getStack().push(value2 % value1);
+			};	
+		},
+		"neg": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+
+				frame.getStack().push(-1 * value1);
+			};	
+		},
+		"shift_left": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				// bitwise operators don't work for > 32bit integers in JavaScript
+				var result = value2 * Math.pow(2, value1);
+
+				frame.getStack().push(result);
+			};
+		},
+		"arithmetic_shift_right": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				// bitwise operators don't work for > 32bit integers in JavaScript
+				var result = value2 / Math.pow(2, value1);
+
+				frame.getStack().push(result);
+			};
+		},
+		"logical_shift_right": function() {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				// probably won't work for > 32bit integers in JavaScript
+				frame.getStack().push(value2 >>> value1);
+			};
+		},
+		"and": function() {
+			this.execute = function(frame, constantPool) {
+				var value2 = frame.getStack().pop();
+				var value1 = frame.getStack().pop();
+
+				frame.getStack().push(value1 & value2);
+			};
+		},
+		"or": function() {
+			this.execute = function(frame, constantPool) {
+				var value2 = frame.getStack().pop();
+				var value1 = frame.getStack().pop();
+
+				frame.getStack().push(value1 | value2);
+			};
+		},
+		"xor": function() {
+			this.execute = function(frame, constantPool) {
+				var value2 = frame.getStack().pop();
+				var value1 = frame.getStack().pop();
+
+				frame.getStack().push(value1 ^ value2);
+			};
+		},
+		"increment": function(location, amount) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getLocalVariables().load(location);
+
+				frame.getLocalVariables().store(location, value + amount);
+			};
+		},
+		"compare": function() {
+			this.execute = function(frame, constantPool) {
+				var value2 = frame.getStack().pop();
+				var value1 = frame.getStack().pop();
+
+				frame.getStack().push(value1 == value2);
+			};	
+		},
+		"convert": function() {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				frame.getStack().push(value);
+			};	
+		},
+		"convert_to_boolean": function() {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				frame.getStack().push(value ? true : false);
+			};	
+		},
+		"if_equal": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				if(value2 == value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+			this.describe = function() {
+				return "if_cmpeq #" + jumpTo;
+			};
+		},
+		"if_not_equal": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				if(value2 != value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+			this.describe = function() {
+				return "if_cmpne #" + jumpTo;
+			};
+		},
+		"if_less_than": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				if(value2 < value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+			this.describe = function() {
+				return "if_cmplt #" + jumpTo;
+			};
+		},
+		"if_greater_than_or_equal": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				if(value2 >= value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+			this.describe = function() {
+				return "if_cmpge #" + jumpTo;
+			};
+		},
+		"if_greater_than": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				if(value2 > value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+			this.describe = function() {
+				return "if_cmpgt #" + jumpTo;
+			};
+		},
+		"if_less_than_or_equal": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value1 = frame.getStack().pop();
+				var value2 = frame.getStack().pop();
+
+				if(value2 <= value1) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+			this.describe = function() {
+				return "if_cmple #" + jumpTo;
+			};
+		},
+		"if_equal_to_zero": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				if(value === 0) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+		},
+		"if_not_equal_to_zero": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				if(value !== 0) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+		},
+		"if_less_than_zero": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				if(value < 0) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+		},
+		"if_greater_than_or_equal_to_zero": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				if(value >= 0) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+		},
+		"if_greater_than_zero": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				if(value > 0) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+		},
+		"if_less_than_or_equal_to_zero": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				if(value <= 0) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+		},
+		"goto": function(goingTo) {
+			this.execute = function(frame, constantPool) {
+				throw new jjvm.runtime.Goto(goingTo);
+			};
+		},
+		"jsr": function(goingTo) {
+			this.execute = function(frame, constantPool) {
+				throw new jjvm.runtime.Goto(goingTo);
+			};
+		},
+		"ret": function(location) {
+			this.execute = function(frame, constantPool) {
+				var goingTo = frame.getLocalVariables().load(location);
+
+				throw new jjvm.runtime.Goto(goingTo);
+			};
+		},
+		"tableswitch": function(low, high, table, default_offset) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				if(value < low || value > high) {
+					throw new jjvm.runtime.Goto(default_offset);
+				}
+
+				// hope low is always 0...
+				throw new jjvm.runtime.Goto(table[value - low]);
+			};
+		},
+		"lookupswitch": function(table) {
+			this.execute = function(frame, constantPool) {
+				throw "lookupswitch is not implemented";
+			};
+		},
+		"return_value": function(string) {
+			this.execute = function(frame, constantPool) {
+				return frame.getStack().pop();
+			};
+		},
+		"return_void": function(string) {
+			this.execute = function(frame, constantPool) {
+				return jjvm.runtime.Void;
+			};
+		},
+		"get_static": function(index) {
+			this.execute = function(frame, constantPool) {
+				var fieldDef = constantPool.load(index).getFieldDef();
+				var classDef = constantPool.load(index).getClassDef();
+				var value = classDef.getStaticField(fieldDef.getName());
+
+				frame.getStack().push(value);
+			};
+		},
+		"put_static": function(index) {
+			this.execute = function(frame, constantPool) {
+				var fieldDef = constantPool.load(index).getFieldDef();
+				var classDef = constantPool.load(index).getClassDef();
+				var value = frame.getStack().pop();
+
+				classDef.setStaticField(fieldDef.getName(), value);
+			};
+		},
+		"get_field": function(index) {
+			this.execute = function(frame, constantPool) {
+				var fieldDef = constantPool.load(index).getFieldDef();
+				var objectRef = frame.getStack().pop();
+				var value = objectRef.getField(fieldDef.getName());
+
+				frame.getStack().push(value);
+			};
+		},
+		"put_field": function(index) {
+			this.execute = function(frame, constantPool) {
+				var fieldDef = constantPool.load(index).getFieldDef();
+
+				var value = frame.getStack().pop();
+				var objectRef = frame.getStack().pop();
+
+				objectRef.setField(fieldDef.getName(), value);
+			};
+		},
+		"invoke_virtual": function(index) {
+			this.execute = function(frame, constantPool) {
+				var methodDef = constantPool.load(index).getMethodDef();
+
+				invokeMethod(methodDef, frame);
+			};
+		},
+		"invoke_special": function(index) {
+			this.execute = function(frame, constantPool) {
+				var methodDef = constantPool.load(index).getMethodDef();
+
+				invokeMethod(methodDef, frame);
+			};
+		},
+		"invoke_static": function(index) {
+			this.execute = function(frame, constantPool) {
+				var methodDef = constantPool.load(index).getMethodDef();
+
+				invokeMethod(methodDef, frame);
+			};
+		},
+		"invoke_interface": function(index) {
+			this.execute = function(frame, constantPool) {
+				var methodDef = constantPool.load(index).getMethodDef();
+
+				// special case - the interface contract demands that the object reference on the stack
+				// will implement a method with the same name and arguments as the interface method def
+				// so execute that instead
+
+				var objectRef = frame.getStack().pop();
+				var classDef = objectRef.getClass();
+				methodDef = classDef.getMethod(methodDef.getName());
+
+				// put the ref back on the stack
+				frame.getStack().push(objectRef);
+
+				invokeMethod(methodDef, frame);
+			};
+		},
+		"invoke_dynamic": function(index) {
+			this.execute = function(frame, constantPool) {
+				var methodDef = constantPool.load(index).getMethodDef();
+
+				invokeMethod(methodDef, frame);
+			};
+		},
+		"new": function(index) {
+			this.execute = function(frame, constantPool) {
+				var classDef = constantPool.load(index).getClassDef();
+
+				frame.getStack().push(new jjvm.runtime.ObjectReference(classDef));
+			};
+			this.describe = function() {
+				return "new #" + index + " // " + constantPool.load(index);
+			};
+		},
+		"array_create": function(index) {
+			this.execute = function(frame, constantPool) {
+				var length = frame.getStack().pop();
+				var array = [];
+				array.length = length;
+
+				frame.getStack().push(array);
+			};
+		},
+		"array_length": function() {
+			this.execute = function(frame, constantPool) {
+				var array = frame.getStack().pop();
+
+				frame.getStack().push(array.length);
+			};
+		},
+		"throw": function(string) {
+			this.execute = function(frame, constantPool) {
+				var throwable = frame.getStack().pop();
+
+				throw new jjvm.runtime.Thrown(throwable);
+			};
+		},
+		"check_cast": function(index) {
+			this.execute = function(frame, constantPool) {
+				var classDef = constantPool.load(index).getClassDef();
+				var objectRef = frame.getStack().pop();
+
+				if(!objectRef.isInstanceOf(classDef)) {
+					throw "ClassCastException: Object of type " + objectRef.getClass().getName() + " cannot be cast to " + classDef.getName();
+				}
+
+				// put it back on the stack
+				frame.getStack().push(objectRef);
+			};	
+		},
+		"instance_of": function(index) {
+			this.execute = function(frame, constantPool) {
+				var classDef = constantPool.load(index).getClassDef();
+				var objectRef = frame.getStack().pop();
+
+				frame.getStack().push(objectRef.isInstanceOf(classDef));
+			};
+		},
+		"monitor_enter": function() {
+			this.execute = function(frame, constantPool) {
+				// don't support synchronisation so just pop the ref
+				frame.getStack().pop();
+			};
+		},
+		"monitor_exit": function() {
+			this.execute = function(frame, constantPool) {
+				// don't support synchronisation so just pop the ref
+				frame.getStack().pop();
+			};
+		},
+		"wide": function() {
+			this.execute = function(frame, constantPool) {
+				throw "Wide is not implemented. Your program will probably now crash.";
+			};
+		},		
+		"multi_dimensional_array_create": function(index, dimensions) {
+			this.execute = function(frame, constantPool) {
+				var array = [];
+				var lengths = [];
+
+				for(var i = (dimensions - 1); i > -1; i--) {
+					lengths[i] = frame.getStack().pop();
+				}
+
+				this._createArray(frame, array, lengths, 0);
+
+				frame.getStack().push(array);
+			};
+
+			this._createArray = function(frame, parent, lengths, index) {
+				if(index === (lengths.length - 1)) {
+					return;
+				}
+
+				var length = lengths[index];
+
+				for(var i = 0; i < length; i++) {
+					var innerArray = [];
+
+					if((index + 1) === (lengths.length - 1)) {
+						innerArray.length = lengths[index + 1];
+					}
+
+					parent.push(innerArray);
+
+					this._createArray(frame, innerArray, lengths, index + 1);
+				}
+			};
+		},
+		"if_null": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				if(value === null) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+		},
+		"if_non_null": function(jumpTo) {
+			this.execute = function(frame, constantPool) {
+				var value = frame.getStack().pop();
+
+				if(value !== null) {
+					throw new jjvm.runtime.Goto(jumpTo);
+				}
+			};
+		}
+	};
+
+	this._getOperation = function() {
+		if(!_operation) {
+
+			// lets us call .apply on a function constructor
+			var construct = _.bind(function(constructor) {
+				function F() {
+					return constructor.apply(this, _data.args);
+				}
+				F.prototype = constructor.prototype;
+
+				return new F();
+			}, this);
+
+			_operation = construct(operations[this.getOperation()]);
+
+			// allow for overriding description as sometimes we want to show specific 
+			// arguments and bytecode for instructions that have been grouped together
+			if(_data.description) {
+				_operation.describe = function() {
+					return _data.description;
+				};
+			}
+		}
+
+		return _operation;
+	};
+
+	this.execute = function(frame, constantPool) {
+		return this._getOperation().execute(frame, constantPool);
+	};
+
+	this.getLocation = function() {
+		return location;
+	};
+
+	this.toString = function() {
+		return this.getLocation() + ": " + this.getDescription();
+	};
+
+	this.hasBreakpoint = function() {
+		return _breakpoint ? true : false;
+	};
+
+	this.setBreakpoint = function(breakpoint) {
+		_breakpoint = breakpoint;
+	};
+
+	this.setMnemonic = function(mnemonic) {
+		this.getData().mnemonic = mnemonic;
+	};
+
+	this.getMnemonic = function() {
+		return this.getData().mnemonic;
+	};
+
+	this.setOperation = function(operation) {
+		this.getData().operation = operation;
+	};
+
+	this.getOperation = function() {
+		return this.getData().operation;
+	};
+
+	this.setArgs = function(args) {
+		this.getData().args = args;
+	};
+
+	this.getArgs = function() {
+		return this.getData().args;
+	};
+
+	this.setLocation = function(location) {
+		this.getData().location = location;
+	};
+
+	this.getLocation = function() {
+		return this.getData().location;
+	};
+
+	this.setDescription = function(description) {
+		this.getData().description = description;
+	};
+
+	this.getDescription = function() {
+		return this.getData().description;
+	};
+
+	this.canStepInto = function() {
+		return _.string.startsWith(this.getOperation(), "invoke");
+	};
+
+	this.getData = function() {
+		return _data;
+	};
+};
+
+jjvm.types.ClassDefinition = function(data) {
+	var _data = data ? data : {
+		interfaces: [],
+		methods: {},
+		fields: {}
+	};
+
+	var _parent;
+	var _methods = [];
+	var _fields = [];
+	var _exceptionTable = null;
+	var _constantPool = new jjvm.types.ConstantPool(_data.constantPool);
+	var _enclosingMethod = null;
+	var _objectRef = null;
+	var _initialized = false;
+	var _classLoader = null;
+
+	// holds values of static fields
+	var _staticFields = {};
+
+	if(data) {
+		if(data.parent) {
+			_parent = jjvm.core.ClassLoader.loadClass(data.parent);
+		}
+
+		for(var m in data.methods) {
+			var method = new jjvm.types.MethodDefinition(data.methods[m]);
+			method.setClassDef(this);
+
+			if(jjvm.nativeMethods[data.name] && jjvm.nativeMethods[data.name][method.getSignature()]) {
+				// we've overriden the method implementation
+				method.setImplementation(jjvm.nativeMethods[data.name][method.getSignature()]);
+			}
+
+			_methods.push(method);
+		}
+
+		for(var f in data.fields) {
+			_fields.push(new jjvm.types.FieldDefinition(data.fields[f]));
+		}
+
+		if(data.enclosingMethod) {
+			_enclosingMethod = new jjvm.types.EnclosingMethod(data.enclosingMethod);
+		}
+	}
+
+	this.getName = function() {
+		return _data.name;
+	};
+
+	this.setName = function(name) {
+		_data.name = _.string.trim(name);
+	};
+
+	this.getParent = function() {
+		return _parent;
+	};
+
+	this.setParent = function(parent) {
+		delete _data.parent;
+
+		if(parent) {
+			_parent = jjvm.core.ClassLoader.loadClass(parent);
+			_data.parent = parent;
+		}
+	};
+
+	this.getVisibility = function() {
+		return _data.visibility;
+	};
+
+	this.setVisibility = function(visibility) {
+		_data.visibility = visibility;
+	};
+
+	this.isAbstract = function() {
+		return _data.isAbstract ? true : false;
+	};
+
+	this.setIsAbstract = function(isAbstract) {
+		_data.isAbstract = isAbstract ? true : false;
+	};
+
+	this.isFinal = function() {
+		return _data.isFinal ? true : false;
+	};
+
+	this.setIsFinal = function(isFinal) {
+		_data.isFinal = isFinal ? true : false;
+	};
+
+	this.isInterface = function() {
+		return _data.isInterface ? true : false;
+	};
+
+	this.setIsInterface = function(isInterface) {
+		_data.isInterface = isInterface ? true : false;
+	};
+
+	this.isSuper = function() {
+		return _data.isSuper ? true : false;
+	};
+
+	this.setIsSuper = function(isSuper) {
+		_data.isSuper = isSuper ? true : false;
+	};
+
+	this.getInterfaces = function() {
+		return _data.interfaces;
+	};
+
+	this.addInterface = function(anInterface) {
+		_data.interfaces.push(anInterface);
+	};
+
+	this.getMethods = function() {
+		return _methods;
+	};
+
+	this.hasMethod = function(name) {
+		for(var i = 0; i < _methods.length; i++) {
+			if(_methods[i].getName() == name) {
+				return true;
+			}
+		}
+
+		if(_parent) {
+			return _parent.hasMethod(name);
+		}
+
+		return false;
+	};
+
+	this.getMethod = function(name, args) {
+		if(!args) {
+			args = [];
+		}
+
+		for(var i = 0; i < _methods.length; i++) {
+			if(_methods[i].getName() == name && this._argsMatch(_methods[i].getArgs(), args)) {
+				return _methods[i];
+			}
+		}
+
+		if(_parent) {
+			return _parent.getMethod(name);
+		}
+
+		throw "Method " + name + " with args " + args + " does not exist on class " + this.getName();
+	};
+
+	this._argsMatch = function(arr1, arr2) {
+		if(arr1.length != arr2.length) {
+			return false;
+		}
+
+		for(var i = 0; i < arr1.length; i++) {
+			if(arr1[i] != arr2[i]) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	this.addMethod = function(methodDef) {
+		_methods.push(methodDef);
+
+		if(!_data.methods) {
+			_data.methods = {};
+		}
+
+		_data.methods[methodDef.getSignature()] = methodDef.getData();
+	};
+
+	this.getFields = function() {
+		return _fields;
+	};
+
+	this.getField = function(name) {
+		for(var i = 0; i < _fields.length; i++) {
+			if(_fields[i].getName() == name) {
+				return _fields[i];
+			}
+		}
+
+		if(_parent) {
+			return _parent.getField(name);
+		}
+	};
+
+	this.addField = function(fieldDef) {
+		_fields.push(fieldDef);
+
+		if(!_data.fields) {
+			_data.fields = {};
+		}
+
+		_data.fields[fieldDef.getName()] = fieldDef.getData();
+	};
+
+	this.hasField = function(name) {
+		for(var i = 0; i < _fields.length; i++) {
+			if(_fields[i].getName() == name && !_fields[i].isStatic()) {
+				return true;
+			}
+		}
+
+		if(_parent) {
+			return _parent.hasField(name);
+		}
+
+		return false;
+	};
+
+	this.invokeStaticMethod = function(name, args) {
+		
+	};
+
+	this.getStaticField = function(name) {
+		this.hasStaticField(name);
+
+		if(_staticFields[name] === undefined) {
+			// we have the field but it's not been used yet so initialise it.
+
+			var fieldDef = this.getField(name);
+
+			if(fieldDef.getType() == "boolean" || fieldDef.getType() == "byte" || fieldDef.getType() == "short" || fieldDef.getType() == "int" || fieldDef.getType() == "long" || fieldDef.getType() == "char") {
+				_staticFields[name] = 0;
+			} else if(fieldDef.getType() == "float" || fieldDef.getType() == "double") {
+				_staticFields[name] = 0.0;
+			} else {
+				_staticFields[name] = null;				
+			}
+		}
+
+		return _staticFields[name];
+	};
+
+	this.getStaticFields = function() {
+		return _staticFields;
+	};
+
+	this.setStaticField = function(name, value) {
+		this.hasStaticField(name);
+
+		_staticFields[name] = value;
+	};
+
+	this.hasStaticField = function(name) {
+		var foundField = false;
+
+		for(var i = 0; i < _fields.length; i++) {
+			if(_fields[i].getName() == name && _fields[i].isStatic()) {
+				foundField = true;
+			}
+		}
+
+		if(!foundField) {
+			throw "field " + name + " does not exist on class " + this.getName();
+		}
+	};
+
+	this.setExceptionTable = function(exceptionTable) {
+		_exceptionTable = exceptionTable;
+	};
+
+	this.getExceptionTable = function() {
+		return _exceptionTable;
+	};
+
+	this.setConstantPool = function(constantPool) {
+		_constantPool = constantPool;
+
+		_data.constantPool = constantPool.getData();
+	};
+
+	this.getConstantPool = function() {
+		return _constantPool;
+	};
+
+	this.setSourceFile = function(sourceFile) {
+		_data.sourceFile = sourceFile;
+	};
+
+	this.getSourceFile = function() {
+		return _data.sourceFile;
+	};
+
+	this.setMinorVersion = function(minorVersion) {
+		_data.minorVersion = minorVersion;
+	};
+
+	this.getMinorVersion = function() {
+		return _data.minorVersion;
+	};
+
+	this.setMajorVersion = function(majorVersion) {
+		_data.majorVersion = majorVersion;
+	};
+
+	this.getMajorVersion = function() {
+		return _data.majorVersion;
+	};
+
+	this.setDeprecated = function(deprecated) {
+		_data.deprecated = deprecated;
+	};
+
+	this.getDeprecated = function() {
+		return _data.deprecated;
+	};
+
+	this.setSynthetic = function(synthetic) {
+		_data.synthetic = synthetic;
+	};
+
+	this.getSynthetic = function() {
+		return _data.synthetic;
+	};
+
+	this.setEnclosingMethod = function(enclosingMethod) {
+		_enclosingMethod = enclosingMethod;
+
+		if(enclosingMethod) {
+			_data.enclosingMethod = enclosingMethod.getData();
+		}
+	};
+
+	this.getEnclosingMethod = function() {
+		return _enclosingMethod;
+	};
+
+	this.getObjectRef = function() {
+		if(!_objectRef) {
+			_objectRef = jjvm.Util.createObjectRef("java.lang.Class");
+		}
+
+		return _objectRef;
+	};
+
+	this.getVersion = function() {
+		var versions = {
+			0x2D: "Java 1.1",
+			0x2E: "Java 1.2",
+			0x2F: "Java 1.3",
+			0x30: "Java 1.4",
+			0x31: "Java 5",
+			0x32: "Java 6",
+			0x33: "Java 7",
+			0x34: "Java 8"
+		};
+
+		return versions[_data.majorVersion];
+	};
+
+	this.isChildOf = function(classDef) {
+		if(this.getName() == classDef.getName()) {
+			return true;
+		}
+
+		for(var i = 0; i < this.getInterfaces().length; i++) {
+			var interfaceDef = jjvm.core.ClassLoader.loadClass(this.getInterfaces()[i]);
+
+			if(interfaceDef.isChildOf(classDef)) {
+				return true;
+			}
+		}
+
+		if(this.getParent()) {
+			return this.getParent().isChildOf(classDef);
+		}
+
+		return false;
+	};
+
+	this.getInitialized = function() {
+		return this._initialized;
+	};
+
+	this.setInitialized = function(initialized) {
+		this._initialized = initialized;
+	};
+
+	this.getClassLoader = function() {
+		return this._classLoader;
+	};
+
+	this.setClassLoader = function(classLoader) {
+		this._classLoader = classLoader;
+	};
+
+	this.getData = function() {
+		return _data;
+	};
+
+	this.toString = function() {
+		return "ClassDef#" + this.getName();
+	};
+
+	this.toJavaP = function() {
+		var output = this.getVisibility();
+		output += this.isAbstract() ? " abstract" : "";
+		output += this.isFinal() ? " final" : "";
+		output += this.isInterface() ? " interface" : " class";
+		output += " " + this.getName();
+		output += this.getParent() ? " extends " + this.getParent() : "";
+		output += "\r\n";
+		output += "\tSourceFile: \"" + this.getSourceFile() + "\"\r\n";
+		output += "\tMinor version: " + this.getMinorVersion() + "\r\n";
+		output += "\tMajor version: " + this.getMajorVersion() + "\r\n";
+		output += "\r\n";
+		output += _constantPool.toJavaP();
+		output += "\r\n";
+
+		if(_fields.length > 0) {
+			for(var f = 0; f < _fields.length; f++) {
+				output += _fields[f].toJavaP();
+			}
+
+			output += "\r\n";
+		}
+
+		for(var m = 0; m < _methods.length; m++) {
+			output += _methods[m].toJavaP();
+			output += "\r\n";
+		}
+
+		return output;
+	};
+};
+
+jjvm.types.ConstantPool = function(data) {
+	var _data = data ? data : {};
+	var pool = [];
+
+	if(_data.constants) {
+		for(var i = 0; i < _data.constants.length; i++) {
+			var value;
+
+			if(_data.constants[i].type == jjvm.types.ConstantPoolClassValue.type) {
+				value = new jjvm.types.ConstantPoolClassValue(_data.constants[i]);
+			} else if(_data.constants[i].type == jjvm.types.ConstantPoolFieldValue.type) {
+				value = new jjvm.types.ConstantPoolFieldValue(_data.constants[i]);
+			} else if(_data.constants[i].type == jjvm.types.ConstantPoolMethodValue.type) {
+				value = new jjvm.types.ConstantPoolMethodValue(_data.constants[i]);
+			} else if(_data.constants[i].type == jjvm.types.ConstantPoolNameAndTypeValue.type) {
+				value = new jjvm.types.ConstantPoolNameAndTypeValue(_data.constants[i]);
+			} else if(_data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.S || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.I || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.F || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.J || _data.constants[i].type == jjvm.types.ConstantPoolPrimitiveValue.types.D) {
+				value = new jjvm.types.ConstantPoolPrimitiveValue(_data.constants[i]);
+			} else if(_data.constants[i].type == jjvm.types.ConstantPoolStringReferenceValue.type) {
+				value = new jjvm.types.ConstantPoolStringReferenceValue(_data.constants[i]);
+			} else {
+				throw "Unknown constant pool type " + _data.constants[i].type;
+			}
+
+			pool[value.getIndex()] = value;
+		}
+	} else {
+		_data.constants = [];
+	}
+
+	this.store = function(index, value) {
+		pool[index] = value;
+
+		for(var i = 0; i < _data.constants.length; i++) {
+			if(_data.constants[i].index == index) {
+				// we've defined this constant before, overwrite it
+				_data.constants[i] = value.getData();
+
+				return;
+			}
+		}
+
+		// this is a new constant, store it
+		_data.constants.push(value.getData());
+	};
+
+	this.load = function(index) {
+		return pool[index];
+	};
+
+	this.getPool = function() {
+		return pool;
+	};
+
+	this.toString = function() {
+		return "ConstantPool";
+	};
+
+	this.getData = function() {
+		return _data;
+	};
+
+	this.toJavaP = function() {
+		var output = "\tConstant pool:\r\n";
+
+		for(var i = 0; i < pool.length; i++) {
+			if(!pool[i]) {
+				continue;
+			}
+
+			output += "\tconst #" + i + "\t= " + pool[i] + "\r\n";
+		}
+
+		return output;
+	};
+};
+
+jjvm.types.ConstantPoolClassValue = function(data) {
+	_.extend(this, new jjvm.types.ConstantPoolValue(data));
+
+	this.setType(jjvm.types.ConstantPoolClassValue.type);
+
+	this.getClassDef = function() {
+		var className = this.getValue();
+		className = className.replace(/\//g, ".");
+
+		return jjvm.core.ClassLoader.loadClass(className);
+	};
+
+	this.setClassIndex = function(classIndex) {
+		this.getData().classIndex = classIndex;
+	};
+
+	this.getClassIndex = function() {
+		return this.getData().classIndex;
+	};
+
+	this.toString = function() {
+		return this.getType() + "\t\t\t#" + this.getClassIndex() + ";\t\t// " + this.getValue();
+	};
+};
+
+jjvm.types.ConstantPoolClassValue.type = "class";
+jjvm.types.ConstantPoolFieldValue = function(data) {
+	_.extend(this, new jjvm.types.ConstantPoolValue(data));
+
+	this.setType(jjvm.types.ConstantPoolFieldValue.type);
+
+	this.setClassIndex = function(classIndex) {
+		this.getData().classIndex = classIndex;
+	};
+
+	this.getClassIndex = function() {
+		return this.getData().classIndex;
+	};
+
+	this.setNameAndTypeIndex = function(nameAndTypeIndex) {
+		this.getData().nameAndTypeIndex = nameAndTypeIndex;
+	};
+
+	this.getNameAndTypeIndex = function() {
+		return this.getData().nameAndTypeIndex;
+	};
+
+	this.setClassName = function(className) {
+		this.getData().className = className;
+	};
+
+	this.getClassName = function() {
+		return this.getData().className;
+	};
+
+	this.setFieldName = function(fieldName) {
+		this.getData().fieldName = fieldName;
+	};
+
+	this.getFieldName = function() {
+		return this.getData().fieldName;
+	};
+
+	this.setFieldType = function(fieldType) {
+		this.getData().fieldType = fieldType;
+	};
+
+	this.getFieldType = function() {
+		return this.getData().fieldType;
+	};
+
+	this.getFieldDef = function() {
+		var classDef = this.getClassDef();
+		
+		return classDef.getField(this.getFieldName());
+	};
+
+	this.getClassDef = function() {
+		return jjvm.core.ClassLoader.loadClass(this.getClassName());
+	};
+
+	this.toString = function() {
+		return this.getType() + "\t\t\t#" + this.getClassIndex() + ".#" + this.getNameAndTypeIndex() + ";\t// " + this.getClassName() + "." + this.getFieldName() + ":" + this.getFieldType();
+	};
+};
+
+jjvm.types.ConstantPoolFieldValue.type = "Field";
+
+jjvm.types.ConstantPoolMethodValue = function(data) {
+	_.extend(this, new jjvm.types.ConstantPoolValue(data));
+
+	this.setType(jjvm.types.ConstantPoolMethodValue.type);
+
+	this.setClassIndex = function(classIndex) {
+		this.getData().classIndex = classIndex;
+	};
+
+	this.getClassIndex = function() {
+		return this.getData().classIndex;
+	};
+
+	this.setNameAndTypeIndex = function(nameAndTypeIndex) {
+		this.getData().nameAndTypeIndex = nameAndTypeIndex;
+	};
+
+	this.getNameAndTypeIndex = function() {
+		return this.getData().nameAndTypeIndex;
+	};
+
+	this.setClassName = function(className) {
+		this.getData().className = className;
+	};
+
+	this.getClassName = function() {
+		return this.getData().className;
+	};
+
+	this.setMethodName = function(methodName) {
+		this.getData().methodName = methodName;
+	};
+
+	this.getMethodName = function() {
+		return this.getData().methodName;
+	};
+
+	this.setMethodType = function(methodType) {
+		this.getData().methodType = methodType;
+	};
+
+	this.getMethodType = function() {
+		return this.getData().methodType;
+	};
+
+	this.getMethodDef = function() {
+		var classDef = jjvm.core.ClassLoader.loadClass(this.getClassName());
+		var methodName = this.getMethodName();
+		var type = this.getMethodType();
+		var args = jjvm.Util.parseArgs(type);
+
+		return classDef.getMethod(methodName, args);
+	};
+
+	this.toString = function() {
+		return this.getType() + "\t\t#" + this.getClassIndex() + ".#" + this.getNameAndTypeIndex() + ";\t\t// " + this.getClassName() + "." + this.getMethodName() + this.getMethodType();
+	};
+};
+
+jjvm.types.ConstantPoolMethodValue.type = "Method";
+
+jjvm.types.ConstantPoolNameAndTypeValue = function(data) {
+	_.extend(this, new jjvm.types.ConstantPoolValue(data));
+
+	this.setType(jjvm.types.ConstantPoolNameAndTypeValue.type);
+
+	this.getValue = function() {
+		return this.getName() + ":" + this.getNameType();
+	};
+
+	this.setName = function(name) {
+		this.getData().name = name;
+	};
+
+	this.getName = function() {
+		return this.getData().name;
+	};
+
+	this.setNameIndex = function(nameIndex) {
+		this.getData().nameIndex = nameIndex;
+	};
+
+	this.getNameIndex = function() {
+		return this.getData().nameIndex;
+	};
+
+	this.setNameType = function(nameType) {
+		this.getData().nameType = nameType;
+	};
+
+	this.getNameType = function() {
+		return this.getData().nameType;
+	};
+
+	this.setNameTypeIndex = function(nameTypeIndex) {
+		this.getData().nameTypeIndex = nameTypeIndex;
+	};
+
+	this.getNameTypeIndex = function() {
+		return this.getData().nameTypeIndex;
+	};
+
+	this.toString = function() {
+		return this.getType() + "\t#" + this.getNameIndex() + ":#" + this.getNameTypeIndex() + ";\t\t// " + this.getValue();
+	};
+};
+
+jjvm.types.ConstantPoolNameAndTypeValue.type = "NameAndType";
+
+jjvm.types.ConstantPoolPrimitiveValue = function(data) {
+	_.extend(this, new jjvm.types.ConstantPoolValue(data));
+
+	if(data) {
+		//this.setType(jjvm.types.Primitives.jvmTypesToPrimitive[data.type]);
+		//this.setType(jjvm.types.ConstantPoolPrimitiveValue.types[data.type]);
+	}
+
+	this.toString = function() {
+		return this.getType() + "\t\t\t// " + this.getValue() + ";";
+	};
+};
+
+jjvm.types.ConstantPoolPrimitiveValue.types = {
+	S: "Utf8",
+	I: "int",
+	F: "float",
+	J: "long",
+	D: "double"
+};
+
+jjvm.types.ConstantPoolStringReferenceValue = function(data) {
+	_.extend(this, new jjvm.types.ConstantPoolValue(data));
+
+	this.setType(jjvm.types.ConstantPoolStringReferenceValue.type);
+
+	// holds the string reference
+	var _objectRef = null;
+
+	this.setStringIndex = function(stringIndex) {
+		this.getData().stringIndex = stringIndex;
+	};
+
+	this.getStringIndex = function() {
+		return this.getData().stringIndex;
+	};
+
+	this.getStringReference = function() {
+		if(!_objectRef) {
+			_objectRef = jjvm.Util.createStringRef(this.getValue());
+		}
+
+		return _objectRef;
+	};
+
+	this.toString = function() {
+		return this.getType() + "\t\t#" + this.getStringIndex() + ";\t\t// " + this.getValue();
+	};
+};
+
+jjvm.types.ConstantPoolStringReferenceValue.type = "String";
+
+jjvm.types.ConstantPoolValue = function(data) {
+	var _data = data ? data : {};
+
+	this.setValue = function(value) {
+		_data.value = value;
+	};
+
+	this.getValue = function() {
+		return _data.value;
+	};
+
+	this.setType = function(type) {
+		_data.type = type;
+	};
+
+	this.getType = function() {
+		return _data.type;
+	};
+
+	this.setIndex = function(index) {
+		_data.index = index;
+	};
+
+	this.getIndex = function() {
+		return _data.index;
+	};
+
+	this.getData = function() {
+		return _data;
+	};
+};
+
+jjvm.types.EnclosingMethod = function(data) {
+	var _data = data ? data : {};
+
+	this.setClassName = function(className) {
+		_data.className = className;
+	};
+
+	this.getClassName = function() {
+		return _data.className;
+	};
+
+	this.setMethodName = function() {
+		return _data.methodName;
+	};
+
+	this.getMethodName = function(methodName) {
+		_data.methodName = methodName;
+	};
+
+	this.getData = function() {
+		return _data;	
+	};
+
+	this.toJavaP = function() {
+		var output = "\t\tEnclosingMethod:\r\n";
+		output += "\t\t\t" + this.getClassName() + "." + this.getMethodName();
+
+		return output;
+	};
+
+	this.toString = function() {
+		return "EnclosingMethod";
+	};
+};
+
+jjvm.types.ExceptionTable = function(table) {
+
+	this.resolve = function(line, type) {
+		for(var i = 0; i < table.length; i++) {
+			if(table[i].from <= line && table[i].to >= line && type.getClass().isChildOf(table[i].type.getClassDef())) {
+				return table[i].target;
+			}
+		}
+
+		return null;
+	};
+
+	this.toJavaP = function() {
+		var output = "\t\tExceptionTable:\r\n";
+		output += "\t\t\tfrom\tto\ttarget\ttype\r\n";
+
+		for(var i = 0; i < table.length; i++) {
+			if(!table[i]) {
+				continue;
+			}
+
+			output += "\t\t\t" + table[i].from + "\t\t" + table[i].to + "\t\t" + table[i].target + "\t" + table[i].type.getClassDef().getName() + "\r\n";
+		}
+
+		return output;
+	};
+
+	this.getData = function() {
+		return table;
+	};
+
+	this.toString = function() {
+		return "ExceptionTable";
+	};
+};
+
+jjvm.types.FieldDefinition = function(data) {
+	// will be serialized to JSON so don't put any functions in here...
+	var _data = data ? data : {};
+
+	this.getVisibility = function() {
+		return _data.visibility ? _data.visibility : "package";
+	};
+
+	this.setVisibility = function(visibility) {
+		_data.visibility = _.string.trim(visibility);
+	};
+
+	this.isStatic = function() {
+		return _data.isStatic ? true : false;
+	};
+
+	this.setIsStatic = function(isStatic) {
+		_data.isStatic = isStatic ? true : false;
+	};
+
+	this.isFinal = function() {
+		return _data.isFinal ? true : false;
+	};
+
+	this.setIsFinal = function(isFinal) {
+		_data.isFinal = isFinal ? true : false;
+	};
+
+	this.isVolatile = function() {
+		return _data.isVolatile ? true : false;
+	};
+
+	this.setIsVolatile = function(isVolatile) {
+		_data.isVolatile = isVolatile ? true : false;
+	};
+
+	this.isTransient = function() {
+		return _data.isTransient ? true : false;
+	};
+
+	this.setIsTransient = function(isTransient) {
+		_data.isTransient = isTransient ? true : false;
+	};
+
+	this.setType = function(type) {
+		_data.type = _.str.trim(type);
+	};
+
+	this.getType = function() {
+		return _data.type;
+	};
+
+	this.setName = function(name) {
+		_data.name = _.str.trim(name);
+	};
+
+	this.getName = function() {
+		return _data.name;
+	};
+
+	this.setDeprecated = function(isDeprecated) {
+		_data.isDeprecated = isDeprecated ? true : false;
+	};
+
+	this.isDeprecated = function() {
+		return _data.isDeprecated ? true : false;
+	};
+
+	this.setSynthetic = function(isSynthetic) {
+		_data.isSynthetic = isSynthetic ? true : false;
+	};
+
+	this.isSynthetic = function() {
+		return _data.isSynthetic ? true : false;
+	};
+
+	this.setConstantValue = function(constantValue) {
+		_data.constantValue = constantValue;
+	};
+
+	this.getConstantValue = function() {
+		return _data.constantValue;
+	};
+
+	this.getData = function() {
+		return _data;
+	};
+
+	this.toJavaP = function() {
+		var output = this.getVisibility();
+		output += this.isStatic() ? " static" : "";
+		output += this.isFinal() ? " final" : "";
+		output += this.isVolatile() ? " volatile" : "";
+		output += this.isTransient() ? " transient" : "";
+		output += " " + this.getType() + " " + this.getName() + ");\r\n";
+
+		return output;
+	};
+
+	this.toString = function() {
+		return "Field#" + this.getName();
+	};
+};
+
+jjvm.types.LineNumberTable = function(table) {
+
+	this.getTable = function() {
+		return table;
+	};
+
+	this.toJavaP = function() {
+		var output = "\t\tLineNumberTable:\r\n";
+
+		for(var i = 0; i < table.length; i++) {
+			if(!table[i]) {
+				continue;
+			}
+
+			output += "\t\t\tline " + table[i] + ":\t" + i + "\r\n";
+		}
+
+		return output;
+	};
+
+	this.getData = function() {
+		return table;
+	};
+
+	this.toString = function() {
+		return "LineNumberTable";
+	};
+};
+
+jjvm.types.LocalVariableTable = function(table) {
+
+	this.getTable = function() {
+		return table;
+	};
+
+	this.getData = function() {
+		return table;
+	};
+};
+
+jjvm.types.MethodDefinition = function(data) {
+	// will be serialized to JSON so don't put any functions in here...
+	var _data = data ? data : {
+		instructions: []
+	};
+
+	// holds a function
+	var _implementation = null;
+
+	// holds a list of bytecode instructions
+	var _instructions = [];
+	var _lineNumberTable = null;
+	var _localVariableTable = null;
+	var _stackMapTable = null;
+	var _exceptionTable = null;
+	var _classDef = null;
+	
+	if(data) {
+		if(data.lineNumberTable) {
+			_lineNumberTable = new jjvm.types.LineNumberTable(data.lineNumberTable);
+		}
+
+		if(data.localVariableTable) {
+			_localVariableTable = new jjvm.types.LocalVariableTable(data.localVariableTable);
+		}
+
+		if(data.stackMapTable) {
+			_stackMapTable = new jjvm.types.StackMapTable(data.stackMapTable);
+		}
+
+		if(data.exceptionTable) {
+			_exceptionTable = new jjvm.types.ExceptionTable(data.exceptionTable);
+		}
+
+		if(data.instructions) {
+			_.each(data.instructions, function(data) {
+				_instructions.push(new jjvm.types.ByteCode(data));
+			});
+		}
+	}
+
+	this.getVisibility = function() {
+		return _data.visibility ? _data.visibility : "package";
+	};
+
+	this.setVisibility = function(visibility) {
+		_data.visibility = visibility;
+	};
+
+	this.getSignature = function() {
+		return _data.signature;
+	};
+
+	this.setSignature = function(signature) {
+		_data.signature = signature;
+	};
+
+	this.isStatic = function() {
+		return _data.isStatic ? true : false;
+	};
+
+	this.setIsStatic = function(isStatic) {
+		_data.isStatic = isStatic ? true : false;
+	};
+
+	this.isFinal = function() {
+		return _data.isFinal ? true : false;
+	};
+
+	this.setIsFinal = function(isFinal) {
+		_data.isFinal = isFinal ? true : false;
+	};
+
+	this.isSynchronized = function() {
+		return _data.isSynchronized ? true : false;
+	};
+
+	this.setIsSynchronized = function(isSynchronized) {
+		_data.isSynchronized = isSynchronized ? true : false;
+	};
+
+	this.isNative = function() {
+		return _data.isNative ? true : false;
+	};
+
+	this.setIsNative = function(isNative) {
+		_data.isNative = isNative ? true : false;
+	};
+
+	this.isAbstract = function() {
+		return _data.isAbstract ? true : false;
+	};
+
+	this.setIsAbstract = function(isAbstract) {
+		_data.isAbstract = isAbstract ? true : false;
+	};
+
+	this.getIsStrict = function() {
+		return _data.isStrict ? true : false;
+	};
+
+	this.setIsStrict = function(isStrict) {
+		_data.isStrict = isStrict ? true : false;
+	};
+
+	this.setName = function(name) {
+		_data.name = _.string.trim(name);
+	};
+
+	this.getName = function() {
+		return _data.name;
+	};
+
+	this.setArgs = function(args) {
+		_data.args = args;
+	};
+
+	this.getArgs = function() {
+		return _data.args;
+	};
+
+	this.setReturns = function(returns) {
+		_data.returns = _.str.trim(returns);
+	};
+
+	this.getReturns = function() {
+		return _data.returns ? _data.returns : "void";
+	};
+
+	this.getInstructions = function() {
+		return _instructions;
+	};
+
+	this.setInstructions = function(instructions) {
+		_instructions = instructions;
+
+		_data.instructions = [];
+
+		_.each(instructions, function(instruction) {
+			_data.instructions.push(instruction.getData());
+		});
+	};
+
+	this.setDeprecated = function(deprecated) {
+		_data.isDeprecated = deprecated ? true : false;
+	};
+
+	this.isDeprecated = function() {
+		return _data.isDeprecated;
+	};
+
+	this.setSynthetic = function(synthetic) {
+		_data.synthetic = synthetic ? true : false;
+	};
+
+	this.isSynthetic = function() {
+		return _data.isSynthetic;
+	};
+
+	this.setThrows = function(list) {
+		_data.throws = list;
+	};
+
+	this.getThrows = function() {
+		return _data.throws;
+	};
+
+	this.setMaxStackSize = function(maxStackSize) {
+		_data.maxStackSize = maxStackSize;
+	};
+
+	this.getMaxStackSize = function() {
+		return _data.maxStackSize;
+	};
+
+	this.setMaxLocalVariables = function(maxLocalVariables) {
+		_data.maxLocalVariables = maxLocalVariables;
+	};
+
+	this.getMaxLocalVariables = function() {
+		return _data.maxLocalVariables;
+	};
+
+	this.getImplementation = function() {
+		return _implementation;
+	};
+
+	this.setImplementation = function(implementation) {
+		_implementation = implementation;
+	};
+
+	this.setExceptionTable = function(exceptionTable) {
+		_exceptionTable = exceptionTable;
+
+		if(exceptionTable) {
+			_data.exceptionTable = exceptionTable.getData();
+		}
+	};
+
+	this.getExceptionTable = function() {
+		return _exceptionTable;
+	};
+
+	this.setLineNumberTable = function(lineNumberTable) {
+		_lineNumberTable = lineNumberTable;
+
+		if(lineNumberTable) {
+			_data.lineNumberTable = lineNumberTable.getData();
+		}
+	};
+
+	this.getLineNumberTable = function() {
+		return _lineNumberTable;
+	};
+
+	this.setLocalVariableTable = function(localVariableTable) {
+		_localVariableTable = localVariableTable;
+
+		if(localVariableTable) {
+			_data.localVariableTable = localVariableTable.getData();
+		}		
+	};
+
+	this.getLocalVariableTable = function() {
+		return _localVariableTable;
+	};
+
+	this.setStackMapTable = function(stackMapTable) {
+		_stackMapTable = stackMapTable;
+
+		if(stackMapTable) {
+			_data.stackMapTable = stackMapTable.getData();
+		}
+	};
+
+	this.getStackMapTable = function() {
+		return _stackMapTable;
+	};
+
+	this.setClassDef = function(classDef) {
+		_classDef = classDef;
+	};
+
+	this.getClassDef = function() {
+		return _classDef;
+	};
+
+	this.getData = function() {
+		return _data;
+	};
+
+	this.toJavaP = function() {
+		var output = this.getVisibility();
+		output += this.isStatic() ? " static" : "";
+		output += this.isFinal() ? " final" : "";
+		output += this.isAbstract() ? " abstract" : "";
+		output += this.isSynchronized() ? " synchronized" : "";
+		output += " " + this.getReturns() + " " + this.getName() + "(" + this.getArgs().join(", ") + ");\r\n";
+		output += "\tCode:\r\n";
+		output += "\t\tStack=" + this.getMaxStackSize() + ", Locals="+ this.getMaxLocalVariables() + ", Args_size=" + this.getArgs().length + "\r\n";
+
+		if(this.getImplementation()) {
+			output += "\t\tNative code\r\n";
+		} else {
+			for(var i = 0; i < this.getInstructions().length; i++) {
+				output += "\t\t" + this.getInstructions()[i].getLocation() + ":\t" + this.getInstructions()[i] + "\r\n";
+			}
+		}
+
+		if(this.getLineNumberTable()) {
+			output += this.getLineNumberTable().toJavaP();
+		}
+
+		if(this.getExceptionTable()) {
+			output += this.getExceptionTable().toJavaP();
+		}
+
+		return output;
+	};
+
+	this.toString = function() {
+		return "Method#" + this.getName();
+	};
+};
+
+jjvm.types.MethodDefinition.CLASS_INITIALISER = "<clinit>";
+jjvm.types.MethodDefinition.OBJECT_INITIALISER = "<init>";
+jjvm.types.Primitives = {
+	jvmTypesToPrimitive: {
+		"Z": "boolean",
+		"B": "byte",
+		"C": "char",
+		"S": "short",
+		"I": "int",
+		"J": "long",
+		"F": "float",
+		"D": "double",
+		"V": "void"
+	},
+
+	classToPrimitive: {
+		"java.lang.Boolean": "boolean",
+		"java.lang.Byte": "byte",
+		"java.lang.Char": "char",
+		"java.lang.Short": "short",
+		"java.lang.Integer": "int",
+		"java.lang.Long": "long",
+		"java.lang.Float": "float",
+		"java.lang.Double": "double",
+		"java.lang.Void": "void"
+	},
+
+	primitiveToClass: {
+		"boolean": "java.lang.Boolean",
+		"byte": "java.lang.Byte",
+		"char": "java.lang.Char",
+		"short": "java.lang.Short",
+		"int": "java.lang.Integer",
+		"long": "java.lang.Long",
+		"float": "java.lang.Float",
+		"double": "java.lang.Double",
+		"void": "java.lang.Void"
+	}
+};
+
+jjvm.types.StackMapTable = function(className, methodName) {
+
+	this.toJavaP = function() {
+		var output = "\t\tEnclosingMethod:\r\n";
+		output += "\t\t\t" + className + methodName;
+
+		return output;
+	};
+
+	this.getData = function() {
+		return table;
+	};
+
+	this.toString = function() {
+		return "EnclosingMethod";
+	};
+};
+
 jjvm.core.NotificationCentre = {
 	_listeners: {},
 
@@ -6682,45 +6664,6 @@ jjvm.core.NotificationCentre = {
 	}
 };
 
-console = {
-	debug: function(string) {
-		self.postMessage({
-			action: "consoleDebug",
-			args: JSON.stringify([string])
-		});
-	},
-
-	info: function(string) {
-		self.postMessage({
-			action: "consoleInfo",
-			args: JSON.stringify([string])
-		});
-	},
-
-	warn: function(string) {
-		self.postMessage({
-			action: "consoleWarn",
-			args: JSON.stringify([string])
-		});
-	},
-
-	error: function(string) {
-		if(string.stack) {
-			_.each(string.stack.split("\n"), function(line) {
-				self.postMessage({
-					action: "consoleError",
-					args: JSON.stringify([line])
-				});
-			});
-		} else if(_.isString(string)) {
-			self.postMessage({
-				action: "consoleError",
-				args: JSON.stringify([string])
-			});
-		}
-	}
-};
-
 self.addEventListener("message", function(event) {
 	var actions = {
 		"compile": function(bytes, isSystemClass) {
@@ -6743,7 +6686,7 @@ self.addEventListener("message", function(event) {
 
 			if(!mainMethod) {
 				// nothing to execute, abort!
-				console.warn("No main method present.");
+				jjvm.console.warn("No main method present.");
 
 				return;
 			}
@@ -6757,19 +6700,17 @@ self.addEventListener("message", function(event) {
 			});
 
 			try {
-				console.info("Executing...");
+				jjvm.console.info("Executing...");
 				var thread = new jjvm.runtime.Thread(new jjvm.runtime.Frame(mainClass, mainMethod, args));
-				thread.register("onExecutionComplete", function() {
-					thread.deRegister("onExecutionComplete", this);
-
+				thread.registerOneTimeListener("onExecutionComplete", function() {
 					jjvm.runtime.ThreadPool.reap();
 				});
 				jjvm.core.NotificationCentre.dispatch(this, "onExecutionStarted");
 
 				thread.run();
 			} catch(error) {
-				console.error(error);
-				console.error(error.stack);
+				jjvm.console.error(error);
+				jjvm.console.error(error.stack);
 			}
 		},
 		"setBreakpoint": function(className, methodSignature, instructionIndex, setBreakpoint) {
@@ -6781,37 +6722,60 @@ self.addEventListener("message", function(event) {
 						if(instruction.getLocation() == instructionIndex) {
 							instruction.setBreakpoint(setBreakpoint);
 
-							console.debug("Breakpoint " + (setBreakpoint ? "" : "un") + "set in " + className + "#" + methodSignature + " at location " + instructionIndex);
+							jjvm.console.debug("Breakpoint " + (setBreakpoint ? "" : "un") + "set in " + className + "#" + methodSignature + " at location " + instructionIndex);
 							jjvm.core.NotificationCentre.dispatch(this, "onBreakpointSet", [className, methodSignature, instructionIndex, setBreakpoint]);
 						}
 					});
 				}
 			});
 		},
-		"resumeExecution": function() {
-			jjvm.core.NotificationCentre.dispatch(this, "onResumeExecution");
+		"resumeExecution": function(threadName) {
+			//jjvm.core.NotificationCentre.dispatch(this, "onResumeExecution");
+			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
+				if(thread.toString() == threadName) {
+					//thread.dispatch("onResumeExecution");
+					thread.resumeExecution();
+				}
+			});
 		},
-		"suspendExecution": function() {
-			jjvm.core.NotificationCentre.dispatch(this, "onSuspendExecution");
+		"suspendExecution": function(threadName) {
+			//jjvm.core.NotificationCentre.dispatch(this, "onSuspendExecution");
+			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
+				if(thread.toString() == threadName) {
+					//thread.dispatch("onSuspendExecution");
+					thread.suspendExecution();
+				}
+			});
 		},
 		"stepOver": function(threadName) {
 			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
 				if(thread.toString() == threadName) {
-					thread.dispatch("onStepOver");
+					//thread.dispatch("onStepOver");
+					thread.stepOver();
 				}
 			});
 		},
 		"stepInto": function(threadName) {
 			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
 				if(thread.toString() == threadName) {
-					thread.dispatch("onStepInto");
+					//thread.dispatch("onStepInto");
+					thread.stepInto();
+				}
+			});
+		},
+		"stepOut": function(threadName) {
+			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
+				if(thread.toString() == threadName) {
+					//thread.dispatch("onStepOut");
+					thread.stepOut();
 				}
 			});
 		},
 		"dropToFrame": function(threadName) {
 			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
 				if(thread.toString() == threadName) {
-					thread.dispatch("onDropToFrame");
+					//thread.dispatch("onDropToFrame");
+					thread.dropToFrame();
 				}
 			});
 		},
@@ -6826,13 +6790,14 @@ self.addEventListener("message", function(event) {
 	if(actions[event.data.action]) {
 		actions[event.data.action].apply(actions[event.data.action], event.data.args);
 	} else {
-		console.error("Unknown action from main thread " + event.data.action);
+		jjvm.console.error("Unknown action from main thread " + event.data.action);
 	}
 }, false);
 
 // set up System.out & System.err
 var system = jjvm.core.ClassLoader.loadClass("java.lang.System");
-var voidClass = jjvm.core.ClassLoader.loadClass("java.lang.Void");
-system.setStaticField("in", new jjvm.runtime.ObjectReference(voidClass));
-system.setStaticField("out", new jjvm.runtime.ObjectReference(voidClass));
-system.setStaticField("err", new jjvm.runtime.ObjectReference(voidClass));
+var inputStreamClass = jjvm.core.ClassLoader.loadClass("java.io.InputStream");
+var printStreamClass = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
+system.setStaticField("in", new jjvm.runtime.ObjectReference(inputStreamClass));
+system.setStaticField("out", new jjvm.runtime.ObjectReference(printStreamClass));
+system.setStaticField("err", new jjvm.runtime.ObjectReference(printStreamClass));
