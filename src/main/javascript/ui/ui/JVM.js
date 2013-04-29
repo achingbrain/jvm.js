@@ -28,7 +28,7 @@ jjvm.ui.JVM = function() {
 		if(actions[event.data.action]) {
 			actions[event.data.action].apply(actions[event.data.action], args);
 		} else {
-			console.error("Unknown action from worker " + event.data.action);
+			jjvm.console.error("Unknown action from worker " + event.data.action);
 		}
 	};
 
@@ -64,17 +64,17 @@ jjvm.ui.JVM = function() {
 		});
 	};
 
-	this.resumeExecution = function() {
+	this.resumeExecution = function(threadName) {
 		_worker.postMessage({
 			action: "resumeExecution",
-			args: []
+			args: [threadName]
 		});	
 	};
 
-	this.suspendExecution = function() {
+	this.suspendExecution = function(threadName) {
 		_worker.postMessage({
 			action: "suspendExecution",
-			args: []
+			args: [threadName]
 		});	
 	};
 
@@ -88,6 +88,13 @@ jjvm.ui.JVM = function() {
 	this.stepInto = function(threadName) {
 		_worker.postMessage({
 			action: "stepInto",
+			args: [threadName]
+		});	
+	};
+
+	this.stepOut = function(threadName) {
+		_worker.postMessage({
+			action: "stepOut",
 			args: [threadName]
 		});	
 	};

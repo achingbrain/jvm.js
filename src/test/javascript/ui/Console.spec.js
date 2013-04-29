@@ -4,7 +4,7 @@ describe("jjvm.ui.Console test", function () {
 	var console;
 
 	beforeEach(function() {
-		div = $("<div id=\"console\"><button /><ul></ul></div>");
+		div = $("<div id=\"console\"><button /><ul id=\"console_area\"></ul></div>");
 		console = new jjvm.ui.Console(div);
 	});
 
@@ -35,10 +35,10 @@ describe("jjvm.ui.Console test", function () {
 	it("should clear", function () {
 		console.error("hello");
 
-		expect($(div).find("ul").children().size()).toEqual(1);
+		expect($(div).find("ul#console_area").children().size()).toEqual(1);
 
 		console.clear();
 
-		expect($(div).find("ul").children().size()).toEqual(0);
+		expect($(div).find("ul#console_area").children().size()).toEqual(0);
 	});
 });

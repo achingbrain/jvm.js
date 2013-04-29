@@ -97,7 +97,7 @@ describe("jjvm.runtime.Frame test", function () {
 		expect(output).toBeUndefined();
 
 		// continue execution
-		thread.dispatch("onResumeExecution");
+		thread.resumeExecution();
 
 		output = frame.getOutput();
 
@@ -130,7 +130,7 @@ describe("jjvm.runtime.Frame test", function () {
 		expect(instructionSpy.callCount).toEqual(1); 
 
 		// drop to frame
-		thread.dispatch("onDropToFrame");
+		thread.dropToFrame();
 
 		// not executed first instruction yet
 		expect(instructionSpy.callCount).toEqual(1);
@@ -139,7 +139,7 @@ describe("jjvm.runtime.Frame test", function () {
 		methodDef.getInstructions()[1].setBreakpoint(false);
 
 		// resume execution
-		thread.dispatch("onResumeExecution");
+		thread.resumeExecution();
 
 		// should have been called twice
 		expect(instructionSpy.callCount).toEqual(2); 
@@ -179,13 +179,13 @@ describe("jjvm.runtime.Frame test", function () {
 		expect(instruction4Spy.callCount).toEqual(0);
 
 		// step over breakpoint and execute instruction 1
-		thread.dispatch("onStepOver");
+		thread.stepOver();
 
 		// not done instruction 2 yet
 		expect(instruction2Spy.callCount).toEqual(0);
 
 		// execute instruction 2
-		thread.dispatch("onStepOver");
+		thread.stepOver();
 
 		// should have called second instruction
 		expect(instruction2Spy.callCount).toEqual(1);
@@ -193,7 +193,7 @@ describe("jjvm.runtime.Frame test", function () {
 		expect(instruction4Spy.callCount).toEqual(0);
 
 		// resume execution
-		thread.dispatch("onResumeExecution");
+		thread.resumeExecution();
 
 		// all should have been called once
 		expect(instruction2Spy.callCount).toEqual(1);

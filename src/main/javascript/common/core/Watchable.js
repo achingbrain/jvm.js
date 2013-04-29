@@ -81,7 +81,7 @@ jjvm.core.Watchable = {
 		}
 
 		// inform global listeners
-		//console.info("dispatching " + eventType + " with args " + args);
+		//jjvm.console.info("dispatching " + eventType + " with args " + args);
 		jjvm.core.NotificationCentre.dispatch(this, eventType, args);
 	}
 };

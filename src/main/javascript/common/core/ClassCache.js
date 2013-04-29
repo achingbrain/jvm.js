@@ -8,7 +8,7 @@ jjvm.core.ClassCache = {
 			return null;
 		}
 
-		console.info("loading " + className);
+		jjvm.console.info("loading " + className);
 		var data = JSON.parse(localStorage["jjvm_" + className]);
 
 		var classDef = new jjvm.types.ClassDefinition(data);

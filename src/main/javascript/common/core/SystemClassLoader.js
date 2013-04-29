@@ -59,7 +59,7 @@ jjvm.core.SystemClassLoader = {
 			return cached;
 		}*/
 
-		console.info("Downloading " + className);
+		jjvm.console.info("Downloading " + className);
 
 		// Have to use synchronous request here and as such can't use html5
 		// response types as they make the UI unresponsive even though
@@ -95,7 +95,7 @@ jjvm.core.SystemClassLoader = {
 			);
 			frame.setIsSystemFrame(true);
 			var thread = new jjvm.runtime.Thread(frame);
-			frame.execute(thread);
+			thread.run();
 		}
 
 		return jjvm.core.SystemClassLoader._objectRef;

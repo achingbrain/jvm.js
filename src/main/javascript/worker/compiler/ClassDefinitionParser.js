@@ -40,10 +40,10 @@ jjvm.compiler.ClassDefinitionParser = function() {
 		this.parseMethods(iterator, classDef, constantPool);
 
 		attributesParser.onAttributeCount = function(attributeCount) {
-			//console.info("class " + name + " has " + attributeCount + " attribtues");
+			//jjvm.console.info("class " + name + " has " + attributeCount + " attribtues");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
-			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Class " + name + " has unrecognised attribute " + attributeName]);
+			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Class " + classDef.getName() + " has unrecognised attribute " + attributeName]);
 		};
 		attributesParser.onSourceFile = function(iterator, constantPool) {
 			var sourceFileName = constantPool.load(iterator.readU16()).getValue();

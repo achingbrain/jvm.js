@@ -1,7 +1,7 @@
 jjvm.compiler.BlockParser = function() {
 
 	this.parseBlock = function(iterator, constantsPool, length, parser) {
-		//console.info("parsing block of length " + length + " with " + parser);
+		//jjvm.console.info("parsing block of length " + length + " with " + parser);
 		var block = iterator.getIterable().subarray(iterator.getLocation(), iterator.getLocation() + length);
 		var blockIterator = new jjvm.core.ByteIterator(block);
 

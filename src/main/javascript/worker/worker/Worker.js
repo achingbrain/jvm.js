@@ -1,42 +1,3 @@
-console = {
-	debug: function(string) {
-		self.postMessage({
-			action: "consoleDebug",
-			args: JSON.stringify([string])
-		});
-	},
-
-	info: function(string) {
-		self.postMessage({
-			action: "consoleInfo",
-			args: JSON.stringify([string])
-		});
-	},
-
-	warn: function(string) {
-		self.postMessage({
-			action: "consoleWarn",
-			args: JSON.stringify([string])
-		});
-	},
-
-	error: function(string) {
-		if(string.stack) {
-			_.each(string.stack.split("\n"), function(line) {
-				self.postMessage({
-					action: "consoleError",
-					args: JSON.stringify([line])
-				});
-			});
-		} else if(_.isString(string)) {
-			self.postMessage({
-				action: "consoleError",
-				args: JSON.stringify([string])
-			});
-		}
-	}
-};
-
 self.addEventListener("message", function(event) {
 	var actions = {
 		"compile": function(bytes, isSystemClass) {
@@ -59,7 +20,7 @@ self.addEventListener("message", function(event) {
 
 			if(!mainMethod) {
 				// nothing to execute, abort!
-				console.warn("No main method present.");
+				jjvm.console.warn("No main method present.");
 
 				return;
 			}
@@ -73,19 +34,17 @@ self.addEventListener("message", function(event) {
 			});
 
 			try {
-				console.info("Executing...");
+				jjvm.console.info("Executing...");
 				var thread = new jjvm.runtime.Thread(new jjvm.runtime.Frame(mainClass, mainMethod, args));
-				thread.register("onExecutionComplete", function() {
-					thread.deRegister("onExecutionComplete", this);
-
+				thread.registerOneTimeListener("onExecutionComplete", function() {
 					jjvm.runtime.ThreadPool.reap();
 				});
 				jjvm.core.NotificationCentre.dispatch(this, "onExecutionStarted");
 
 				thread.run();
 			} catch(error) {
-				console.error(error);
-				console.error(error.stack);
+				jjvm.console.error(error);
+				jjvm.console.error(error.stack);
 			}
 		},
 		"setBreakpoint": function(className, methodSignature, instructionIndex, setBreakpoint) {
@@ -97,37 +56,60 @@ self.addEventListener("message", function(event) {
 						if(instruction.getLocation() == instructionIndex) {
 							instruction.setBreakpoint(setBreakpoint);
 
-							console.debug("Breakpoint " + (setBreakpoint ? "" : "un") + "set in " + className + "#" + methodSignature + " at location " + instructionIndex);
+							jjvm.console.debug("Breakpoint " + (setBreakpoint ? "" : "un") + "set in " + className + "#" + methodSignature + " at location " + instructionIndex);
 							jjvm.core.NotificationCentre.dispatch(this, "onBreakpointSet", [className, methodSignature, instructionIndex, setBreakpoint]);
 						}
 					});
 				}
 			});
 		},
-		"resumeExecution": function() {
-			jjvm.core.NotificationCentre.dispatch(this, "onResumeExecution");
+		"resumeExecution": function(threadName) {
+			//jjvm.core.NotificationCentre.dispatch(this, "onResumeExecution");
+			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
+				if(thread.toString() == threadName) {
+					//thread.dispatch("onResumeExecution");
+					thread.resumeExecution();
+				}
+			});
 		},
-		"suspendExecution": function() {
-			jjvm.core.NotificationCentre.dispatch(this, "onSuspendExecution");
+		"suspendExecution": function(threadName) {
+			//jjvm.core.NotificationCentre.dispatch(this, "onSuspendExecution");
+			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
+				if(thread.toString() == threadName) {
+					//thread.dispatch("onSuspendExecution");
+					thread.suspendExecution();
+				}
+			});
 		},
 		"stepOver": function(threadName) {
 			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
 				if(thread.toString() == threadName) {
-					thread.dispatch("onStepOver");
+					//thread.dispatch("onStepOver");
+					thread.stepOver();
 				}
 			});
 		},
 		"stepInto": function(threadName) {
 			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
 				if(thread.toString() == threadName) {
-					thread.dispatch("onStepInto");
+					//thread.dispatch("onStepInto");
+					thread.stepInto();
+				}
+			});
+		},
+		"stepOut": function(threadName) {
+			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
+				if(thread.toString() == threadName) {
+					//thread.dispatch("onStepOut");
+					thread.stepOut();
 				}
 			});
 		},
 		"dropToFrame": function(threadName) {
 			_.each(jjvm.runtime.ThreadPool.threads, function(thread) {
 				if(thread.toString() == threadName) {
-					thread.dispatch("onDropToFrame");
+					//thread.dispatch("onDropToFrame");
+					thread.dropToFrame();
 				}
 			});
 		},
@@ -142,7 +124,7 @@ self.addEventListener("message", function(event) {
 	if(actions[event.data.action]) {
 		actions[event.data.action].apply(actions[event.data.action], event.data.args);
 	} else {
-		console.error("Unknown action from main thread " + event.data.action);
+		jjvm.console.error("Unknown action from main thread " + event.data.action);
 	}
 }, false);
 

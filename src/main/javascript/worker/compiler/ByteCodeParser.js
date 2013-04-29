@@ -1023,34 +1023,27 @@ jjvm.compiler.ByteCodeParser = function() {
 			mnemonic: "tableswitch",
 			operation: "tableswitch",
 			args: function(iterator, constantPool, location) {
-				var default_offset;
-
-				// there are 0-3 bytes of padding before default_offset
-				for(var i = 0; i < 3; i++) {
-					default_offset = iterator.readU8();
-
-					// fewer than three bytes!
-					if(default_offset !== 0) {
-						break;
-					}
+				// default_offset always starts aligned with
+				// a four byte boundary
+				while(iterator.getLocation() % 4 !== 0) {
+					iterator.read8();
 				}
 
-				if(default_offset === 0 || default_offset === undefined) {
-					default_offset = iterator.readU32();
-				}
-
-				var low = iterator.readU32();
-				var high = iterator.readU32();
+				var default_offset = iterator.read32() + location;
+				var low = iterator.read32();
+				var high = iterator.read32();
 				var table = [];
+				var numTableEntries = (high - low) + 1;
 
-				for(var n = 0; n < (low - high) + 1; i++) {
-					table.push(iterator.readU32());
+				for(var n = 0; n < numTableEntries; n++) {
+					table.push(iterator.read32() + location);
 				}
 
 				return [
 					low,
 					high,
-					table
+					table,
+					default_offset
 				];
 			},
 			description: function(args, constantPool, location) {
@@ -1390,7 +1383,7 @@ jjvm.compiler.ByteCodeParser = function() {
 			var code = iterator.readU8();
 
 			if(!_bytecode_mapping[code]) {
-				console.warn("No bytecode mapping for " + code.toString(16) + " mapping to nop");
+				jjvm.console.warn("No bytecode mapping for " + code.toString(16) + " mapping to nop");
 
 				_bytecode_mapping[code] = {
 					mnemonic: "undefined " + code.toString(16),

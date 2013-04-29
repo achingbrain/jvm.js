@@ -86,7 +86,7 @@ jjvm.Util = {
 		);
 		frame.setIsSystemFrame(true);
 		var thread = new jjvm.runtime.Thread(frame);
-		frame.execute(thread);
+		thread.run();
 
 		return frame.getOutput();
 	},

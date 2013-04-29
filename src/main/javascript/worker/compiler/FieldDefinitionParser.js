@@ -29,7 +29,7 @@ jjvm.compiler.FieldDefinitionParser = function() {
 		fieldDef.setIsTransient(accessFlags & 0x0080);
 
 		attributesParser.onAttributeCount = function(attributeCount) {
-			//console.info("field " + name + " has " + attributeCount + " attributes");
+			//jjvm.console.info("field " + name + " has " + attributeCount + " attributes");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
 			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Field " + name + " has unrecognised attribute " + attributeName]);

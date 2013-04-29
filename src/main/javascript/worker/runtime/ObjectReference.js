@@ -1,6 +1,5 @@
 jjvm.runtime.ObjectReference = function(classDef) {
 	var _fields = {};
-	var _values = {};
 	var _index = jjvm.runtime.ObjectReference.index++;
 
 	this.getClass = function() {
@@ -31,6 +30,10 @@ jjvm.runtime.ObjectReference = function(classDef) {
 		}
 
 		return _fields[name];
+	};
+
+	this.getFields = function() {
+		return _fields;
 	};
 
 	this.setField = function(name, value) {

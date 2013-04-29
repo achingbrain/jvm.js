@@ -16,7 +16,7 @@ jjvm.core.DOMUtil = {
 			return jjvm.core.DOMUtil._createEmpty(type);
 		}
 
-		//console.error("jjvm.core.DOMUtil.create passed wrong number of arguments.  Expected 1, 2 or 3, was " + arguments.length);
+		//jjvm.console.error("jjvm.core.DOMUtil.create passed wrong number of arguments.  Expected 1, 2 or 3, was " + arguments.length);
 	},
 
 	_create: function(type, content, attributes) {

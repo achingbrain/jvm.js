@@ -108,35 +108,35 @@ jjvm.nativeMethods = {
 		},
 
 		"getComponentType()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getComponentType()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getComponentType()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"getModifiers()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getModifiers()I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getModifiers()I invoked on " + classDef.getName() + "!");
 		},
 
 		"getSigners()[Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getSigners()[Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getSigners()[Ljava/lang/Object; invoked on " + classDef.getName() + "!");
 		},
 
 		"setSigners([Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef, signersArray) {
-			console.warn("setSigners([Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("setSigners([Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getEnclosingMethod0()[Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getEnclosingMethod0()[Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getEnclosingMethod0()[Ljava/lang/Object; invoked on " + classDef.getName() + "!");
 		},
 
 		"getDeclaringClass()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDeclaringClass()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getDeclaringClass()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"getProtectionDomain0()Ljava/security/ProtectionDomain;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getProtectionDomain0()Ljava/security/ProtectionDomain; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getProtectionDomain0()Ljava/security/ProtectionDomain; invoked on " + classDef.getName() + "!");
 		},
 
 		"setProtectionDomain0(Ljava/security/ProtectionDomain;)V": function(frame, classDef, methodDef, objectRef, protectionDomainRef) {
-			console.warn("setProtectionDomain0(Ljava/security/ProtectionDomain;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("setProtectionDomain0(Ljava/security/ProtectionDomain;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getPrimitiveClass(Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, stringRef) {
@@ -148,31 +148,31 @@ jjvm.nativeMethods = {
 		},
 
 		"getGenericSignature()Ljava/lang/String;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getGenericSignature()Ljava/lang/String; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getGenericSignature()Ljava/lang/String; invoked on " + classDef.getName() + "!");
 		},
 
 		"getRawAnnotations()[B": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getRawAnnotations()[B invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getRawAnnotations()[B invoked on " + classDef.getName() + "!");
 		},
 
 		"getConstantPool()Lsun/reflect/ConstantPool;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getConstantPool()Lsun/reflect/ConstantPool; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getConstantPool()Lsun/reflect/ConstantPool; invoked on " + classDef.getName() + "!");
 		},
 
 		"getDeclaredFields0(Z)[Ljava/lang/reflect/Field;": function(frame, classDef, methodDef, objectRef, bool) {
-			console.warn("getDeclaredFields0(Z)[Ljava/lang/reflect/Field; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getDeclaredFields0(Z)[Ljava/lang/reflect/Field; invoked on " + classDef.getName() + "!");
 		},
 
 		"getDeclaredMethods0(Z)[Ljava/lang/reflect/Method;": function(frame, classDef, methodDef, objectRef, bool) {
-			console.warn("getDeclaredMethods0(Z)[Ljava/lang/reflect/Method; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getDeclaredMethods0(Z)[Ljava/lang/reflect/Method; invoked on " + classDef.getName() + "!");
 		},
 
 		"getDeclaredConstructors0(Z)[Ljava/lang/reflect/Constructor;": function(frame, classDef, methodDef, objectRef, bool) {
-			console.warn("getDeclaredConstructors0(Z)[Ljava/lang/reflect/Constructor; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getDeclaredConstructors0(Z)[Ljava/lang/reflect/Constructor; invoked on " + classDef.getName() + "!");
 		},
 
 		"getDeclaredClasses0()[Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDeclaredClasses0()[Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getDeclaredClasses0()[Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"desiredAssertionStatus0(Ljava/lang/Class;)Z": function(frame, classDef, methodDef, objectRef, forClassRef) {
@@ -190,14 +190,15 @@ jjvm.nativeMethods = {
 
 	"java.lang.String": {
 		"intern()Ljava/lang/String;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("intern()Ljava/lang/String; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("intern()Ljava/lang/String; invoked on " + classDef.getName() + "!");
 		}
 	},
 
 	"java.io.PrintStream": {
 		"println(Ljava/lang/String;)V": function(frame, classDef, methodDef, objectRef, stringRef) {
-			var line = stringRef.getField("value").join("");
-			console.info(line);
+			var characters = stringRef.getField("value");
+			var line = characters.join("");
+			jjvm.console.info(line);
 		}
 	},
 
@@ -245,10 +246,10 @@ jjvm.nativeMethods = {
 			return otherObjectRef.getIndex();
 		},
 		"initProperties(Ljava/util/Properties;)Ljava/util/Properties;": function(frame, classDef, methodDef, objectRef, properties) {
-			console.warn("initProperties(Ljava/util/Properties;)Ljava/util/Properties; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("initProperties(Ljava/util/Properties;)Ljava/util/Properties; invoked on " + classDef.getName() + "!");
 		},
 		"mapLibraryName(Ljava/lang/String;)Ljava/lang/String;": function(frame, classDef, methodDef, objectRef, libName) {
-			console.warn("mapLibraryName(Ljava/lang/String;)Ljava/lang/String; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("mapLibraryName(Ljava/lang/String;)Ljava/lang/String; invoked on " + classDef.getName() + "!");
 		}
 	},
 
@@ -292,35 +293,35 @@ jjvm.nativeMethods = {
 		},
 
 		"defineClass0(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, name, bytes, offset, length, protectionDomain) {
-			console.warn("defineClass0(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("defineClass0(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"defineClass1(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, name, bytes, offset, length, protectionDomain, anotherString) {
-			console.warn("defineClass1(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("defineClass1(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"defineClass2(Ljava/lang/String;Ljava/nio/ByteBuffer;IILjava/security/ProtectionDomain;Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, name, byteBuffer, offset, length, protectionDomain, anotherString) {
-			console.warn("defineClass2(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("defineClass2(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"resolveClass0(Ljava/lang/Class;)V": function(frame, classDef, methodDef, objectRef, clazz) {
-			console.warn("resolveClass0(Ljava/lang/Class;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("resolveClass0(Ljava/lang/Class;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, className) {
-			console.warn("findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, className) {
-			console.warn("findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"getCaller(I)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef, index) {
-			console.warn("getCaller(I)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getCaller(I)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"retrieveDirectives()Ljava/lang/AssertionStatusDirectives;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("retrieveDirectives()Ljava/lang/AssertionStatusDirectives; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("retrieveDirectives()Ljava/lang/AssertionStatusDirectives; invoked on " + classDef.getName() + "!");
 		}
 	},
 
@@ -334,19 +335,19 @@ jjvm.nativeMethods = {
 		},
 
 		"doPrivileged(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef) {
-			console.warn("doPrivileged(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("doPrivileged(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
 		},
 
 		"doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef, actionRef, contextRef) {
-			console.warn("doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
 		},
 
 		"getStackAccessControlContext()Ljava/security/AccessControlContext;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getStackAccessControlContext()Ljava/security/AccessControlContext; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getStackAccessControlContext()Ljava/security/AccessControlContext; invoked on " + classDef.getName() + "!");
 		},
 
 		"getInheritedAccessControlContext()Ljava/security/AccessControlContext;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getStackAccessControlContext()Ljava/security/AccessControlContext; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getStackAccessControlContext()Ljava/security/AccessControlContext; invoked on " + classDef.getName() + "!");
 		}
 	},
 
@@ -356,331 +357,331 @@ jjvm.nativeMethods = {
 		},
 	
 		"getInt(Ljava/lang/Object;J)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getInt(Ljava/lang/Object;J)I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getInt(Ljava/lang/Object;J)I invoked on " + classDef.getName() + "!");
 		},
 
 		"putInt(Ljava/lang/Object;JI)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putInt(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putInt(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getObject(Ljava/lang/Object;J)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getObject(Ljava/lang/Object;J)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getObject(Ljava/lang/Object;J)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
 		},
 
 		"putObject(Ljava/lang/Object;JLjava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putObject(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putObject(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getBoolean(Ljava/lang/Object;J)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getBoolean(Ljava/lang/Object;J)Z invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getBoolean(Ljava/lang/Object;J)Z invoked on " + classDef.getName() + "!");
 		},
 
 		"putBoolean(Ljava/lang/Object;JZ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putBoolean(Ljava/lang/Object;JZ)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putBoolean(Ljava/lang/Object;JZ)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getByte(Ljava/lang/Object;J)B": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getByte(Ljava/lang/Object;J)B invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getByte(Ljava/lang/Object;J)B invoked on " + classDef.getName() + "!");
 		},
 
 		"putByte(Ljava/lang/Object;JB)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putByte(Ljava/lang/Object;JB)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putByte(Ljava/lang/Object;JB)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getShort(Ljava/lang/Object;J)S": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getShort(Ljava/lang/Object;J)S invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getShort(Ljava/lang/Object;J)S invoked on " + classDef.getName() + "!");
 		},
 
 		"putShort(Ljava/lang/Object;JS)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putShort(Ljava/lang/Object;JS)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putShort(Ljava/lang/Object;JS)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getChar(Ljava/lang/Object;J)C": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getChar(Ljava/lang/Object;J)C invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getChar(Ljava/lang/Object;J)C invoked on " + classDef.getName() + "!");
 		},
 
 		"putChar(Ljava/lang/Object;JC)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putChar(Ljava/lang/Object;JC)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putChar(Ljava/lang/Object;JC)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getLong(Ljava/lang/Object;J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getLong(Ljava/lang/Object;J)J invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getLong(Ljava/lang/Object;J)J invoked on " + classDef.getName() + "!");
 		},
 
 		"putLong(Ljava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putLong(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putLong(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getFloat(Ljava/lang/Object;J)F": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getFloat(Ljava/lang/Object;J)F invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getFloat(Ljava/lang/Object;J)F invoked on " + classDef.getName() + "!");
 		},
 
 		"putFloat(Ljava/lang/Object;JF)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putFloat(Ljava/lang/Object;JF)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putFloat(Ljava/lang/Object;JF)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getDouble(Ljava/lang/Object;J)D": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDouble(Ljava/lang/Object;J)D invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getDouble(Ljava/lang/Object;J)D invoked on " + classDef.getName() + "!");
 		},
 
 		"putDouble(Ljava/lang/Object;JD)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putDouble(Ljava/lang/Object;JD)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putDouble(Ljava/lang/Object;JD)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getByte(J)B": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getByte(J)B invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getByte(J)B invoked on " + classDef.getName() + "!");
 		},
 
 		"putByte(JB)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putByte(JB)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putByte(JB)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getShort(J)S": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getShort(J)S invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getShort(J)S invoked on " + classDef.getName() + "!");
 		},
 
 		"putShort(JS)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putShort(JS)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putShort(JS)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getChar(J)C": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getChar(J)C invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getChar(J)C invoked on " + classDef.getName() + "!");
 		},
 
 		"putChar(JC)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putChar(JC)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putChar(JC)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getInt(J)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getInt(J)I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getInt(J)I invoked on " + classDef.getName() + "!");
 		},
 
 		"putInt(JI)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putInt(JI)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putInt(JI)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getLong(J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getLong(J)J invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getLong(J)J invoked on " + classDef.getName() + "!");
 		},
 
 		"putLong(JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putLong(JJ)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putLong(JJ)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getFloat(J)F": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getFloat(J)F invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getFloat(J)F invoked on " + classDef.getName() + "!");
 		},
 
 		"putFloat(JF)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putFloat(JF)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putFloat(JF)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getDouble(J)D": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDouble(J)D invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getDouble(J)D invoked on " + classDef.getName() + "!");
 		},
 
 		"putDouble(JD)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putDouble(JD)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putDouble(JD)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getAddress(J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getAddress(J)J invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getAddress(J)J invoked on " + classDef.getName() + "!");
 		},
 
 		"putAddress(JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putAddress(JJ)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putAddress(JJ)V invoked on " + classDef.getName() + "!");
 		},
 
 		"allocateMemory(J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("allocateMemory(J)J invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("allocateMemory(J)J invoked on " + classDef.getName() + "!");
 		},
 
 		"reallocateMemory(JJ)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("reallocateMemory(JJ)J invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("reallocateMemory(JJ)J invoked on " + classDef.getName() + "!");
 		},
 
 		"setMemory(Ljava/lang/Object;JJB)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("setMemory(Ljava/lang/Object;JJB)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("setMemory(Ljava/lang/Object;JJB)V invoked on " + classDef.getName() + "!");
 		},
 
 		"copyMemory(Ljava/lang/Object;JLjava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("copyMemory(Ljava/lang/Object;JLjava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("copyMemory(Ljava/lang/Object;JLjava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
 		},
 
 		"freeMemory(J)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("freeMemory(J)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("freeMemory(J)V invoked on " + classDef.getName() + "!");
 		},
 
 		"staticFieldOffset(Ljava/lang/reflect/Field;)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("staticFieldOffset(Ljava/lang/reflect/Field;)J invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("staticFieldOffset(Ljava/lang/reflect/Field;)J invoked on " + classDef.getName() + "!");
 		},
 
 		"objectFieldOffset(Ljava/lang/reflect/Field;)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("objectFieldOffset(Ljava/lang/reflect/Field;)J invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("objectFieldOffset(Ljava/lang/reflect/Field;)J invoked on " + classDef.getName() + "!");
 		},
 
 		"staticFieldBase(Ljava/lang/reflect/Field;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("staticFieldBase(Ljava/lang/reflect/Field;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("staticFieldBase(Ljava/lang/reflect/Field;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
 		},
 
 		"ensureClassInitialized(Ljava/lang/Class;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("ensureClassInitialized(Ljava/lang/Class;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("ensureClassInitialized(Ljava/lang/Class;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"arrayBaseOffset(Ljava/lang/Class;)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("arrayBaseOffset(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("arrayBaseOffset(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
 		},
 
 		"arrayIndexScale(Ljava/lang/Class;)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("arrayIndexScale(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("arrayIndexScale(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
 		},
 
 		"addressSize()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("addressSize()I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("addressSize()I invoked on " + classDef.getName() + "!");
 		},
 
 		"pageSize()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("pageSize()I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("pageSize()I invoked on " + classDef.getName() + "!");
 		},
 
 		"defineClass(Ljava/lang/String;[BIILjava/lang/ClassLoader;Ljava/security/ProtectionDomain;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("defineClass(Ljava/lang/String;[BIILjava/lang/ClassLoader;Ljava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("defineClass(Ljava/lang/String;[BIILjava/lang/ClassLoader;Ljava/security/ProtectionDomain;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"defineClass(Ljava/lang/String;[BII)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("defineClass(Ljava/lang/String;[BII)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("defineClass(Ljava/lang/String;[BII)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"defineAnonymousClass(Ljava/lang/Class;[B[Ljava/lang/Object;)Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("defineAnonymousClass(Ljava/lang/Class;[B[Ljava/lang/Object;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("defineAnonymousClass(Ljava/lang/Class;[B[Ljava/lang/Object;)Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"allocateInstance(Ljava/lang/Class;)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("allocateInstance(Ljava/lang/Class;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("allocateInstance(Ljava/lang/Class;)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
 		},
 
 		"monitorEnter(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("monitorEnter(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("monitorEnter(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"monitorExit(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("monitorExit(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("monitorExit(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"tryMonitorEnter(Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("tryMonitorEnter(Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("tryMonitorEnter(Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
 		},
 
 		"throwException(Ljava/lang/Throwable;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("hrowException(Ljava/lang/Throwable;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("hrowException(Ljava/lang/Throwable;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"compareAndSwapObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("compareAndSwapObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("compareAndSwapObject(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
 		},
 
 		"compareAndSwapInt(Ljava/lang/Object;JII)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("compareAndSwapInt(Ljava/lang/Object;JII)Z invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("compareAndSwapInt(Ljava/lang/Object;JII)Z invoked on " + classDef.getName() + "!");
 		},
 
 		"compareAndSwapLong(Ljava/lang/Object;JJJ)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("compareAndSwapLong(Ljava/lang/Object;JJJ)Z invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("compareAndSwapLong(Ljava/lang/Object;JJJ)Z invoked on " + classDef.getName() + "!");
 		},
 
 		"getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getObjectVolatile(Ljava/lang/Object;J)Ljava/lang/Object; invoked on " + classDef.getName() + "!");
 		},
 
 		"putObjectVolatile(Ljava/lang/Object;JLjava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putObjectVolatile(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putObjectVolatile(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getIntVolatile(Ljava/lang/Object;J)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getIntVolatile(Ljava/lang/Object;J)I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getIntVolatile(Ljava/lang/Object;J)I invoked on " + classDef.getName() + "!");
 		},
 
 		"putIntVolatile(Ljava/lang/Object;JI)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putIntVolatile(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putIntVolatile(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getBooleanVolatile(Ljava/lang/Object;J)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getBooleanVolatile(Ljava/lang/Object;J)Z invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getBooleanVolatile(Ljava/lang/Object;J)Z invoked on " + classDef.getName() + "!");
 		},
 
 		"putBooleanVolatile(Ljava/lang/Object;JZ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putBooleanVolatile(Ljava/lang/Object;JZ)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putBooleanVolatile(Ljava/lang/Object;JZ)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getByteVolatile(Ljava/lang/Object;J)B": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getByteVolatile(Ljava/lang/Object;J)B invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getByteVolatile(Ljava/lang/Object;J)B invoked on " + classDef.getName() + "!");
 		},
 
 		"putByteVolatile(Ljava/lang/Object;JB)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putByteVolatile(Ljava/lang/Object;JB)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putByteVolatile(Ljava/lang/Object;JB)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getShortVolatile(Ljava/lang/Object;J)S": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getShortVolatile(Ljava/lang/Object;J)S invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getShortVolatile(Ljava/lang/Object;J)S invoked on " + classDef.getName() + "!");
 		},
 
 		"putShortVolatile(Ljava/lang/Object;JS)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putShortVolatile(Ljava/lang/Object;JS)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putShortVolatile(Ljava/lang/Object;JS)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getCharVolatile(Ljava/lang/Object;J)C": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getCharVolatile(Ljava/lang/Object;J)C invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getCharVolatile(Ljava/lang/Object;J)C invoked on " + classDef.getName() + "!");
 		},
 
 		"putCharVolatile(Ljava/lang/Object;JC)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putCharVolatile(Ljava/lang/Object;JC)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putCharVolatile(Ljava/lang/Object;JC)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getLongVolatile(Ljava/lang/Object;J)J": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getLongVolatile(Ljava/lang/Object;J)J invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getLongVolatile(Ljava/lang/Object;J)J invoked on " + classDef.getName() + "!");
 		},
 
 		"putLongVolatile(Ljava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putLongVolatile(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putLongVolatile(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getFloatVolatile(Ljava/lang/Object;J)F": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getFloatVolatile(Ljava/lang/Object;J)F invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getFloatVolatile(Ljava/lang/Object;J)F invoked on " + classDef.getName() + "!");
 		},
 
 		"putFloatVolatile(Ljava/lang/Object;JF)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("utFloatVolatile(Ljava/lang/Object;JF)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("utFloatVolatile(Ljava/lang/Object;JF)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getDoubleVolatile(Ljava/lang/Object;J)D": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getDoubleVolatile(Ljava/lang/Object;J)D invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getDoubleVolatile(Ljava/lang/Object;J)D invoked on " + classDef.getName() + "!");
 		},
 
 		"putDoubleVolatile(Ljava/lang/Object;JD)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putDoubleVolatile(Ljava/lang/Object;JD)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putDoubleVolatile(Ljava/lang/Object;JD)V invoked on " + classDef.getName() + "!");
 		},
 
 		"putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putOrderedObject(Ljava/lang/Object;JLjava/lang/Object;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"putOrderedInt(Ljava/lang/Object;JI)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putOrderedInt(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putOrderedInt(Ljava/lang/Object;JI)V invoked on " + classDef.getName() + "!");
 		},
 
 		"putOrderedLong(Ljava/lang/Object;JJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("putOrderedLong(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("putOrderedLong(Ljava/lang/Object;JJ)V invoked on " + classDef.getName() + "!");
 		},
 
 		"unpark(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("unpark(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("unpark(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"park(ZJ)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("park(ZJ)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("park(ZJ)V invoked on " + classDef.getName() + "!");
 		},
 
 		"getLoadAverage([DI)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getLoadAverage([DI)I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getLoadAverage([DI)I invoked on " + classDef.getName() + "!");
 		}
 	},
 
@@ -694,35 +695,35 @@ jjvm.nativeMethods = {
 		},
 
 		"getClassAccessFlags(Ljava/lang/Class;)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getClassAccessFlags(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getClassAccessFlags(Ljava/lang/Class;)I invoked on " + classDef.getName() + "!");
 		}
 	},
 
 	"sun.misc.VM": {
 		"initialize()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("initialize()V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("initialize()V invoked on " + classDef.getName() + "!");
 		}
 	},
 
 	"java.lang.SecurityManager": {
 		"getClassContext()[Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getClassContext()[Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getClassContext()[Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"currentClassLoader0()Ljava/lang/ClassLoader;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("currentClassLoader0()Ljava/lang/ClassLoader; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("currentClassLoader0()Ljava/lang/ClassLoader; invoked on " + classDef.getName() + "!");
 		},
 
 		"classDepth(Ljava/lang/String;)I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("classDepth(Ljava/lang/String;)I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("classDepth(Ljava/lang/String;)I invoked on " + classDef.getName() + "!");
 		},
 
 		"classLoaderDepth0()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("classLoaderDepth0()I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("classLoaderDepth0()I invoked on " + classDef.getName() + "!");
 		},
 
 		"currentLoadedClass0()Ljava/lang/Class;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("currentLoadedClass0()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("currentLoadedClass0()Ljava/lang/Class; invoked on " + classDef.getName() + "!");
 		},
 
 		"checkPermission(Ljava/security/Permission;)V": function(frame, classDef, methodDef, objectRef) {
@@ -740,74 +741,67 @@ jjvm.nativeMethods = {
 		},
 
 		"currentThread()Ljava/lang/Thread;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("currentThread()Ljava/lang/Thread; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("currentThread()Ljava/lang/Thread; invoked on " + classDef.getName() + "!");
 		},
 
 		"yield()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("yield()V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("yield()V invoked on " + classDef.getName() + "!");
 		},
 
 		"sleep(J)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("sleep(J)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("sleep(J)V invoked on " + classDef.getName() + "!");
 		},
 
 		"start0()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("start0()V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("start0()V invoked on " + classDef.getName() + "!");
 		},
 
 		"isInterrupted(Z)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("isInterrupted(Z)Z invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("isInterrupted(Z)Z invoked on " + classDef.getName() + "!");
 		},
 
 		"isAlive()Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("isAlive()Z invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("isAlive()Z invoked on " + classDef.getName() + "!");
 		},
 
 		"countStackFrames()I": function(frame, classDef, methodDef, objectRef) {
-			console.warn("countStackFrames()I invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("countStackFrames()I invoked on " + classDef.getName() + "!");
 		},
 
 		"holdsLock(Ljava/lang/Object;)Z": function(frame, classDef, methodDef, objectRef) {
-			console.warn("holdsLock(Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("holdsLock(Ljava/lang/Object;)Z invoked on " + classDef.getName() + "!");
 		},
 
 		"dumpThreads([Ljava/lang/Thread;)[[Ljava/lang/StackTraceElement;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("dumpThreads([Ljava/lang/Thread;)[[Ljava/lang/StackTraceElement; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("dumpThreads([Ljava/lang/Thread;)[[Ljava/lang/StackTraceElement; invoked on " + classDef.getName() + "!");
 		},
 
 		"getThreads()[Ljava/lang/Thread;": function(frame, classDef, methodDef, objectRef) {
-			console.warn("getThreads()[Ljava/lang/Thread; invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("getThreads()[Ljava/lang/Thread; invoked on " + classDef.getName() + "!");
 		},
 
 		"setPriority0(I)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("setPriority0(I)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("setPriority0(I)V invoked on " + classDef.getName() + "!");
 		},
 
 		"stop0(Ljava/lang/Object;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("stop0(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("stop0(Ljava/lang/Object;)V invoked on " + classDef.getName() + "!");
 		},
 
 		"suspend0()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("suspend0()V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("suspend0()V invoked on " + classDef.getName() + "!");
 		},
 
 		"resume0()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("resume0()V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("resume0()V invoked on " + classDef.getName() + "!");
 		},
 
 		"interrupt0()V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("interrupt0()V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("interrupt0()V invoked on " + classDef.getName() + "!");
 		},
 
 		"setNativeName(Ljava/lang/String;)V": function(frame, classDef, methodDef, objectRef) {
-			console.warn("setNativeName(Ljava/lang/String;)V invoked on " + classDef.getName() + "!");
+			jjvm.console.warn("setNativeName(Ljava/lang/String;)V invoked on " + classDef.getName() + "!");
 		}
-	}/*,
-
-	"java.lang.AbstractStringBuilder": {
-		"expandCapacity(I)V": function(frame, classDef, methodDef, objectRef, newCapacity) {
-			var value = objectRef.getField("value");
-			value.length = newCapacity;
-		}
-	}*/
+	}
 };

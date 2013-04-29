@@ -24,20 +24,24 @@ jjvm.ui.JJVM = {
 		$("#button_pause").attr("disabled", true);
 		$("#button_step_over").attr("disabled", true);
 		$("#button_step_into").attr("disabled", true);
+		$("#button_step_out").attr("disabled", true);
 		$("#button_drop_to_frame").attr("disabled", true);
 
 		// set up debug button listeners
 		$("#button_resume").click(function() {
-			jjvm.ui.JJVM.jvm.resumeExecution();
+			jjvm.ui.JJVM.jvm.resumeExecution(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
 		});
 		$("#button_pause").click(function() {
-			jjvm.ui.JJVM.jvm.suspendExecution();
+			jjvm.ui.JJVM.jvm.suspendExecution(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
 		});
 		$("#button_step_over").click(function() {
 			jjvm.ui.JJVM.jvm.stepOver(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
 		});
 		$("#button_step_into").click(function() {
 			jjvm.ui.JJVM.jvm.stepInto(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
+		});
+		$("#button_step_out").click(function() {
+			jjvm.ui.JJVM.jvm.stepOut(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
 		});
 		$("#button_drop_to_frame").click(function() {
 			jjvm.ui.JJVM.jvm.dropToFrame(jjvm.ui.JJVM._threadWatcher.getSelectedThread().name);
@@ -71,13 +75,12 @@ jjvm.ui.JJVM = {
 		});
 
 		jjvm.core.NotificationCentre.register("onBreakpointEncountered", function() {
-			console.info("encountered breakpoint");
-
 			$("#button_run").attr("disabled", true);
 			$("#button_resume").removeAttr("disabled");
 			$("#button_pause").attr("disabled", true);
 			$("#button_step_over").removeAttr("disabled");
 			$("#button_step_into").removeAttr("disabled");
+			$("#button_step_out").removeAttr("disabled");
 			$("#button_drop_to_frame").removeAttr("disabled");
 		});
 
@@ -88,6 +91,7 @@ jjvm.ui.JJVM = {
 			$("#button_pause").attr("disabled", true);
 			$("#button_step_over").attr("disabled", true);
 			$("#button_step_into").attr("disabled", true);
+			$("#button_step_out").attr("disabled", true);
 			$("#button_drop_to_frame").attr("disabled", true);
 		});
 
@@ -97,6 +101,7 @@ jjvm.ui.JJVM = {
 			$("#button_pause").removeAttr("disabled");
 			$("#button_step_over").attr("disabled", true);
 			$("#button_step_into").attr("disabled", true);
+			$("#button_step_out").attr("disabled", true);
 			$("#button_drop_to_frame").attr("disabled", true);
 		});
 

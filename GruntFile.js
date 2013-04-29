@@ -5,11 +5,11 @@ module.exports = function(grunt) {
 			common: {
 				lib: [
 					"src/main/webapp/js/underscore.js",
-					"src/main/webapp/js/underscore.string.js",
+					"src/main/webapp/js/underscore.string.js"
 				],
 				source: [
 					"src/main/javascript/common/namespace.js",
-					"src/main/javascript/common/core/*.js",
+					"src/main/javascript/common/core/*.js"
 				]
 			},
 

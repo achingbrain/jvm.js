@@ -23,9 +23,9 @@ jjvm.types.ByteCode = function(data) {
 		}
 
 		if(methodDef.isStatic()) {
-			console.debug("Invoking static method " + methodDef.getName() + " on " + methodDef.getClassDef().getName() + " with args " + args);
+			jjvm.console.debug("Invoking static method " + methodDef.getName() + " on " + methodDef.getClassDef().getName() + " with args " + args);
 		} else {
-			console.debug("Invoking instance method " + methodDef.getName() + " on " + args[0].getClass().getName() + " as " + methodDef.getClassDef().getName() + " with args " + args);
+			jjvm.console.debug("Invoking instance method " + methodDef.getName() + " on " + args[0].getClass().getName() + " as " + methodDef.getClassDef().getName() + " with args " + args);
 		}
 
 		frame.executeChild(methodDef.getClassDef(), methodDef, args);
@@ -487,9 +487,16 @@ jjvm.types.ByteCode = function(data) {
 				throw new jjvm.runtime.Goto(goingTo);
 			};
 		},
-		"tableswitch": function(low, high, table) {
+		"tableswitch": function(low, high, table, default_offset) {
 			this.execute = function(frame, constantPool) {
-				throw "tableswitch is not implemented";
+				var value = frame.getStack().pop();
+
+				if(value < low || value > high) {
+					throw new jjvm.runtime.Goto(default_offset);
+				}
+
+				// hope low is always 0...
+				throw new jjvm.runtime.Goto(table[value - low]);
 			};
 		},
 		"lookupswitch": function(table) {

@@ -37,6 +37,10 @@ jjvm.ui.ClassOutliner = function(element) {
 
 	this._highlight = function(className, methodSignature, instruction) {
 		$(element + " li").removeClass("executing");
+
+		if(!instruction) {
+			return;
+		}
 		
 		var listElement = _listElements[className][methodSignature][instruction.location];
 

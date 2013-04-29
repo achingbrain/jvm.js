@@ -36,7 +36,7 @@ jjvm.compiler.Compiler = function() {
 			jjvm.core.NotificationCentre.dispatch(this, "onClassDefined", [classDef.getData(), isSystemClass]);
 			jjvm.core.NotificationCentre.dispatch(this, "onCompileSuccess", [this]);
 		} catch(error) {
-			console.error(error);
+			jjvm.console.error(error);
 
 			jjvm.core.NotificationCentre.dispatch(this, "onCompileError", [error]);
 		}

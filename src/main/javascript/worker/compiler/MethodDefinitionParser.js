@@ -98,7 +98,7 @@ jjvm.compiler.MethodDefinitionParser = function() {
 		}
 
 		attributesParser.onAttributeCount = function(attributeCount) {
-			//console.info("method " + name + " has " + attributeCount + " attributes");
+			//jjvm.console.info("method " + name + " has " + attributeCount + " attributes");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
 			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " has unrecognised attribute " + attributeName]);
@@ -114,7 +114,7 @@ jjvm.compiler.MethodDefinitionParser = function() {
 			methodDef.setExceptionTable(blockParser.parseBlock(iterator, constantPool, iterator.readU16() * 8, exceptionTableParser));
 
 			codeAttributesParser.onAttributeCount = function(attributeCount) {
-				//console.info("Code block has " + attributeCount + " attributes");
+				//jjvm.console.info("Code block has " + attributeCount + " attributes");
 			};
 			codeAttributesParser.onUnrecognisedAttribute = function(attributeName) {
 				jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Method " + methodDef.getName() + " on class " + classDef.getName() + " has unrecognised attribute " + attributeName + " on code block"]);
