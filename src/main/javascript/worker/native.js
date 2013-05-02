@@ -176,11 +176,13 @@ jjvm.nativeMethods = {
 		},
 
 		"desiredAssertionStatus0(Ljava/lang/Class;)Z": function(frame, classDef, methodDef, objectRef, forClassRef) {
-			return true;
+			// disables assert statements in source code
+			return 0;
 		},
 
 		"desiredAssertionStatus()Z": function(frame, classDef, methodDef, objectRef, stringRef) {
-			return true;
+			// disables assert statements in source code
+			return 0;
 		},
 
 		"getClassLoader()Ljava/lang/ClassLoader;": function(frame, classDef, methodDef, objectRef, forClassRef) {
@@ -190,7 +192,9 @@ jjvm.nativeMethods = {
 
 	"java.lang.String": {
 		"intern()Ljava/lang/String;": function(frame, classDef, methodDef, objectRef) {
-			jjvm.console.warn("intern()Ljava/lang/String; invoked on " + classDef.getName() + "!");
+			// technically incorrect - should look in an internal cache of strings for
+			// one that #equals would return true to.
+			return objectRef;
 		}
 	},
 
@@ -243,13 +247,19 @@ jjvm.nativeMethods = {
 			}
 		},
 		"identityHashCode(Ljava/lang/Object;)I": function(frame, classDef, methodDef, objectRef, otherObjectRef) {
+			if(_.isNumber(otherObjectRef)) {
+				return otherObjectRef;
+			}
+
 			return otherObjectRef.getIndex();
 		},
 		"initProperties(Ljava/util/Properties;)Ljava/util/Properties;": function(frame, classDef, methodDef, objectRef, properties) {
-			jjvm.console.warn("initProperties(Ljava/util/Properties;)Ljava/util/Properties; invoked on " + classDef.getName() + "!");
+			return jjvm.Util.createObjectRef("java.util.Properties", []);
 		},
 		"mapLibraryName(Ljava/lang/String;)Ljava/lang/String;": function(frame, classDef, methodDef, objectRef, libName) {
 			jjvm.console.warn("mapLibraryName(Ljava/lang/String;)Ljava/lang/String; invoked on " + classDef.getName() + "!");
+
+			return libName;
 		}
 	},
 
@@ -802,6 +812,13 @@ jjvm.nativeMethods = {
 
 		"setNativeName(Ljava/lang/String;)V": function(frame, classDef, methodDef, objectRef) {
 			jjvm.console.warn("setNativeName(Ljava/lang/String;)V invoked on " + classDef.getName() + "!");
+		}
+	},
+
+	"sun.misc.Hashing": {
+		"randomHashSeed(Ljava/lang/Object;)I": function(frame, classDef, methodDef, objectRef) {
+			// n.b. not actually native
+			return ~~(Math.random() * 1000);
 		}
 	}
 };

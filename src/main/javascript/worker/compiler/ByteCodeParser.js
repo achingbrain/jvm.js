@@ -1054,30 +1054,24 @@ jjvm.compiler.ByteCodeParser = function() {
 			mnemonic: "lookupswitch",
 			operation: "lookupswitch",
 			args: function(iterator, constantPool, location) {
-				var default_offset;
-
-				// there are 0-3 bytes of padding before default_offset
-				for(var i = 0; i < 3; i++) {
-					default_offset = iterator.readU8();
-
-					// fewer than three bytes!
-					if(default_offset !== 0) {
-						break;
-					}
+				// default_offset always starts aligned with
+				// a four byte boundary
+				while(iterator.getLocation() % 4 !== 0) {
+					iterator.read8();
 				}
 
-				if(default_offset === 0 || default_offset === undefined) {
-					default_offset = iterator.readU32();
-				}
-
+				var default_offset = iterator.read32() + location;
 				var keys = iterator.readU32();
 				var table = {};
 
-				for(var n = 0; n < keys; i++) {
-					table[iterator.readU32()] = iterator.readU32();
+				for(var n = 0; n < keys; n++) {
+					table[iterator.read32()] = iterator.read32() + location;
 				}
 
-				return [table];
+				return [
+					table,
+					default_offset
+				];
 			},
 			description: function(args, constantPool, location) {
 				return this.mnemonic + " " + args[0];

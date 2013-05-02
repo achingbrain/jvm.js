@@ -14,7 +14,7 @@ jjvm.types.Primitives = {
 	classToPrimitive: {
 		"java.lang.Boolean": "boolean",
 		"java.lang.Byte": "byte",
-		"java.lang.Char": "char",
+		"java.lang.Character": "char",
 		"java.lang.Short": "short",
 		"java.lang.Integer": "int",
 		"java.lang.Long": "long",
@@ -26,7 +26,7 @@ jjvm.types.Primitives = {
 	primitiveToClass: {
 		"boolean": "java.lang.Boolean",
 		"byte": "java.lang.Byte",
-		"char": "java.lang.Char",
+		"char": "java.lang.Character",
 		"short": "java.lang.Short",
 		"int": "java.lang.Integer",
 		"long": "java.lang.Long",

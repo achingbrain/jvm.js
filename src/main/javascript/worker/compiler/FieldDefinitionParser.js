@@ -32,7 +32,7 @@ jjvm.compiler.FieldDefinitionParser = function() {
 			//jjvm.console.info("field " + name + " has " + attributeCount + " attributes");
 		};
 		attributesParser.onUnrecognisedAttribute = function(attributeName) {
-			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Field " + name + " has unrecognised attribute " + attributeName]);
+			jjvm.core.NotificationCentre.dispatch(this, "onCompileWarning", ["Field " + fieldDef.getName() + " has unrecognised attribute " + attributeName]);
 		};
 		attributesParser.onConstantValue = function(iterator, constantPool) {
 			var value = constantPool.load(iterator.readU16());

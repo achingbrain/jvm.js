@@ -8,8 +8,18 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 	var _output;
 	var _currentInstruction;
 	var _version = jjvm.runtime.Frame.index++;
-	var _instructions = new jjvm.core.Iterator(methodDef.getInstructions());
-	//var _skipBreakpointAtLocation;
+
+	var _instructions;
+
+	if(methodDef.isAbstract()) {
+		// method is abstract, use implementing class instead
+		var implementation = classDef.getMethod(methodDef.getName(), methodDef.getArgs());
+
+		_instructions = new jjvm.core.Iterator(implementation.getInstructions());
+	} else {
+		_instructions = new jjvm.core.Iterator(methodDef.getInstructions());
+	}
+
 	var _isSystemFrame;
 	var _shouldStepInto;
 
@@ -178,6 +188,10 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 			return false;
 		}
 
+		if(!_currentInstruction) {
+			var sdlfkjds = "asdf";
+		}
+
 		if(_currentInstruction.hasBreakpoint()) {
 
 			// encountered a breakpoint for the first time in this run
@@ -224,12 +238,12 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 
 	this._executeCurrentInstruction = function() {
 		try {
-			var constantPool = classDef.getConstantPool();
+			var constantPool = methodDef.getClassDef().getConstantPool();
 
-			// if we're not executing an interface, use the constantpool from 
-			// the method definition's containing class
-			if(!methodDef.getClassDef().isInterface()) {
-				constantPool = methodDef.getClassDef().getConstantPool();
+			// if the method definition has no implementation, use the constantpool
+			// from the implementing class
+			if(methodDef.getClassDef().isInterface() || methodDef.isAbstract()) {
+				constantPool = classDef.getConstantPool();
 			}
 
 			if(_thread.getInitialFrame().getMethodDef().getName() == "main") {
@@ -260,8 +274,6 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 				// handle java exception ref
 				_output = error.getThrowable();
 
-				this._tearDownThreadListeners();
-
 				this.dispatch("onExceptionThrown", [error.getThrowable()]);
 
 				return;
@@ -282,7 +294,7 @@ jjvm.runtime.Frame = function(classDef, methodDef, args, parent) {
 	};
 
 	this.toString = function() {
-		return "Frame#" + classDef.getName() + "#" + methodDef.getName() + (_currentInstruction ? ":" + _currentInstruction.getLocation() : "");
+		return "Frame#" + classDef.getName() + "#" + methodDef.getName() + "(" + methodDef.getArgs() + ")" + (_currentInstruction ? ":" + _currentInstruction.getLocation() : "");
 	};
 
 	this.stepIntoNextInstruction = function() {

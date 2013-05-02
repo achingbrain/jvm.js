@@ -91,9 +91,9 @@ h3 {
 	overflow: auto;
 
 	height: 90%;
-	height: -moz-calc(100% - 141px);
-	height: -webkit-calc(100% - 141px);
-	height: calc(100% - 141px);
+	height: -moz-calc(100% - 137px);
+	height: -webkit-calc(100% - 137px);
+	height: calc(100% - 137px);
 }
 #classes li {
 	list-style: none;
@@ -158,7 +158,7 @@ h3 {
 }
 #program_define p {
 	text-align: center;
-	font-size: 2em;
+	font-size: 25px;
 	font-weight: bold;
 	color: #666;
 }

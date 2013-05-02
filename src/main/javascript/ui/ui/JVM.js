@@ -53,7 +53,7 @@ jjvm.ui.JVM = function() {
 	this.run = function(args) {
 		_worker.postMessage({
 			action: "run",
-			args: [args]
+			args: args
 		});
 	};
 

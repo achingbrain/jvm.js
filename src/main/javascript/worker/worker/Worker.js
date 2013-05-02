@@ -35,7 +35,7 @@ self.addEventListener("message", function(event) {
 
 			try {
 				jjvm.console.info("Executing...");
-				var thread = new jjvm.runtime.Thread(new jjvm.runtime.Frame(mainClass, mainMethod, args));
+				var thread = new jjvm.runtime.Thread(new jjvm.runtime.Frame(mainClass, mainMethod, [stringArgs]));
 				thread.registerOneTimeListener("onExecutionComplete", function() {
 					jjvm.runtime.ThreadPool.reap();
 				});
@@ -130,6 +130,8 @@ self.addEventListener("message", function(event) {
 
 // set up System.out & System.err
 var system = jjvm.core.ClassLoader.loadClass("java.lang.System");
+//system.setStaticField("props", jjvm.Util.createObjectRef("java.util.Properties", []));
+
 var inputStreamClass = jjvm.core.ClassLoader.loadClass("java.io.InputStream");
 var printStreamClass = jjvm.core.ClassLoader.loadClass("java.io.PrintStream");
 system.setStaticField("in", new jjvm.runtime.ObjectReference(inputStreamClass));
